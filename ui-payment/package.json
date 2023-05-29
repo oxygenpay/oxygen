@@ -1,0 +1,65 @@
+{
+  "name": "payment-frontend-react",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "src/**/*.ts?(x)": "make precommit-ts",
+    "*.{js,jsx}": [
+      "prettier --write",
+      "eslint --fix --quiet",
+      "git add"
+    ],
+    "*.{ts,tsx}": [
+      "prettier --write",
+      "eslint --fix --quiet",
+      "git add"
+    ],
+    "*.{json,scss,css,md,html}": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "dependencies": {
+    "@vitejs/plugin-basic-ssl": "^1.0.1",
+    "axios": "^1.1.3",
+    "formik": "^2.2.9",
+    "posthog-js": "^1.57.2",
+    "qrcode.react": "^3.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.4.3",
+    "react-use": "^17.4.0",
+    "tw-elements": "^1.0.0-alpha12",
+    "yup": "^0.32.11"
+  },
+  "devDependencies": {
+    "@types/cookie": "^0.5.1",
+    "@types/node": "^18.11.9",
+    "@types/react": "^18.0.24",
+    "@types/react-dom": "^18.0.8",
+    "@types/react-portal": "^4.0.4",
+    "@typescript-eslint/eslint-plugin": "^5.43.0",
+    "@typescript-eslint/parser": "^5.43.0",
+    "@vitejs/plugin-react": "^2.2.0",
+    "autoprefixer": "^10.4.13",
+    "eslint": "^8.27.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-react": "^7.31.10",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "husky": "^8.0.0",
+    "lint-staged": "^13.0.3",
+    "postcss": "^8.4.19",
+    "react-portal": "^4.2.2",
+    "tailwindcss": "^3.2.2",
+    "typescript": "^4.9.3",
+    "vite": "^3.2.3",
+    "vite-plugin-dynamic-import": "^1.2.3",
+    "vite-plugin-svgr": "^2.2.2"
+  }
+}

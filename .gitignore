@@ -1,5 +1,6 @@
 .idea
 .vscode
+!.vscode/extensions.json
 bin/
 config/*.yml
 web/redoc/**/*.json
