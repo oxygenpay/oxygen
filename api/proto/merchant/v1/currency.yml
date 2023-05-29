@@ -1,0 +1,73 @@
+swagger: '2.0'
+info: { version: '', title: '' }
+parameters: { }
+definitions:
+  Conversion:
+    type: object
+    description: Exchange rate
+    properties:
+      from:
+        type: string
+        description: Selected ticker
+        example: USD
+      fromType:
+        type: string
+        description: Selected ticker type
+        enum: [ fiat, crypto ]
+      to:
+        type: string
+        description: Desired ticket
+        example: ETH
+      toType:
+        type: string
+        description: Desired ticker type
+        enum: [ fiat, crypto ]
+      exchangeRate:
+        type: number
+        description: Conversion rate
+        example: 1820.50
+      selectedAmount:
+        type: string
+        description: Selected amount
+        example: '123'
+      convertedAmount:
+        type: string
+        description: Converted amount
+        example: '0.066'
+
+
+paths:
+  /currency-convert:
+    get:
+      summary: Get exchange rate of selected currency
+      description: |
+        Supports `crypto-to-fiat`, `fiat-to-fiat`, and `fiat-to-crypto` conversions.
+        This method differs from the one that is used in payment api.
+      operationId: getCurrencyConversion
+      tags: [ Currency ]
+      parameters:
+        - $ref: './merchant.yml#/parameters/MerchantId'
+        - in: query
+          name: from
+          description: Selected fiat/crypto currency
+          required: true
+          type: string
+        - in: query
+          name: amount
+          description: Selected fiat/crypto amount
+          required: true
+          type: string
+        - in: query
+          name: to
+          description: Desired fiat/crypto currency
+          required: true
+          type: string
+      responses:
+        200:
+          description: ExchangeRate
+          schema:
+            $ref: '#/definitions/Conversion'
+        400:
+          description: Bad request
+          schema:
+            $ref: './common.yml#/definitions/ErrorResponse'

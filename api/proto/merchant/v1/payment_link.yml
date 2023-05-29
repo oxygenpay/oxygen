@@ -1,0 +1,213 @@
+swagger: '2.0'
+info: { version: '', title: '' }
+parameters:
+  PaymentLinkId:
+    in: path
+    name: paymentLinkId
+    description: Payment Link UUID
+    type: string
+    required: true
+
+definitions:
+  PaymentLink:
+    type: object
+    description: Payment Link object
+    required: [ id, createdAt, url, name, currency, price, successAction ]
+    properties:
+      id:
+        description: Link's UUID
+        type: string
+        example: 123e4567-e89b-12d3-a456-426655440000
+        x-nullable: false
+      createdAt:
+        type: string
+        format: datetime
+        description: Created At timestamp
+        example: 2022-11-23 19:49:21.386201 +0000 UTC
+        x-nullable: false
+      url:
+        type: string
+        description: Link's URL
+        example: https://pay.o2pay.co/link/ufaiCu6J
+        x-nullable: false
+        x-omitempty: false
+      name:
+        type: string
+        description: Name
+        example: My Link
+        x-nullable: false
+        x-omitempty: false
+      currency:
+        type: string
+        description: Fiat ticker for payment template.
+        enum: [ USD, EUR ]
+        x-nullable: false
+      price:
+        type: string
+        description: Payment price
+        example: 29.90
+        x-nullable: false
+      description:
+        type: string
+        description: Optional payment description visible for a customer in payment screen
+        example: "White T-shirt size M"
+        x-nullable: true
+        x-omitempty: false
+      successAction:
+        type: string
+        description: |
+          Action type after OxygenPay receives incoming payment from a customer.
+          - `redirectUrl` displays "Back to site" button with provided .redirectUrl.
+          - `showMessage` displays "Show message" with content provided in .successMessage.
+        enum: [ redirect, showMessage ]
+        x-nullable: false
+        x-omitempty: false
+      redirectUrl:
+        type: string
+        description: Redirect URL after successful customer's payment
+        example: https://my-site.com/success?order=abc123
+        x-nullable: true
+        x-omitempty: false
+      successMessage:
+        type: string
+        description: message after successful customer's payment
+        example:
+        x-nullable: true
+        x-omitempty: false
+
+  PaymentLinksPagination:
+    type: object
+    required: [ results ]
+    properties:
+      results:
+        type: array
+        x-nullable: false
+        x-omitempty: false
+        items:
+          $ref: '#/definitions/PaymentLink'
+
+  CreatePaymentLinkRequest:
+    type: object
+    description: Payment Link object
+    required: [ name, currency, price, successAction ]
+    properties:
+      name:
+        type: string
+        description: Name
+        example: My Link
+        minLength: 4
+        maxLength: 64
+        x-nullable: false
+        x-omitempty: false
+      currency:
+        type: string
+        description: Fiat ticker for payment template.
+        enum: [ USD, EUR ]
+        x-nullable: false
+      price:
+        type: number
+        format: float32
+        description: Price in fiat currency
+        minimum: 0.01
+        example: 29.90
+        x-nullable: false
+      description:
+        type: string
+        description: Optional payment description visible for a customer in payment screen
+        example: "White T-shirt size M"
+        x-nullable: true
+        x-omitempty: false
+      successAction:
+        type: string
+        description: |
+          Action type after OxygenPay receives incoming payment from a customer.
+          - `redirectUrl` displays "Back to site" button with provided .redirectUrl.
+          - `showMessage` displays "Show message" with content provided in .successMessage.
+        enum: [ redirect, showMessage ]
+        x-nullable: false
+        x-omitempty: false
+      redirectUrl:
+        type: string
+        description: Redirect URL after successful customer's payment
+        example: https://my-site.com/success?order=abc123
+        x-nullable: true
+        x-omitempty: false
+      successMessage:
+        type: string
+        description: message after successful customer's payment
+        minLength: 4
+        maxLength: 250
+        example: Thank you!
+        x-nullable: true
+        x-omitempty: false
+
+paths:
+  /payment-link:
+    get:
+      summary: List payment links
+      parameters:
+        - $ref: './merchant.yml#/parameters/MerchantId'
+      operationId: listPaymentLinks
+      tags: [ PaymentLink ]
+      responses:
+        200:
+          description: PaymentLinks List
+          schema:
+            $ref: '#/definitions/PaymentLinksPagination'
+        400:
+          description: Validation error
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'
+
+    post:
+      summary: Create payment link
+      tags: [ PaymentLink ]
+      parameters:
+        - $ref: './merchant.yml#/parameters/MerchantId'
+        - in: body
+          name: data
+          required: true
+          schema:
+            $ref: '#/definitions/CreatePaymentLinkRequest'
+      responses:
+        201:
+          description: PaymentLink created
+          schema:
+            $ref: '#/definitions/PaymentLink'
+        400:
+          description: Validation error
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'
+
+  /payment-link/{paymentLinkId}:
+    get:
+      summary: Get payment link
+      parameters:
+        - $ref: './merchant.yml#/parameters/MerchantId'
+        - $ref: '#/parameters/PaymentLinkId'
+      operationId: getPaymentLink
+      tags: [ PaymentLink ]
+      responses:
+        200:
+          description: PaymentLink
+          schema:
+            $ref: '#/definitions/PaymentLink'
+        400:
+          description: Not found
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'
+
+    delete:
+      summary: Delete payment link
+      parameters:
+        - $ref: './merchant.yml#/parameters/MerchantId'
+        - $ref: '#/parameters/PaymentLinkId'
+      operationId: deletePaymentLink
+      tags: [ PaymentLink ]
+      responses:
+        204:
+          description: Deleted
+        400:
+          description: Not found
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'

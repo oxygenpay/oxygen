@@ -1,0 +1,91 @@
+swagger: '2.0'
+info: { version: '', title: '' }
+parameters:
+  PaymentLinkSlug:
+    in: path
+    name: paymentLinkSlug
+    type: string
+    required: true
+    description: Payment Link slug
+
+definitions:
+  PaymentLink:
+    type: object
+    required: [ currency, price, merchantName ]
+    properties:
+      currency:
+        type: string
+        description: Currency
+        example: 'USD'
+        x-nullable: false
+      price:
+        type: number
+        description: Price
+        example: 39.90
+        x-nullable: false
+      merchantName:
+        type: string
+        description: Merchant's store name
+        example: Delta Airlines
+        x-nullable: false
+      description:
+        type: string
+        description: Payment description
+        example: M-sized sweater
+        x-nullable: true
+        x-omitempty: false
+
+  PaymentRedirectInfo:
+    type: object
+    required: [ id ]
+    properties:
+      id:
+        type: string
+        description: Payment UUID
+        example: 'a51e7a5-f0c8-48dc-a9fb-a335481ae846'
+        x-nullable: false
+
+  CreatePaymentFromLinkRequest:
+    type: object
+
+paths:
+  /payment-link/{paymentLinkSlug}:
+    get:
+      summary: Get payment link
+      operationId: getPaymentLink
+      tags: [ PaymentLink ]
+      parameters:
+        - $ref: '#/parameters/PaymentLinkSlug'
+      responses:
+        200:
+          description: Payment Link
+          schema:
+            $ref: '#/definitions/PaymentLink'
+        400:
+          description: Bad request / Not Found
+          schema:
+            $ref: '../payment-v1.yml#/definitions/ErrorResponse'
+
+  /payment-link/{paymentLinkSlug}/payment:
+    post:
+      summary: Create payment from a link
+      operationId: createPaymentFromLink
+      tags: [ PaymentLink ]
+      parameters:
+        - $ref: '#/parameters/PaymentLinkSlug'
+        - in: body
+          name: data
+          required: true
+          schema:
+            $ref: '#/definitions/CreatePaymentFromLinkRequest'
+      responses:
+        201:
+          description: Payment created
+          schema:
+            $ref: '#/definitions/PaymentRedirectInfo'
+        400:
+          description: Bad request / Not Found
+          schema:
+            $ref: '../payment-v1.yml#/definitions/ErrorResponse'
+        429:
+          description: Too many requests

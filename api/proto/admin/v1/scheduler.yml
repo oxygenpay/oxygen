@@ -1,0 +1,51 @@
+swagger: '2.0'
+info: { version: '', title: '' }
+parameters: { }
+definitions:
+  RunJobRequest:
+    type: object
+    required: [ job ]
+    properties:
+      job:
+        type: string
+        x-nullable: false
+
+  JobResults:
+    type: object
+    properties:
+      error:
+        type: string
+      logs:
+        type: array
+        items:
+          $ref: '#/definitions/Log'
+
+  Log:
+    type: object
+    properties:
+      message:
+        type: string
+      metadata:
+        type: object
+
+paths:
+  /job:
+    post:
+      summary: Run scheduler job
+      operationId: runSchedulerJob
+      tags: [ scheduler ]
+      parameters:
+        - in: body
+          name: data
+          required: true
+          schema:
+            $ref: '#/definitions/RunJobRequest'
+      responses:
+        200:
+          description: Job info
+          schema:
+            $ref: '#/definitions/JobResults'
+        400:
+          description: Validation error / Not found
+          schema:
+            $ref: '../admin-v1.yml#/definitions/ErrorResponse'

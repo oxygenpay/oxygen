@@ -1,0 +1,79 @@
+swagger: '2.0'
+info:
+  version: 1.0.0
+  title: Merchant API
+  description: |
+    Welcome to the **Merchant API**!
+    Here you can find all available endpoints for creating and processing payments.
+    
+    If you want to exercise the API via SDK for preferred language, you can easily generate one by
+    downloading this spec (click the button above), then go to
+    <a href="https://editor.swagger.io" target="_blank">Swagger Editor</a>, paste the spec and click "Generate Client"
+    in top toolbar. If you're using Golang, we suggest generating SDK with
+    <a href="https://github.com/go-swagger/go-swagger" target="_blank">go-swagger</a>.
+    
+    ## Authentication 🔐
+    API uses token based authentication that you need to provide in each request. `X-O2PAY-TOKEN` is used as key. 
+    You can obtain API token in merchant's settings in dashboard at
+    <a href="https://app.o2pay.co" target="_blank">app.o2pay.co</a>
+    
+    Example request:
+    ```bash
+      curl --header 'X-O2PAY-TOKEN: <your-token>' \
+        https://api.o2pay.co/api/merchant/v1/merchant/5a51e7a5-f0c8-48dc-a9fb-a335481ae846/balance
+    ```
+    
+    Unauthorized requests return `401 Unauthorized` response:
+    ```json
+    {
+      "message": "Unauthorized",
+      "status": "token_error"
+    }
+    ```
+    
+    ## Quickstart 🚀
+    - [Create payment](#tag/Payment/operation/createPayment) 
+
+host: api.o2pay.co
+basePath: /api/merchant/v1
+produces: [ application/json ]
+schemes: [ https ]
+consumes: [ application/json ]
+securityDefinitions:
+  TokenAuth:
+    type: apiKey
+    in: header
+    name: X-O2PAY-TOKEN
+security:
+  - TokenAuth: [ ]
+
+definitions: { }
+
+tags:
+  - name: PaymentLink
+    description: |
+      Links are the easy way of accepting payments from your customers.
+      Each link represents a pre-defined payment with amount and description.
+      Customer can create a payment on-the-fly by visiting `https://pay.o2pay.co/link/<link>`
+
+paths:
+  /merchant/{merchantId}/payment:
+    $ref: './v1/payment.yml#/paths/~1payment'
+
+  /merchant/{merchantId}/payment/{paymentId}:
+    $ref: './v1/payment.yml#/paths/~1payment~1{paymentId}'
+
+  /merchant/{merchantId}/payment-link:
+    $ref: './v1/payment_link.yml#/paths/~1payment-link'
+
+  /merchant/{merchantId}/payment-link/{paymentLinkId}:
+    $ref: './v1/payment_link.yml#/paths/~1payment-link~1{paymentLinkId}'
+
+  /merchant/{merchantId}/balance:
+    $ref: './v1/merchant_balance.yml#/paths/~1balance'
+
+  /merchant/{merchantId}/customer:
+    $ref: './v1/customer.yml#/paths/~1customer'
+
+  /merchant/{merchantId}/customer/{customerId}:
+    $ref: './v1/customer.yml#/paths/~1customer~1{customerId}'

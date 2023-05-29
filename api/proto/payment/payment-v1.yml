@@ -1,0 +1,73 @@
+swagger: '2.0'
+info:
+  version: 1.0.0
+  title: Payment API
+  description: Represents public-facing API of pay.o2pay.co
+
+host: 127.0.0.1
+basePath: /api/payment/v1
+produces:
+  - application/json
+schemes: [ https ]
+consumes:
+  - application/json
+securityDefinitions:
+  TokenAuth:
+    type: apiKey
+    in: header
+    name: x-csrf-token
+security:
+  - TokenAuth: [ ]
+
+paths:
+  /currency-convert:
+    $ref: './v1/currency.yml#/paths/~1currency-convert'
+
+  /payment/{paymentId}:
+    $ref: './v1/payment.yml#/paths/~1payment~1{paymentId}'
+
+  /payment/{paymentId}/customer:
+    $ref: './v1/payment.yml#/paths/~1payment~1{paymentId}~1customer'
+
+  /payment/{paymentId}/method:
+    $ref: './v1/payment.yml#/paths/~1payment~1{paymentId}~1method'
+
+  /payment/{paymentId}/supported-method:
+    $ref: './v1/payment.yml#/paths/~1payment~1{paymentId}~1supported-method'
+
+  /payment-link/{paymentLinkSlug}:
+    $ref: './v1/payment_link.yml#/paths/~1payment-link~1{paymentLinkSlug}'
+
+  /payment-link/{paymentLinkSlug}/payment:
+    $ref: './v1/payment_link.yml#/paths/~1payment-link~1{paymentLinkSlug}~1payment'
+
+definitions:
+  ErrorResponseItem:
+    type: object
+    properties:
+      message:
+        type: string
+        description: Error Message
+        example: You are unauthenticated
+      field:
+        type: string
+        description: Error field
+        example: username
+
+  ErrorResponse:
+    type: object
+    properties:
+      status:
+        type: string
+        description: Error status
+        example: unauthenticated
+      message:
+        type: string
+        description: Error Message
+        example: You are unauthenticated
+      errors:
+        type: array
+        description: Errors list
+        x-nullable: false
+        items:
+          $ref: '#/definitions/ErrorResponseItem'

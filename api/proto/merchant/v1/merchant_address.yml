@@ -1,0 +1,177 @@
+swagger: '2.0'
+info: { version: '', title: '' }
+parameters:
+  AddressId:
+    in: path
+    name: addressId
+    type: string
+    required: true
+
+definitions:
+  ##########################################################
+  # Requests
+  ##########################################################
+
+  CreateMerchantAddressRequest:
+    type: object
+    required: [ blockchain, name, address ]
+    properties:
+      blockchain:
+        type: string
+        enum: [ BTC, ETH, TRON, MATIC ]
+        example: ETH
+        x-nullable: false
+      address:
+        type: string
+        maxLength: 128
+        example: 0xdc22Bb64132fB03467910fc49595F08fCf5C241b
+        x-nullable: false
+      name:
+        type: string
+        minLength: 2
+        maxLength: 128
+        description: Name
+        example: My Wallet
+        x-nullable: false
+
+  UpdateMerchantAddressRequest:
+    type: object
+    required: [ name ]
+    properties:
+      name:
+        type: string
+        minLength: 2
+        maxLength: 128
+        description: Name
+        example: My Wallet
+        x-nullable: false
+
+  ##########################################################
+  # Entities
+  ##########################################################
+  MerchantAddressList:
+    type: object
+    properties:
+      results:
+        type: array
+        items:
+          $ref: '#/definitions/MerchantAddress'
+
+  MerchantAddress:
+    type: object
+    properties:
+      id:
+        description: Address UUID
+        type: string
+        example: 123e4567-e89b-12d3-a456-426655440000
+        x-nullable: false
+        x-omitempty: false
+      blockchain:
+        type: string
+        enum: [ ETH, TRON, MATIC ]
+        example: ETH
+        x-nullable: false
+        x-omitempty: false
+      blockchainName:
+        type: string
+        description: Blockchain name
+        example: Ethereum
+      address:
+        type: string
+        maxLength: 128
+        example: 0xdc22Bb64132fB03467910fc49595F08fCf5C241b
+        x-nullable: false
+        x-omitempty: false
+      name:
+        type: string
+        minLength: 2
+        maxLength: 128
+        description: Name
+        example: My Wallet
+        x-nullable: false
+        x-omitempty: false
+
+paths:
+  /address:
+    get:
+      summary: List Addresses
+      parameters:
+        - $ref: './merchant.yml#/parameters/MerchantId'
+      operationId: listMerchantAddresses
+      tags: [ MerchantAddress ]
+      responses:
+        200:
+          description: Address list
+          schema:
+            $ref: '#/definitions/MerchantAddressList'
+    post:
+      summary: Create Address
+      operationId: createMerchantAddress
+      tags: [ MerchantAddress ]
+      parameters:
+        - $ref: './merchant.yml#/parameters/MerchantId'
+        - in: body
+          name: data
+          required: true
+          schema:
+            $ref: '#/definitions/CreateMerchantAddressRequest'
+      responses:
+        201:
+          description: Address created
+          schema:
+            $ref: '#/definitions/MerchantAddress'
+        400:
+          description: Validation error
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'
+
+  /address/{addressId}:
+    get:
+      summary: Get Address
+      operationId: getMerchantAddress
+      parameters:
+        - $ref: './merchant.yml#/parameters/MerchantId'
+        - $ref: '#/parameters/AddressId'
+      tags: [ MerchantAddress ]
+      responses:
+        200:
+          description: Address
+          schema:
+            $ref: '#/definitions/MerchantAddress'
+        400:
+          description: Not found / Validation error
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'
+    put:
+      summary: Update Address
+      operationId: updateMerchantAddress
+      parameters:
+        - $ref: './merchant.yml#/parameters/MerchantId'
+        - $ref: '#/parameters/AddressId'
+        - in: body
+          name: data
+          required: true
+          schema:
+            $ref: '#/definitions/UpdateMerchantAddressRequest'
+      tags: [ MerchantAddress ]
+      responses:
+        200:
+          description: Address Updated
+        400:
+          description: Validation error
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'
+    delete:
+      summary: Delete Address
+      operationId: deleteMerchantAddress
+      parameters:
+        - $ref: './merchant.yml#/parameters/MerchantId'
+        - $ref: '#/parameters/AddressId'
+      tags: [ MerchantAddress ]
+      responses:
+        204:
+          description: Address Deleted
+        400:
+          description: Validation error
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'

@@ -1,0 +1,282 @@
+swagger: '2.0'
+info: { version: '', title: '' }
+parameters:
+  MerchantId:
+    in: path
+    name: merchantId
+    description: Merchant UUID
+    type: string
+    required: true
+
+definitions:
+  ##########################################################
+  # Requests
+  ##########################################################
+  CreateMerchantRequest: &createMerchantRequest
+    type: object
+    required: [ name, website ]
+    properties:
+      name:
+        type: string
+        minLength: 2
+        maxLength: 128
+        description: Name
+        example: My Store
+        x-nullable: false
+      website:
+        type: string
+        minLength: 2
+        maxLength: 255
+        description: Website URL
+        example: https://my-store.com
+        x-nullable: false
+
+  UpdateSupportedPaymentMethodsRequest:
+    type: object
+    required: [ supportedPaymentMethods ]
+    properties:
+      supportedPaymentMethods:
+        type: array
+        x-nullable: false
+        x-omitempty: false
+        minItems: 1
+        items:
+          type: string
+          enum: [ ETH, ETH_USDT, MATIC, MATIC_USDT, TRON, TRON_USDT ]
+
+  UpdateMerchantRequest: *createMerchantRequest
+
+  ##########################################################
+  # Entities
+  ##########################################################
+
+  MerchantListItem:
+    type: object
+    properties:
+      id:
+        type: string
+        description: merchant UUID
+        example: 1eb5fbb5-ece0-475c-9ddd-23c524a33e06
+      name:
+        type: string
+        description: Name
+        example: My Store
+      website:
+        type: string
+        description: Website URL
+        example: https://my-store.com
+
+  Merchant:
+    type: object
+    properties:
+      id:
+        type: string
+        description: merchant UUID
+        example: 1eb5fbb5-ece0-475c-9ddd-23c524a33e06
+      name:
+        type: string
+        description: Name
+        example: My Store
+      website:
+        type: string
+        description: Website URL
+        example: https://my-store.com
+      webhookSettings:
+        $ref: '#/definitions/WebhookSettings'
+      supportedPaymentMethods:
+        type: array
+        items:
+          $ref: '#/definitions/SupportedPaymentMethod'
+
+  MerchantList:
+    type: object
+    required: [ results ]
+    properties:
+      results:
+        type: array
+        items:
+          $ref: '#/definitions/MerchantListItem'
+
+  WebhookSettings:
+    type: object
+    required: [ url ]
+    x-omitempty: false
+    properties:
+      url:
+        type: string
+        description: Webhook URL
+        example: https://my-site.com/webhook/oxygen-pay
+        x-nullable: false
+        x-omitempty: false
+      secret:
+        type: string
+        description: HMAC secret for checking webhook signature
+        maxLength: 128
+        example: xa9iZoo6
+        x-nullable: false
+        x-omitempty: false
+
+  SupportedPaymentMethod:
+    type: object
+    description: PaymentType
+    x-omitempty: false
+    properties:
+      blockchain:
+        type: string
+        description: Blockchain ticker
+        example: ETH
+        x-nullable: false
+        x-omitempty: false
+      blockchainName:
+        type: string
+        example: Ethereum
+        x-omitempty: false
+        x-nullable: false
+      displayName:
+        type: string
+        description: Display Name
+        example: USDT (Ethereum)
+        x-omitempty: false
+        x-nullable: false
+      ticker:
+        type: string
+        example: ETH_USDT
+        x-omitempty: false
+        x-nullable: false
+      name:
+        type: string
+        description: Coin / Token Name
+        example: USDT
+        x-omitempty: false
+        x-nullable: false
+      enabled:
+        type: boolean
+        example: true
+        x-omitempty: false
+        x-nullable: false
+
+paths:
+  /merchant:
+    get:
+      summary: List Merchants
+      operationId: listMerchants
+      tags: [ Merchant ]
+      responses:
+        200:
+          description: Merchant list
+          schema:
+            $ref: '#/definitions/MerchantList'
+        400:
+          description: Validation error
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'
+
+    post:
+      summary: Create Merchant
+      operationId: createMerchant
+      tags: [ Merchant ]
+      parameters:
+        - in: body
+          name: data
+          required: true
+          description: Merchant object
+          schema:
+            $ref: '#/definitions/CreateMerchantRequest'
+      responses:
+        201:
+          description: Merchant created
+          schema:
+            $ref: '#/definitions/Merchant'
+        400:
+          description: Validation error
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'
+
+  /merchant/{merchantId}:
+    get:
+      summary: Get Merchant
+      operationId: getMerchant
+      parameters:
+        - $ref: '#/parameters/MerchantId'
+      tags: [ Merchant ]
+      responses:
+        200:
+          description: Merchant
+          schema:
+            $ref: '#/definitions/Merchant'
+        400:
+          description: Validation error
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'
+    put:
+      summary: Update Merchant
+      operationId: updateMerchant
+      parameters:
+        - $ref: '#/parameters/MerchantId'
+        - in: body
+          name: data
+          required: true
+          schema:
+            $ref: '#/definitions/UpdateMerchantRequest'
+      tags: [ Merchant ]
+      responses:
+        204:
+          description: Merchant updated
+        400:
+          description: Validation error
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'
+    delete:
+      summary: Delete Merchant
+      operationId: deleteMerchant
+      parameters:
+        - $ref: '#/parameters/MerchantId'
+      tags: [ Merchant ]
+      responses:
+        204:
+          description: Merchant Deleted
+        400:
+          description: Validation error
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'
+
+  /merchant/{merchantId}/webhook:
+    put:
+      summary: Update Merchant's webhook settings
+      operationId: updateMerchantWebhookSettings
+      parameters:
+        - $ref: '#/parameters/MerchantId'
+        - in: body
+          name: data
+          required: true
+          description: Webhook object
+          schema:
+            $ref: '#/definitions/WebhookSettings'
+      tags: [ Merchant ]
+      responses:
+        204:
+          description: Webhook data updated
+        400:
+          description: Validation error
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'
+
+  /merchant/{merchantId}/supported-method:
+    put:
+      summary: Update Merchant's supported payment methods
+      operationId: updateMerchantSupportedPaymentMethods
+      parameters:
+        - $ref: '#/parameters/MerchantId'
+        - in: body
+          name: data
+          required: true
+          schema:
+            $ref: '#/definitions/UpdateSupportedPaymentMethodsRequest'
+      tags: [ Merchant ]
+      responses:
+        204:
+          description: Methods updated
+        400:
+          description: Validation error
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'

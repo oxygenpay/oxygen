@@ -1,0 +1,117 @@
+swagger: '2.0'
+info: { version: '', title: '' }
+parameters:
+  BalanceId:
+    in: query
+    name: balanceId
+    description: Balance UUID
+    type: string
+    required: true
+
+definitions:
+  ##########################################################
+  # Entities
+  ##########################################################
+  Withdrawal:
+    type: object
+    properties:
+      paymentId:
+        type: string
+        description: Payment UUID
+        example: 'A9B04890-7FB9-42C6-A63B-9163968E4580'
+
+  WithdrawalFee:
+    type: object
+    properties:
+      calculatedAt:
+        type: string
+        format: datetime
+        example: '2023-04-06 19:56:39.358834 +0000 UTC'
+        x-omitempty: false
+      blockchain:
+        type: string
+        description: Blockchain
+        example: ETH
+        x-omitempty: false
+      currency:
+        type: string
+        description: Currency
+        example: ETH_USDT
+        x-omitempty: false
+      usdFee:
+        type: string
+        description: USD fee
+        example: '5.68'
+        x-omitempty: false
+      currencyFee:
+        type: string
+        example: '5.75'
+        description: Fee in withdrawal currency
+        x-omitempty: false
+      isTest:
+        description: Indicates whether currency is on testnet
+        type: boolean
+        x-omitempty: false
+
+  ##########################################################
+  # Requests
+  ##########################################################
+  CreateWithdrawalRequest:
+    type: object
+    required: [ addressId, balanceId, amount ]
+    properties:
+      addressId:
+        type: string
+        description: Address UUID
+        example: 'ABF75267-910D-4FC8-9E21-3A3B48509DC2'
+        x-nullable: false
+      balanceId:
+        type: string
+        description: Balance UUID
+        example: '2402782A-711D-4ECD-8B73-FE561EBF5FEC'
+        x-nullable: false
+      amount:
+        type: string
+        description: Withdrawal amount as string
+        example: '0.0367'
+        x-nullable: false
+
+paths:
+  /withdrawal:
+    post:
+      summary: Create withdrawal
+      operationId: createWithdrawal
+      tags: [ Withdrawal ]
+      parameters:
+        - $ref: './merchant.yml#/parameters/MerchantId'
+        - in: body
+          name: data
+          required: true
+          schema:
+            $ref: '#/definitions/CreateWithdrawalRequest'
+      responses:
+        201:
+          description: Withdrawal created
+          schema:
+            $ref: '#/definitions/Withdrawal'
+        400:
+          description: Validation error / Bad request
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'
+  /withdrawal-fee:
+    get:
+      summary: Get withdrawal fee
+      operationId: getWithdrawalFee
+      tags: [ Withdrawal ]
+      parameters:
+        - $ref: './merchant.yml#/parameters/MerchantId'
+        - $ref: '#/parameters/BalanceId'
+      responses:
+        200:
+          description: Withdrawal Fee
+          schema:
+            $ref: '#/definitions/WithdrawalFee'
+        400:
+          description: Validation error / Bad request
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'

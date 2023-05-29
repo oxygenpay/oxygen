@@ -1,0 +1,57 @@
+swagger: '2.0'
+info:
+  version: 1.0.0
+  title: KMS internal API
+
+host: 127.0.0.1
+basePath: /api/kms/v1
+produces: [ application/json ]
+schemes: [ http ]
+consumes: [ application/json ]
+
+paths:
+  /wallet:
+    $ref: './v1/wallet.yml#/paths/~1wallet'
+
+  /wallet/{walletId}:
+    $ref: './v1/wallet.yml#/paths/~1wallet~1{walletId}'
+
+  /wallet/{walletId}/transaction/eth:
+    $ref: './v1/wallet.yml#/paths/~1wallet~1{walletId}~1transaction~1eth'
+
+  /wallet/{walletId}/transaction/matic:
+    $ref: './v1/wallet.yml#/paths/~1wallet~1{walletId}~1transaction~1matic'
+
+  /wallet/{walletId}/transaction/tron:
+    $ref: './v1/wallet.yml#/paths/~1wallet~1{walletId}~1transaction~1tron'
+
+definitions:
+  ErrorResponseItem:
+    type: object
+    properties:
+      message:
+        type: string
+        description: Error Message
+        example: You are unauthenticated
+      field:
+        type: string
+        description: Error field
+        example: username
+
+  ErrorResponse:
+    type: object
+    properties:
+      status:
+        type: string
+        description: Error status
+        example: unauthenticated
+      message:
+        type: string
+        description: Error Message
+        example: You are unauthenticated
+      errors:
+        type: array
+        description: Errors list
+        x-nullable: false
+        items:
+          $ref: '#/definitions/ErrorResponseItem'

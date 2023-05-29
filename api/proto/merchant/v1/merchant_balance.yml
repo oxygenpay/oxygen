@@ -1,0 +1,85 @@
+swagger: '2.0'
+info: { version: '', title: '' }
+parameters: { }
+definitions:
+  ##########################################################
+  # Entities
+  ##########################################################
+  MerchantBalanceList:
+    type: object
+    properties:
+      results:
+        type: array
+        items:
+          $ref: '#/definitions/MerchantBalance'
+
+  MerchantBalance:
+    type: object
+    properties:
+      id:
+        description: Balance identifier
+        type: string
+        example: 123e4567-e89b-12d3-a456-426655440000
+        x-nullable: false
+        x-omitempty: false
+      blockchain:
+        type: string
+        description: Blockchain network
+        example: ETH
+        x-omitempty: false
+      blockchainName:
+        type: string
+        description: Blockchain name
+        example: Ethereum
+        x-omitempty: false
+      isTest:
+        type: boolean
+        description: Indicates whether balance is test or not
+        x-omitempty: false
+      minimalWithdrawalAmountUSD:
+        type: string
+        description: Minimal withdrawal amount in USD
+        x-omitempty: false
+        example: '50'
+      name:
+        type: string
+        description: Balance name
+        x-omitempty: false
+        example: USDT (Ethereum)
+      currency:
+        type: string
+        description: Currency name
+        x-omitempty: false
+        example: USDT
+      ticker:
+        type: string
+        description: Currency ticker
+        x-omitempty: false
+        example: ETH_USDT
+      amount:
+        type: string
+        description: Assets amount in balance currency
+        x-omitempty: false
+        example: '50.40'
+      usdAmount:
+        type: string
+        description: Assets amount in USD
+        x-omitempty: false
+        example: '50.40'
+
+paths:
+  /balance:
+    get:
+      summary: List Balances
+      description: |
+        Returns list of existing balances. 
+        A balance is a unique ledger per currency, blockchain and network (mainnet, testnet)
+      operationId: listMerchantBalances
+      parameters:
+        - $ref: './merchant.yml#/parameters/MerchantId'
+      tags: [ Balances ]
+      responses:
+        200:
+          description: Balances
+          schema:
+            $ref: '#/definitions/MerchantBalanceList'

@@ -1,0 +1,140 @@
+swagger: '2.0'
+info: { version: '', title: '' }
+parameters:
+  CustomerId:
+    in: path
+    name: customerId
+    description: Customer UUID
+    type: string
+    required: true
+
+definitions:
+  ##########################################################
+  # Entities
+  ##########################################################
+  Customer:
+    type: object
+    properties:
+      id:
+        type: string
+        description: Customer UUID
+        example: 'A9B04890-7FB9-42C6-A63B-9163968E4580'
+        x-nullable: false
+      createdAt:
+        type: string
+        format: datetime
+        description: CreatedAt
+        x-nullable: false
+      email:
+        type: string
+        description: Email
+        example: 'customer@example.com'
+        x-nullable: false
+      details:
+        type: object
+        description: Customer Details. Available only in `getCustomerDetails` endpoint
+        x-omitempty: true
+        properties:
+          successfulPayments:
+            type: integer
+            description: Number of successful payments
+            x-nullable: false
+            x-omitempty: false
+          payments:
+            type: array
+            x-nullable: false
+            x-omitempty: false
+            items:
+              $ref: '#/definitions/CustomerPayment'
+
+  CustomerPayment:
+    type: object
+    description: Payment object
+    properties:
+      id:
+        description: Order UUID
+        type: string
+        example: 123e4567-e89b-12d3-a456-426655440000
+        x-nullable: false
+      status:
+        type: string
+        description: Payment status
+        enum: [ pending, inProgress, success, failed ]
+        x-nullable: false
+      createdAt:
+        type: string
+        format: datetime
+        description: Created timestamp
+        example: 2022-11-23 19:49:21.386201 +0000 UTC
+        x-nullable: false
+      currency:
+        type: string
+        enum: [ USD, EUR ]
+        description: Fiat currency
+        x-nullable: false
+      price:
+        type: string
+        description: Payment price
+        example: 29.90
+        x-nullable: false
+
+  CustomersPagination:
+    type: object
+    required: [ limit, cursor, results ]
+    properties:
+      limit:
+        type: integer
+        example: 50
+        x-nullable: false
+        x-omitempty: false
+      cursor:
+        type: string
+        example: 8c857501-e67d-4a0b-98d9-46e461b42c09
+        x-nullable: false
+        x-omitempty: false
+      results:
+        type: array
+        x-nullable: false
+        x-omitempty: false
+        items:
+          $ref: '#/definitions/Customer'
+
+paths:
+  /customer:
+    get:
+      summary: List customers
+      description: Paginates customers based on provided cursor. Empty cursor indicates that there are no more results
+      operationId: listCustomer
+      tags: [ Customer ]
+      parameters:
+        - $ref: './merchant.yml#/parameters/MerchantId'
+        - $ref: './common.yml#/parameters/QueryLimit'
+        - $ref: './common.yml#/parameters/QueryCursor'
+        - $ref: './common.yml#/parameters/QueryReverseOrder'
+      responses:
+        200:
+          description: Customers list
+          schema:
+            $ref: '#/definitions/CustomersPagination'
+        400:
+          description: Validation error / Bad request
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'
+
+  /customer/{customerId}:
+    get:
+      summary: Get customer details
+      operationId: getCustomerDetails
+      tags: [ Customer ]
+      parameters:
+        - $ref: './merchant.yml#/parameters/MerchantId'
+        - $ref: '#/parameters/CustomerId'
+      responses:
+        200:
+          description: Customer details
+          schema:
+            $ref: '#/definitions/Customer'
+        400:
+          description: Validation error / Bad request
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'

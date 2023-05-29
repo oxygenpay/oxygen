@@ -1,0 +1,87 @@
+swagger: '2.0'
+info:
+  version: 1.0.0
+  title: dashboard API
+  description: |
+    Dashboard API represents Merchant Dashboard.
+
+    For auth you should call csrf-cookie endpoint (it responses with csrf cookie & csrf token)
+    And save token for later api calls (include it in each request as X-CSRF-Token). Each api request 
+    should be with *withCredentials: true*
+
+host: app.o2pay.co
+basePath: /api/dashboard/v1
+produces:
+  - application/json
+schemes:
+  - https
+consumes:
+  - application/json
+definitions: { }
+
+paths:
+  /auth/csrf-cookie:
+    $ref: './v1/auth.yml#/paths/~1csrf-cookie'
+
+  /auth/me:
+    $ref: './v1/auth.yml#/paths/~1me'
+
+  /auth/logout:
+    $ref: './v1/auth.yml#/paths/~1logout'
+
+  /merchant:
+    $ref: './v1/merchant.yml#/paths/~1merchant'
+
+  /merchant/{merchantId}:
+    $ref: './v1/merchant.yml#/paths/~1merchant~1{merchantId}'
+
+  /merchant/{merchantId}/webhook:
+    $ref: './v1/merchant.yml#/paths/~1merchant~1{merchantId}~1webhook'
+
+  /merchant/{merchantId}/supported-method:
+    $ref: './v1/merchant.yml#/paths/~1merchant~1{merchantId}~1supported-method'
+
+  /merchant/{merchantId}/token:
+    $ref: './v1/merchant_token.yml#/paths/~1token'
+
+  /merchant/{merchantId}/token/{tokenId}:
+    $ref: './v1/merchant_token.yml#/paths/~1token~1{tokenId}'
+
+  /merchant/{merchantId}/address:
+    $ref: './v1/merchant_address.yml#/paths/~1address'
+
+  /merchant/{merchantId}/address/{addressId}:
+    $ref: './v1/merchant_address.yml#/paths/~1address~1{addressId}'
+
+  /merchant/{merchantId}/payment:
+    $ref: './v1/payment.yml#/paths/~1payment'
+
+  /merchant/{merchantId}/payment/{paymentId}:
+    $ref: './v1/payment.yml#/paths/~1payment~1{paymentId}'
+
+  /merchant/{merchantId}/payment-link:
+    $ref: './v1/payment_link.yml#/paths/~1payment-link'
+
+  /merchant/{merchantId}/payment-link/{paymentLinkId}:
+    $ref: './v1/payment_link.yml#/paths/~1payment-link~1{paymentLinkId}'
+
+  /merchant/{merchantId}/balance:
+    $ref: './v1/merchant_balance.yml#/paths/~1balance'
+
+  /merchant/{merchantId}/withdrawal:
+    $ref: './v1/merchant_withdrawal.yml#/paths/~1withdrawal'
+
+  /merchant/{merchantId}/withdrawal-fee:
+    $ref: './v1/merchant_withdrawal.yml#/paths/~1withdrawal-fee'
+
+  /merchant/{merchantId}/currency-convert:
+    $ref: './v1/currency.yml#/paths/~1currency-convert'
+
+  /merchant/{merchantId}/customer:
+    $ref: './v1/customer.yml#/paths/~1customer'
+
+  /merchant/{merchantId}/customer/{customerId}:
+    $ref: './v1/customer.yml#/paths/~1customer~1{customerId}'
+
+  /merchant/{merchantId}/form:
+    $ref: './v1/form.yml#/paths/~1form'

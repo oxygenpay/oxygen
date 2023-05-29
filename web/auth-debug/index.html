@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Auth debug</title>
+    <style>
+        body {
+            font-family: Consolas, "Source Code Pro", "Courier New", serif;
+            padding: 10px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        pre {
+            border: 1px solid #ccc;
+            padding: 10px;
+            max-width: 100%;
+            height: 400px;
+            font-size: 12px;
+            overflow: scroll;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        a {
+            text-decoration: none;
+            padding: 8px 20px;
+            border: 1px solid;
+        }
+
+        a:visited {
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+<h1>Auth debug</h1>
+<a href="/">Back</a><br>
+<pre id="console"></pre>
+<a href="/api/dashboard/v1/auth/redirect">Google Sign-in 🔑</a>
+<a href="#" id="logout" class="hidden">Logout 💤</a>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.24.0/axios.min.js"></script>
+<script>
+  const consoleWriter = document.querySelector('#console')
+  const logoutButton = document.querySelector('#logout')
+
+  function log(message, data) {
+    const ts = (new Date()).toLocaleTimeString()
+    const raw = JSON.stringify(data, null, 2)
+
+    consoleWriter.insertAdjacentText('beforeend', `[${ts}] ${message}\n${raw}\n`)
+  }
+
+  function fail(message, error) {
+    const res = error.response
+
+    log(message, {
+      statusCode: res.status,
+      data: res.data,
+      headers: res.headers,
+    })
+  }
+
+  const url = new URL(document.URL)
+  const client = axios.create({
+    baseURL: `${url.protocol}//${url.host}/api`,
+    withCredentials: true,
+    headers: {'Accept': 'application/json'},
+    timeout: 2000,
+  });
+
+  (async function () {
+    // 1. fetch csrf cookie
+    const cookieResponse = await client.get('dashboard/v1/auth/csrf-cookie')
+    const csrfToken = cookieResponse.headers["x-csrf-token"];
+
+    log("Got CSRF-Cookie", {
+      statusCode: cookieResponse.status,
+      csrfToken: csrfToken,
+    })
+
+    client.defaults.headers.common['x-csrf-token'] = csrfToken
+
+    // 2. fetch user profile
+    client.get('dashboard/v1/auth/me')
+    .then(function (res) {
+      if (res.status !== 200) {
+        fail('User request', {response: res})
+        return
+      }
+
+      log('LOGGED IN ✅', res.data)
+      logoutButton.classList.toggle('hidden')
+    })
+    .catch(function (error) {
+      fail("User request", error)
+    })
+
+    logoutButton.addEventListener('click', function (e) {
+      e.preventDefault()
+
+      client.post('dashboard/v1/auth/logout')
+      .then(function (res) {
+        log("LOGGED OUT 💤", {statusCode: res.status, data: res.data})
+      })
+      .catch(function (error) {
+        log("Unable to log out", error)
+      })
+    })
+  })()
+</script>
+</body>
+</html>

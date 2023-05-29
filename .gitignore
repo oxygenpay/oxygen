@@ -1,0 +1,6 @@
+.idea
+.vscode
+bin/
+config/*.yml
+web/redoc/**/*.json
+docker.env

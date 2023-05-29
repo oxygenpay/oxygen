@@ -1,0 +1,52 @@
+parameters:
+  QueryLimit:
+    in: query
+    name: limit
+    description: Pagination limit
+    minimum: 1
+    maximum: 100
+    type: integer
+
+  QueryCursor:
+    in: query
+    name: cursor
+    description: Pagination cursor (pagination "offset")
+    type: string
+
+  QueryReverseOrder:
+    in: query
+    name: reverseOrder
+    description: Reverse pagination order (orders by "DESC")
+    type: boolean
+
+definitions:
+  ErrorResponseItem:
+    type: object
+    properties:
+      message:
+        type: string
+        description: Error Message
+        example: Error message
+      field:
+        type: string
+        description: Error field
+        example: field
+
+  ErrorResponse:
+    type: object
+    properties:
+      status:
+        type: string
+        description: Error status
+        example: something_wrong
+      message:
+        type: string
+        description: Error Message
+        example: Error message
+      errors:
+        type: array
+        description: Errors list
+        x-nullable: false
+        x-omitempty: true
+        items:
+          $ref: '#/definitions/ErrorResponseItem'

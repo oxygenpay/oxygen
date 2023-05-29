@@ -1,0 +1,149 @@
+swagger: '2.0'
+info: { version: '', title: '' }
+parameters: { }
+definitions:
+  EstimateFeesRequest:
+    type: object
+    required: [ currency ]
+    properties:
+      isTest:
+        type: boolean
+        x-nullable: false
+      currency:
+        type: string
+        description: ticker
+        x-nullable: false
+
+  BroadcastTransactionRequest:
+    type: object
+    required: [ blockchain, hex ]
+    properties:
+      isTest:
+        type: boolean
+        x-nullable: false
+      blockchain:
+        type: string
+        x-nullable: false
+      hex:
+        description: Raw hex-encoded transaction
+        type: string
+        x-nullable: false
+
+  BroadcastTransactionResponse:
+    type: object
+    properties:
+      transactionHashId:
+        type: string
+        x-nullable: false
+        x-omitempty: false
+
+  TransactionReceiptResponse:
+    type: object
+    properties:
+      blockchain:
+        type: string
+        x-omitempty: false
+      isTest:
+        type: boolean
+        x-omitempty: false
+      sender:
+        type: string
+        x-omitempty: false
+      recipient:
+        type: string
+        x-omitempty: false
+      transactionHash:
+        type: string
+        x-omitempty: false
+      nonce:
+        type: integer
+        x-omitempty: false
+      networkFee:
+        type: string
+        x-omitempty: false
+      networkFeeFormatted:
+        type: string
+        x-omitempty: false
+      confirmations:
+        type: integer
+        x-omitempty: false
+      isConfirmed:
+        type: boolean
+        x-omitempty: false
+      success:
+        type: boolean
+        x-omitempty: false
+
+paths:
+  /blockchain/fee:
+    post:
+      summary: Calculate outbound transaction fee
+      operationId: calculateTransactionFee
+      tags: [ Blockchain ]
+      parameters:
+        - in: body
+          name: data
+          required: true
+          schema:
+            $ref: '#/definitions/EstimateFeesRequest'
+      responses:
+        200:
+          description: Fee estimations
+          schema:
+            type: object
+        400:
+          description: Validation error / Not found
+          schema:
+            $ref: '../admin-v1.yml#/definitions/ErrorResponse'
+
+  /blockchain/broadcast:
+    post:
+      summary: Broadcast raw transaction
+      operationId: broadcastTransaction
+      tags: [ Blockchain ]
+      parameters:
+        - in: body
+          name: data
+          required: true
+          schema:
+            $ref: '#/definitions/BroadcastTransactionRequest'
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/BroadcastTransactionResponse'
+        400:
+          description: Validation error / Not found
+          schema:
+            $ref: '../admin-v1.yml#/definitions/ErrorResponse'
+
+  /blockchain/receipt:
+    post:
+      summary: Get transaction receipt
+      operationId: getTransactionReceipt
+      tags: [ Blockchain ]
+      parameters:
+        - in: query
+          type: string
+          name: blockchain
+          description: Blockchain
+          required: true
+        - in: query
+          type: string
+          name: txId
+          description: Transaction ID
+          required: true
+        - in: query
+          type: boolean
+          name: isTest
+          description: IsTest
+          required: false
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/TransactionReceiptResponse'
+        400:
+          description: Validation error / Not found
+          schema:
+            $ref: '../admin-v1.yml#/definitions/ErrorResponse'

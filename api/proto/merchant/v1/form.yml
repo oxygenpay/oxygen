@@ -1,0 +1,42 @@
+swagger: '2.0'
+info: { version: '', title: '' }
+definitions:
+  ##########################################################
+  # Entities
+  ##########################################################
+  FormRequest:
+    type: object
+    required: [ topic, message ]
+    properties:
+      topic:
+        type: string
+        minLength: 4
+        description: Form Topic
+        example: Support
+      message:
+        type: string
+        minLength: 1
+        description: Message
+        example: 'Hey! Do you support USDC?'
+
+paths:
+  /form:
+    post:
+      summary: Send Form
+      operationId: sendForm
+      tags: [ Form ]
+      parameters:
+        - $ref: './merchant.yml#/parameters/MerchantId'
+        - in: body
+          name: data
+          required: true
+          description: Merchant object
+          schema:
+            $ref: '#/definitions/FormRequest'
+      responses:
+        201:
+          description: Form sent
+        400:
+          description: Validation error / Bad request
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'

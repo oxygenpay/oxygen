@@ -1,0 +1,161 @@
+swagger: '2.0'
+info: { version: '', title: '' }
+parameters:
+  WalletId:
+    in: path
+    name: walletId
+    description: ID or UUID
+    type: string
+    required: true
+
+definitions:
+  CreateWalletRequest:
+    type: object
+    required:
+      - blockchain
+    properties:
+      blockchain:
+        $ref: '#/definitions/Blockchain'
+
+  BulkCreateWalletsRequest:
+    type: object
+    required:
+      - blockchain
+      - amount
+    properties:
+      amount:
+        type: integer
+        minimum: 1
+        maximum: 32
+        x-nullable: false
+      blockchain:
+        $ref: '#/definitions/Blockchain'
+
+  Blockchain:
+    type: string
+    description: Supported blockchain
+    enum: [ BTC, ETH, MATIC, TRON ]
+
+  Wallet:
+    type: object
+    properties:
+      blockchain:
+        $ref: '#/definitions/Blockchain'
+      id:
+        type: integer
+        description: ID
+      uuid:
+        type: string
+        description: UUID
+        example: 123e4567-e89b-12d3-a456-426655440000
+      address:
+        type: string
+        description: Address
+        example: 0xABC123
+      createdAtUnix:
+        type: integer
+        description: Created At
+        example: 1656696522
+
+  WalletList:
+    type: object
+    properties:
+      results:
+        type: array
+        items:
+          $ref: '#/definitions/Wallet'
+      nextPageId:
+        type: integer
+        description: Next pagination ID
+        x-nullable: true
+        x-omitempty: false
+
+paths:
+  /wallet:
+    get:
+      summary: List wallets
+      operationId: listWallets
+      tags: [ Wallet ]
+      parameters:
+        - in: query
+          name: start
+          description: pagination start
+          required: false
+          type: integer
+          minimum: 1
+        - in: query
+          name: limit
+          description: pagination limit
+          required: false
+          type: integer
+          minimum: 1
+          maximum: 100
+        - in: query
+          name: blockchain
+          description: filter by blockchain
+          required: false
+          type: string
+          enum: [ BTC, ETH, TRON, MATIC ]
+      responses:
+        200:
+          description: Wallets
+          schema:
+            $ref: '#/definitions/WalletList'
+    post:
+      summary: Create Wallet
+      operationId: createWallet
+      tags: [ Wallet ]
+      parameters:
+        - in: body
+          name: data
+          required: true
+          schema:
+            $ref: '#/definitions/CreateWalletRequest'
+      responses:
+        201:
+          description: Wallet created
+          schema:
+            $ref: '#/definitions/Wallet'
+        400:
+          description: Validation error
+          schema:
+            $ref: '../admin-v1.yml#/definitions/ErrorResponse'
+
+  /wallet/{walletId}:
+    get:
+      summary: Get wallet
+      description: Get wallet by id or uuid
+      operationId: getWallet
+      tags: [ wallet ]
+      parameters:
+        - $ref: '#/parameters/WalletId'
+      responses:
+        200:
+          description: Wallet
+          schema:
+            $ref: '#/definitions/Wallet'
+        400:
+          description: Validation error / Not found
+          schema:
+            $ref: '../admin-v1.yml#/definitions/ErrorResponse'
+
+  /wallet/bulk:
+    post:
+      summary: Wallets bulk creation
+      operationId: bulkCreateWallet
+      tags: [ Wallet ]
+      parameters:
+        - in: body
+          name: data
+          required: true
+          schema:
+            $ref: '#/definitions/BulkCreateWalletsRequest'
+      responses:
+        201:
+          description: Wallets created
+          schema:
+            $ref: '#/definitions/WalletList'
+        400:
+          description: Validation error / Not found
+          schema:
+            $ref: '../admin-v1.yml#/definitions/ErrorResponse'

@@ -1,0 +1,307 @@
+swagger: '2.0'
+info: { version: '', title: '' }
+parameters:
+  PaymentId:
+    in: path
+    name: paymentId
+    description: Payment UUID
+    type: string
+    required: true
+
+  QueryPaymentType:
+    in: query
+    name: type
+    description: |
+      Filtration by payment type. Useful when, for example, you want to filter by withdrawals only
+    required: false
+    type: string
+    enum: [ payment, withdrawal ]
+
+definitions:
+  Payment:
+    type: object
+    description: Payment object
+    required:
+      - id
+      - type
+      - status
+      - createdAt
+      - currency
+      - price
+      - isTest
+    properties:
+      id:
+        description: Order UUID generated on your side
+        type: string
+        example: 123e4567-e89b-12d3-a456-426655440000
+        x-nullable: false
+      orderId:
+        type: string
+        description: Optional order ID from your system.
+        example: 'order#123'
+        x-nullable: true
+        x-omitempty: false
+      type:
+        type: string
+        description: Payment type
+        enum: [ payment, withdrawal ]
+        x-nullable: false
+      status:
+        type: string
+        description: Payment status
+        enum: [ pending, inProgress, success, failed ]
+        x-nullable: false
+      createdAt:
+        type: string
+        format: datetime
+        description: Created timestamp
+        example: 2022-11-23 19:49:21.386201 +0000 UTC
+        x-nullable: false
+      currency:
+        type: string
+        description: |
+          Fiat ticker for payments and crypto for withdrawals
+        example: USD
+        x-nullable: false
+      price:
+        type: string
+        description: Payment price or withdrawal amount
+        example: 29.90
+        x-nullable: false
+      redirectUrl:
+        type: string
+        description: Redirect URL after success client's payment
+        example: https://my-site.com/success?order=abc123
+        x-nullable: false
+        x-omitempty: false
+      description:
+        type: string
+        description: Optional payment description that customer will see in payment screen
+        example: 'White T-shirt size M'
+        x-nullable: true
+        x-omitempty: false
+      isTest:
+        type: boolean
+        description: |
+          Indicates that this is a test payment.
+          Test payments are processed in testnets (e.g. Ethereum Goerli)
+        x-nullable: false
+        x-omitempty: false
+      paymentUrl:
+        type: string
+        description: URL for client payment screen
+        example: https://pay.o2pay.co/payment/00000000-0000-0000-0000-000000000000
+        x-nullable: false
+        x-omitempty: false
+      additionalInfo:
+        type: object
+        description: Represents additional context for payment or withdrawal
+        x-omitempty: true
+        x-nullable: true
+        properties:
+          payment:
+            $ref: '#/definitions/AdditionalPaymentInfo'
+          withdrawal:
+            $ref: '#/definitions/AdditionalWithdrawalInfo'
+
+  AdditionalPaymentInfo:
+    type: object
+    description: Additional payment info
+    x-nullable: true
+    x-omitempty: true
+    required: [ customerEmail, selectedCurrency, serviceFee ]
+    properties:
+      serviceFee:
+        type: string
+        description: Service fee in customer's selected crypto currency
+        example: '1.20'
+        x-nullable: true
+        x-omitempty: false
+      customerEmail:
+        type: string
+        description: Customer's Email
+        example: user@gmail.com
+        x-nullable: true
+        x-omitempty: false
+      selectedCurrency:
+        type: string
+        description: Customer's selected crypto currency
+        example: USDT (Ethereum)
+        x-nullable: true
+        x-omitempty: false
+
+  AdditionalWithdrawalInfo:
+    type: object
+    description: Additional withdrawal info
+    x-omitempty: true
+    required: [ addressId, balanceId, transactionHash, explorerLink, serviceFee ]
+    properties:
+      addressId:
+        type: string
+        description: Address UUID
+        example: dac3a5f5-abc1-4bb2-97e7-db51360e218c
+        x-nullable: false
+        x-omitempty: false
+      balanceId:
+        type: string
+        description: Balance UUID
+        example: 918c5aa6-bdad-4cc8-8aa0-de059c618a05
+        x-nullable: false
+        x-omitempty: false
+      serviceFee:
+        type: string
+        description: Withdrawal Fee
+        example: '1.20'
+        x-nullable: false
+        x-omitempty: false
+      transactionHash:
+        type: string
+        description: Transaction Hash
+        example: 0xdf147859a6e66961326ac91f4bd5e9980432040031e5eb7108603d51b81ae005
+        x-nullable: true
+        x-omitempty: false
+      explorerLink:
+        type: string
+        description: Link to blockchain explorer
+        example: 'https://etherscan.io/tx/0xdf147859a6e66961326ac91f4bd5e9980432040031e5eb7108603d51b81ae005'
+        x-nullable: true
+        x-omitempty: false
+
+  PaymentsPagination:
+    type: object
+    required: [ limit, cursor, results ]
+    properties:
+      limit:
+        type: integer
+        example: 50
+        x-nullable: false
+        x-omitempty: false
+      cursor:
+        type: string
+        example: 8c857501-e67d-4a0b-98d9-46e461b42c09
+        x-nullable: false
+        x-omitempty: false
+      results:
+        type: array
+        x-nullable: false
+        x-omitempty: false
+        items:
+          $ref: '#/definitions/Payment'
+
+  CreatePaymentRequest:
+    type: object
+    required: [ id, currency, price ]
+    properties:
+      id:
+        description: |
+          To provide request idempotency order UUID should be generated on your side. 
+          Should be unique for each payment
+        type: string
+        format: uuid
+        example: 123e4567-e89b-12d3-a456-426655440000
+        x-nullable: false
+      orderId:
+        type: string
+        description: Optional order ID from your internal system
+        example: 'customer#123#order#456'
+        x-nullable: true
+        x-omitempty: false
+      currency:
+        type: string
+        description: Fiat currency
+        enum: [ USD, EUR ]
+        x-nullable: false
+      price:
+        type: number
+        format: float32
+        description: Price in fiat currency
+        minimum: 0.01
+        example: 29.90
+        x-nullable: false
+      redirectUrl:
+        type: string
+        description: |
+          A "back to store" button URL. Visible to a customer after the system receives unconfirmed transaction.
+          If not provided, defaults to merchant's website url.
+        example: https://my-store.com/success
+        x-nullable: true
+        x-omitempty: false
+        format: url
+      isTest:
+        type: boolean
+        description: |
+          Indicates that this is a test payment.
+          Test payments are processed in testnets (e.g. Ethereum Goerli)
+        x-nullable: false
+      description:
+        type: string
+        description: Optional payment description
+        maxLength: 128
+        example: 'White T-shirt size M'
+        x-nullable: true
+
+paths:
+  /payment:
+    get:
+      summary: List Payments
+      description: |
+        Paginates payments based on provided cursor. Empty cursor indicates that there are no more results
+      parameters:
+        - $ref: './merchant.yml#/parameters/MerchantId'
+        - $ref: './common.yml#/parameters/QueryLimit'
+        - $ref: './common.yml#/parameters/QueryCursor'
+        - $ref: './common.yml#/parameters/QueryReverseOrder'
+        - $ref: '#/parameters/QueryPaymentType'
+      operationId: listPayments
+      tags: [ Payment ]
+      responses:
+        200:
+          description: Payments list
+          schema:
+            $ref: '#/definitions/PaymentsPagination'
+        400:
+          description: Validation error
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'
+
+    post:
+      summary: Create payment
+      description: |
+        Creates payment. The response contains `.paymentUrl` where customer should be redirected to by your system.
+      operationId: createPayment
+      tags: [ Payment ]
+      parameters:
+        - $ref: './merchant.yml#/parameters/MerchantId'
+        - in: body
+          name: data
+          required: true
+          description: Payment request
+          schema:
+            $ref: '#/definitions/CreatePaymentRequest'
+      responses:
+        201:
+          description: Payment created
+          schema:
+            $ref: '#/definitions/Payment'
+        400:
+          description: Validation error
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'
+
+  /payment/{paymentId}:
+    get:
+      summary: Get payment
+      parameters:
+        - $ref: './merchant.yml#/parameters/MerchantId'
+        - $ref: '#/parameters/PaymentId'
+      operationId: getPayment
+      tags: [ Payment ]
+      responses:
+        200:
+          description: Payment
+          schema:
+            $ref: '#/definitions/Payment'
+        400:
+          description: Not found
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'

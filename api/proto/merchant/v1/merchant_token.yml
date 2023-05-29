@@ -1,0 +1,108 @@
+swagger: '2.0'
+info: { version: '', title: '' }
+parameters:
+  TokenId:
+    in: path
+    name: tokenId
+    type: string
+    required: true
+
+definitions:
+  CreateMerchantTokenRequest:
+    type: object
+    required: [ name ]
+    properties:
+      name:
+        type: string
+        minLength: 2
+        maxLength: 128
+        description: Name
+        example: My Token
+        x-nullable: false
+
+  ApiToken:
+    type: object
+    required: [ id, name, createdAt, token ]
+    properties:
+      id:
+        type: string
+        description: token UUID
+        example: 1eb5fbb5-ece0-475c-9ddd-23c524a33e06
+        x-nullable: false
+      createdAt:
+        type: string
+        format: datetime
+        description: CreatedAt
+        x-nullable: false
+      name:
+        type: string
+        description: Name
+        example: My Token
+        x-nullable: false
+      token:
+        type: string
+        description: Token
+        example: abc123
+        x-nullable: true
+        x-omitempty: false
+
+  TokenList:
+    type: object
+    required: [ results ]
+    properties:
+      results:
+        type: array
+        items:
+          $ref: '#/definitions/ApiToken'
+
+paths:
+  /token:
+    get:
+      summary: List Tokens
+      parameters:
+        - $ref: './merchant.yml#/parameters/MerchantId'
+      operationId: listMerchantTokens
+      tags: [ MerchantToken ]
+      responses:
+        200:
+          description: Token list
+          schema:
+            $ref: '#/definitions/TokenList'
+
+    post:
+      summary: Create Token
+      operationId: createMerchantToken
+      tags: [ MerchantToken ]
+      parameters:
+        - $ref: './merchant.yml#/parameters/MerchantId'
+        - in: body
+          name: data
+          required: true
+          description: Merchant object
+          schema:
+            $ref: '#/definitions/CreateMerchantTokenRequest'
+      responses:
+        201:
+          description: Token created
+          schema:
+            $ref: '#/definitions/ApiToken'
+        400:
+          description: Validation error
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'
+
+  /token/{tokenId}:
+    delete:
+      summary: Delete Token
+      operationId: deleteMerchantToken
+      parameters:
+        - $ref: './merchant.yml#/parameters/MerchantId'
+        - $ref: '#/parameters/TokenId'
+      tags: [ MerchantToken ]
+      responses:
+        204:
+          description: Token Deleted
+        400:
+          description: Validation error
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'

@@ -1,0 +1,77 @@
+swagger: '2.0'
+info: { version: '', title: '' }
+parameters: { }
+definitions:
+  CurrencyExchangeRate:
+    type: object
+    properties:
+      fiatCurrency:
+        type: string
+        example: USD
+        x-nullable: false
+        x-omitempty: false
+      fiatAmount:
+        type: number
+        example: 49.90
+        minimum: 0.01
+        x-nullable: false
+        x-omitempty: false
+      cryptoAmount:
+        type: string
+        example: '0.1231232453453'
+        x-nullable: false
+        x-omitempty: false
+      cryptoCurrency:
+        type: string
+        example: DAI
+        x-nullable: false
+        x-omitempty: false
+      network:
+        type: string
+        example: ETH
+        x-nullable: false
+        x-omitempty: false
+      displayName:
+        type: string
+        example: 'USD → ETH_DAI'
+        x-nullable: false
+        x-omitempty: false
+      exchangeRate:
+        type: number
+        example: 51.10
+        x-nullable: false
+        x-omitempty: false
+
+paths:
+  /currency-convert:
+    get:
+      summary: Get exchange rate of selected currency
+      operationId: getExchangeRate
+      tags: [ Currency ]
+      parameters:
+        - in: query
+          name: fiatCurrency
+          description: Selected fiat currency
+          enum: [ USD, EUR ]
+          required: true
+          type: string
+        - in: query
+          name: fiatAmount
+          description: Selected fiat currency amount
+          required: true
+          type: integer
+          minimum: 0.01
+        - in: query
+          name: cryptoCurrency
+          description: Selected crypto currency
+          required: true
+          type: string
+      responses:
+        200:
+          description: ExchangeRate
+          schema:
+            $ref: '#/definitions/CurrencyExchangeRate'
+        400:
+          description: Bad request
+          schema:
+            $ref: '../payment-v1.yml#/definitions/ErrorResponse'

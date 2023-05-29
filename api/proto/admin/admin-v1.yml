@@ -1,0 +1,59 @@
+swagger: '2.0'
+info:
+  version: 1.0.0
+  title: ADMIN API
+host: 127.0.0.1
+basePath: /internal/v1/admin
+produces:
+  - application/json
+schemes:
+  - http
+consumes:
+  - application/json
+
+paths:
+  /wallet:
+    $ref: './v1/wallet.yml#/paths/~1wallet'
+  /wallet/{walletId}:
+    $ref: './v1/wallet.yml#/paths/~1wallet~1{walletId}'
+  /wallet/bulk:
+    $ref: './v1/wallet.yml#/paths/~1wallet~1bulk'
+  /job:
+    $ref: './v1/scheduler.yml#/paths/~1job'
+  /blockchain/fee:
+    $ref: './v1/blockchain.yml#/paths/~1blockchain~1fee'
+  /blockchain/broadcast:
+    $ref: './v1/blockchain.yml#/paths/~1blockchain~1broadcast'
+  /blockchain/receipt:
+    $ref: './v1/blockchain.yml#/paths/~1blockchain~1receipt'
+
+definitions:
+  ErrorResponseItem:
+    type: object
+    properties:
+      message:
+        type: string
+        description: Error Message
+        example: You are unauthenticated
+      field:
+        type: string
+        description: Error field
+        example: username
+
+  ErrorResponse:
+    type: object
+    properties:
+      status:
+        type: string
+        description: Error status
+        example: unauthenticated
+      message:
+        type: string
+        description: Error Message
+        example: You are unauthenticated
+      errors:
+        type: array
+        description: Errors list
+        x-nullable: false
+        items:
+          $ref: '#/definitions/ErrorResponseItem'

@@ -1,0 +1,309 @@
+swagger: '2.0'
+info: { version: '', title: '' }
+parameters:
+  PaymentId:
+    in: path
+    name: paymentId
+    type: string
+    required: true
+    description: Payment UUID
+
+definitions:
+  Payment:
+    type: object
+    required: [ id, currency, price, merchantName, isLocked ]
+    properties:
+      id:
+        type: string
+        description: Payment UUID
+        example: 'a51e7a5-f0c8-48dc-a9fb-a335481ae846'
+        x-nullable: false
+      currency:
+        type: string
+        description: Currency
+        example: 'USD'
+        x-nullable: false
+      price:
+        type: number
+        description: Price
+        example: 39.90
+        x-nullable: false
+      isLocked:
+        type: boolean
+        description: Indicates is payment method can be changed
+        example: true
+        x-nullable: false
+      merchantName:
+        type: string
+        description: Merchant's store name
+        example: Delta Airlines
+        x-nullable: false
+      description:
+        type: string
+        description: Payment description
+        example: M-sized sweater
+        x-nullable: true
+        x-omitempty: false
+      customer:
+        x-omitempty: false
+        $ref: '#/definitions/Customer'
+      paymentMethod:
+        x-omitempty: false
+        $ref: '#/definitions/PaymentMethod'
+      paymentInfo:
+        x-omitempty: false
+        $ref: '#/definitions/PaymentInfo'
+
+  SupportedPaymentMethods:
+    type: object
+    properties:
+      availableMethods:
+        type: array
+        items:
+          $ref: '#/definitions/SupportedPaymentMethod'
+
+  PaymentMethod:
+    type: object
+    description: PaymentType
+    x-omitempty: false
+    properties:
+      blockchain:
+        type: string
+        x-omitempty: false
+      blockchainName:
+        type: string
+        x-omitempty: false
+      isTest:
+        type: boolean
+        x-omitempty: false
+      networkId:
+        type: string
+        x-omitempty: false
+      displayName:
+        type: string
+        x-omitempty: false
+      ticker:
+        type: string
+        x-omitempty: false
+      name:
+        type: string
+        x-omitempty: false
+
+  SupportedPaymentMethod:
+    type: object
+    description: PaymentType
+    x-omitempty: false
+    properties:
+      blockchain:
+        type: string
+        x-omitempty: false
+      blockchainName:
+        type: string
+        x-omitempty: false
+      displayName:
+        type: string
+        x-omitempty: false
+      ticker:
+        type: string
+        x-omitempty: false
+      name:
+        type: string
+        x-omitempty: false
+
+  Customer:
+    type: object
+    required: [ id, email ]
+    x-omitempty: false
+    properties:
+      id:
+        description: UUID
+        type: string
+        example: 'a51e7a5-f0c8-48dc-a9fb-a335481ae846'
+        x-nullable: false
+      email:
+        description: Email
+        type: string
+        example: me@you.com
+        x-nullable: false
+
+  PaymentInfo:
+    type: object
+    x-omitempty: false
+    description: Payment info
+    required:
+      - recipientAddress
+      - amount
+      - amountFormatted
+      - status
+      - expiresAt
+      - expirationDurationMin
+      - paymentLink
+    properties:
+      recipientAddress:
+        type: string
+        example: 0xbca4a8417e823484b21d2f4f1f1324d951236a49
+        x-nullable: false
+      amount:
+        type: string
+        description: Amount to pay in selected currency. Wei for ETH, Satoshi for BTC and so on...
+        example: '1000000'
+        x-nullable: false
+      amountFormatted:
+        type: string
+        description: Human readable amount to pay.
+        example: '0.123'
+        x-nullable: false
+      status:
+        type: string
+        description: Payment status
+        example: success
+        enum: [ pending, inProgress, success ]
+        x-nullable: false
+      paymentLink:
+        type: string
+        description: Payment link for QR code
+        example: 'tron:TVEaDaTKJZ2RsQUWREWykouuHak9scyZaf'
+        x-nullable: false
+      expirationDurationMin:
+        type: integer
+        description: Expiration duration in minutes
+        example: 20
+        x-nullable: false
+      expiresAt:
+        type: string
+        format: datetime
+        description: payment expiration timestamp (UTC)
+        example: '2023-03-09T20:18:07.809Z'
+        x-nullable: false
+      successAction:
+        type: string
+        description: Success action. Present if payment is successful
+        enum: [ redirect, showMessage ]
+        x-nullable: true
+        x-omitempty: true
+      successUrl:
+        type: string
+        description: |
+          Success URL to where a user should be redirected after payment confirmation.
+          Empty if success action is `showMessage`
+        example: https://site.com/success
+        x-nullable: true
+        x-omitempty: true
+      successMessage:
+        type: string
+        description: |
+          Success message visible after payment confirmation (if successAction == `showMessage`)
+        example: |
+          Thanks you for purchasing our product! You will receive invitation on your email
+        x-nullable: true
+        x-omitempty: true
+
+  CreateCustomerRequest:
+    type: object
+    required: [ email ]
+    properties:
+      email:
+        description: Email
+        type: string
+        example: me@you.com
+        x-nullable: false
+
+  CreatePaymentMethodRequest:
+    type: object
+    required: [ ticker ]
+    properties:
+      ticker:
+        description: Currency ticker
+        type: string
+        example: ETH_USDT
+        x-nullable: false
+
+paths:
+  /payment/{paymentId}:
+    get:
+      summary: Get payment
+      operationId: getPayment
+      tags: [ Payment ]
+      parameters:
+        - $ref: '#/parameters/PaymentId'
+      responses:
+        200:
+          description: Payment
+          schema:
+            $ref: '#/definitions/Payment'
+        400:
+          description: Bad request
+          schema:
+            $ref: '../payment-v1.yml#/definitions/ErrorResponse'
+    put:
+      summary: Lock payment options
+      operationId: lockPaymentOptions
+      tags: [ Payment ]
+      parameters:
+        - $ref: '#/parameters/PaymentId'
+      responses:
+        204:
+          description: OK, payment selection locked
+        400:
+          description: Bad request
+          schema:
+            $ref: '../payment-v1.yml#/definitions/ErrorResponse'
+
+  /payment/{paymentId}/method:
+    post:
+      summary: Select payment method
+      operationId: createPaymentMethod
+      tags: [ Payment ]
+      parameters:
+        - $ref: '#/parameters/PaymentId'
+        - in: body
+          name: data
+          required: true
+          schema:
+            $ref: '#/definitions/CreatePaymentMethodRequest'
+      responses:
+        201:
+          description: Payment method selected
+          schema:
+            $ref: '#/definitions/PaymentMethod'
+        400:
+          description: Bad request
+          schema:
+            $ref: '../payment-v1.yml#/definitions/ErrorResponse'
+
+  /payment/{paymentId}/supported-method:
+    get:
+      summary: Get available payment methods
+      operationId: getPaymentMethods
+      tags: [ Payment ]
+      parameters:
+        - $ref: '#/parameters/PaymentId'
+      responses:
+        200:
+          description: Payment types
+          schema:
+            $ref: '#/definitions/SupportedPaymentMethods'
+
+  /payment/{paymentId}/customer:
+    post:
+      summary: Create customer
+      description: Upserts customer
+      operationId: createPaymentCustomer
+      tags: [ Payment ]
+      parameters:
+        - $ref: '#/parameters/PaymentId'
+        - in: body
+          name: data
+          required: true
+          description: Customer request
+          schema:
+            $ref: '#/definitions/CreateCustomerRequest'
+      responses:
+        201:
+          description: Customer created
+          schema:
+            $ref: '#/definitions/Customer'
+        400:
+          description: Bad request
+          schema:
+            $ref: '../payment-v1.yml#/definitions/ErrorResponse'

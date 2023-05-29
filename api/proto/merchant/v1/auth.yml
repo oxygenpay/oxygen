@@ -1,0 +1,61 @@
+swagger: '2.0'
+info: { version: '', title: '' }
+definitions:
+  User:
+    type: object
+    properties:
+      uuid:
+        type: string
+        description: user UUID
+        example: 1eb5fbb5-ece0-475c-9ddd-23c524a33e06
+      name:
+        type: string
+        description: Name
+        example: John Doe
+      email:
+        type: string
+        description: Email
+        example: user@example.com
+      profileImageUrl:
+        type: string
+        description: user avatar
+        example: https://site.com/image.jpeg
+        x-nullable: true
+
+paths:
+  /csrf-cookie:
+    get:
+      summary: Get csrf-cookie
+      operationId: getCSRFCookie
+      tags: [ Authentication ]
+      responses:
+        204:
+          description: OK
+
+  /me:
+    get:
+      summary: Get user profile
+      operationId: getAuthenticatedUser
+      tags: [ Authentication ]
+      responses:
+        200:
+          description: User profile
+          schema:
+            $ref: '#/definitions/User'
+        401:
+          description: Unauthorized
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'
+
+  /logout:
+    post:
+      summary: Logout from dashboard
+      operationId: logout
+      tags: [ Authentication ]
+      responses:
+        204:
+          description: OK
+        401:
+          description: Unauthorized
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'

@@ -1,0 +1,315 @@
+swagger: '2.0'
+info: { version: '', title: '' }
+parameters:
+  WalletId:
+    in: path
+    name: walletId
+    type: string
+    required: true
+    description: Wallet UUID
+
+definitions:
+  ##########################################################
+  # Requests
+  ##########################################################
+  CreateWalletRequest:
+    type: object
+    required: [ blockchain ]
+    properties:
+      blockchain:
+        $ref: '#/definitions/Blockchain'
+
+  CreateEthereumTransactionRequest: &createEthTransaction
+    type: object
+    required: [ assetType, networkId, nonce, gas, maxFeePerGas, maxPriorityPerGas, recipient, amount ]
+    properties:
+      assetType:
+        $ref: '#/definitions/AssetType'
+      networkId:
+        type: integer
+        description: Network (chain) Id
+        example: 1
+        x-nullable: false
+        x-omitempty: false
+      nonce:
+        type: integer
+        description: Transaction nonce
+        minimum: 0
+        example: 40
+        x-omitempty: false
+      gas:
+        type: integer
+        description: Transaction Gas amount
+        minimum: 1
+        example: 3
+        x-nullable: false
+        x-omitempty: false
+      maxFeePerGas:
+        type: string
+        description: Max Fee Per Gas (wei)
+        example: 200000000
+        x-nullable: false
+        x-omitempty: false
+      maxPriorityPerGas:
+        type: string
+        description: Max Priority Fee Per Gas (wei)
+        example: 2000000
+        x-nullable: false
+        x-omitempty: false
+      recipient:
+        type: string
+        description: Recipient address
+        example: 0x5e41bc5922370522800103f826c3bb9cd5d83f1a
+        x-nullable: false
+        x-omitempty: false
+      contractAddress:
+        type: string
+        description: ERC-20 contract address
+        example: 0x5e41bc5922370522800103f826c3bb9cd5d83f1a
+      amount:
+        type: string
+        description: Raw amount in wei or contract decimals
+        example: 100000000000000000
+        x-nullable: false
+        x-omitempty: false
+
+  CreateMaticTransactionRequest: *createEthTransaction
+
+  CreateTronTransactionRequest:
+    type: object
+    required: [ assetType, recipient, amount ]
+    properties:
+      assetType:
+        $ref: '#/definitions/AssetType'
+      isTest:
+        type: boolean
+        description: Mainnet / Testnet selection
+        example: false
+        x-nullable: false
+        x-omitempty: false
+      recipient:
+        type: string
+        description: Recipient address in base58
+        example: TTYxentT3sf8XHbtHGyWX2uDgdadE9uYSL
+        x-nullable: false
+        x-omitempty: false
+      contractAddress:
+        type: string
+        description: Contract address is base58
+        example: TTYxentT3sf8XHbtHGyWX2uDgdadE9uYSL
+      amount:
+        type: string
+        description: Raw amount in SUN or contract decimals
+        example: 100000
+        x-nullable: false
+        x-omitempty: false
+      feeLimit:
+        type: integer
+        description: Contract call fee limit in SUN
+
+  ##########################################################
+  # Entities
+  ##########################################################
+
+  Blockchain:
+    type: string
+    description: Supported blockchain
+    enum: [ BTC, ETH, TRON, MATIC ]
+    x-nullable: false
+    x-omitempty: false
+
+  AssetType:
+    type: string
+    description: Asset Type
+    enum: [ coin, token ]
+    x-nullable: false
+    x-omitempty: false
+
+  Wallet:
+    type: object
+    properties:
+      blockchain:
+        $ref: '#/definitions/Blockchain'
+      id:
+        type: string
+        description: Wallet UUID
+        example: 123e4567-e89b-12d3-a456-426655440000
+      address:
+        type: string
+        description: Address
+        example: 0xABC123
+      publicKey:
+        type: string
+        description: Public Key
+        example: abc123
+      createdAtUnix:
+        type: integer
+        description: Created At
+        example: 1656696522
+
+  EthereumTransaction:
+    type: object
+    properties:
+      rawTransaction:
+        type: string
+        description: RLP-encoded transaction
+        example: '0xf86e83014b2985048ccb44b1827530944675c7e5baafbffbca748158becba61ef3b0a26387c2a454bcf91b3f8026a0db0be3dcc25213b286e08d018fe8143eb85a3b7bb5cf3749245e907158e9c8daa033c7ec9362ee890d63b89e9dbfcfcb6edd9432321102c1d2ea7921c6cc07009e'
+        x-nullable: false
+        x-omitempty: false
+
+  MaticTransaction:
+    type: object
+    properties:
+      rawTransaction:
+        type: string
+        description: RLP-encoded transaction
+        example: '0xf86e83014b2985048ccb44b1827530944675c7e5baafbffbca748158becba61ef3b0a26387c2a454bcf91b3f8026a0db0be3dcc25213b286e08d018fe8143eb85a3b7bb5cf3749245e907158e9c8daa033c7ec9362ee890d63b89e9dbfcfcb6edd9432321102c1d2ea7921c6cc07009e'
+        x-nullable: false
+        x-omitempty: false
+
+  TronTransaction:
+    type: object
+    description: |
+      Signed transaction.
+      See https://developers.tron.network/reference/createtransaction
+    properties:
+      txID:
+        type: string
+        x-nullable: false
+        x-omitempty: false
+      raw_data_Hex:
+        type: string
+        x-nullable: false
+        x-omitempty: false
+      raw_data:
+        type: object
+        x-nullable: false
+        x-omitempty: false
+      visible:
+        type: boolean
+        x-nullable: false
+        x-omitempty: false
+      signature:
+        type: array
+        items:
+          type: string
+        x-nullable: false
+        x-omitempty: false
+
+paths:
+  /wallet:
+    post:
+      summary: Create Wallet
+      operationId: createWallet
+      tags: [ Wallet ]
+      parameters:
+        - in: body
+          name: data
+          required: true
+          schema:
+            $ref: '#/definitions/CreateWalletRequest'
+      responses:
+        201:
+          description: Wallet created
+          schema:
+            $ref: '#/definitions/Wallet'
+        400:
+          description: Validation error
+          schema:
+            $ref: '../kms-v1.yml#/definitions/ErrorResponse'
+
+  /wallet/{walletId}:
+    get:
+      summary: Get wallet
+      operationId: getWallet
+      tags: [ Wallet ]
+      parameters:
+        - $ref: '#/parameters/WalletId'
+      responses:
+        200:
+          description: Wallet
+          schema:
+            $ref: '#/definitions/Wallet'
+        400:
+          description: Validation error / Not found
+          schema:
+            $ref: '../kms-v1.yml#/definitions/ErrorResponse'
+    delete:
+      summary: Delete wallet
+      operationId: deleteWallet
+      tags: [ Wallet ]
+      parameters:
+        - $ref: '#/parameters/WalletId'
+      responses:
+        204:
+          description: Wallet deleted
+        400:
+          description: Validation error / Not found
+          schema:
+            $ref: '../kms-v1.yml#/definitions/ErrorResponse'
+
+  /wallet/{walletId}/transaction/eth:
+    post:
+      summary: Create Ethereum Transaction
+      operationId: createEthereumTransaction
+      tags: [ Wallet ]
+      parameters:
+        - $ref: '#/parameters/WalletId'
+        - in: body
+          name: data
+          required: true
+          schema:
+            $ref: '#/definitions/CreateEthereumTransactionRequest'
+      responses:
+        201:
+          description: Transaction Created
+          schema:
+            $ref: '#/definitions/EthereumTransaction'
+        400:
+          description: Validation error / Not found
+          schema:
+            $ref: '../kms-v1.yml#/definitions/ErrorResponse'
+
+  /wallet/{walletId}/transaction/matic:
+    post:
+      summary: Create Polygon Transaction
+      operationId: createMaticTransaction
+      tags: [ Wallet ]
+      parameters:
+        - $ref: '#/parameters/WalletId'
+        - in: body
+          name: data
+          required: true
+          schema:
+            $ref: '#/definitions/CreateMaticTransactionRequest'
+      responses:
+        201:
+          description: Transaction Created
+          schema:
+            $ref: '#/definitions/MaticTransaction'
+        400:
+          description: Validation error / Not found
+          schema:
+            $ref: '../kms-v1.yml#/definitions/ErrorResponse'
+
+  /wallet/{walletId}/transaction/tron:
+    post:
+      summary: Create Tron Transaction
+      operationId: createTronTransaction
+      tags: [ Wallet ]
+      parameters:
+        - $ref: '#/parameters/WalletId'
+        - in: body
+          name: data
+          required: true
+          schema:
+            $ref: '#/definitions/CreateTronTransactionRequest'
+      responses:
+        201:
+          description: Transaction Created
+          schema:
+            $ref: '#/definitions/TronTransaction'
+        400:
+          description: Validation error / Not found
+          schema:
+            $ref: '../kms-v1.yml#/definitions/ErrorResponse'
