@@ -1,0 +1,17 @@
+.payment-desc-card {
+    &__item-title {
+        color: rgba(0, 0, 0, 0.45);
+    }
+
+    &__link {
+        cursor: pointer;
+
+        &__text {
+            margin-right: 10px;
+        }
+    }
+
+    &__test-label {
+        margin-right: 10px;
+    }
+}

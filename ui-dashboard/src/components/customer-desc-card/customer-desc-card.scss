@@ -1,0 +1,14 @@
+.customer-desc-card {
+    &__item-title {
+        color: rgba(0, 0, 0, 0.45);
+    }
+
+    &__copy-btn {
+        cursor: pointer;  
+        margin-left: 10px;
+    }
+
+    &__test-label {
+        margin-right: 10px;
+    }
+}

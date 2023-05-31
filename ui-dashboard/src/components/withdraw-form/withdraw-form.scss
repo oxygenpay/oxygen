@@ -1,0 +1,56 @@
+.withdraw-form {
+    &__input-disabled {
+        color: #000000 !important;
+        background-color: #ffffff !important;
+        cursor: initial !important;
+    }
+
+    &__currency {
+        &-wrap {
+            width: 230px;
+            margin-bottom: 0px;
+        }
+
+        &-wrap-input {
+            display: flex;
+            height: 32px;
+        }
+
+        &-input {
+            width: 200px;
+            margin-right: 0px;
+        }
+
+        &-selection {
+            width: 80px !important;
+            text-align: center;
+        }
+    }
+
+    &__table {
+        margin-bottom: 20px;
+    }
+
+    &__address-select {
+        width: 400px;
+        margin-bottom: 0;
+    }
+
+    &__balance-info {
+        margin-top: -15px;
+        margin-bottom: 12px;
+    }
+
+    &__payment-info {
+        margin-bottom: 24px;
+    }
+
+    &__note-text {
+        display: block;
+        margin-bottom: 24px;
+    }
+
+    &__conditions-text {
+        margin-bottom: 20px;
+    }
+}

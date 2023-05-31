@@ -1,0 +1,29 @@
+.custom-collapse {
+    display: inline-block;
+    line-height: initial;
+    max-width: 100%;
+
+    &._collapsed {
+        display: flex;
+        align-items: center;
+    }
+
+    &__text {
+        display: inline;
+    }
+
+    &._collapsed &__text {
+        display: block;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+
+    &__button {
+        margin-left: 4px;
+    }
+
+    &._collapsed &__button {
+        margin-left: 0;
+    }
+}
