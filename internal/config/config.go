@@ -61,9 +61,9 @@ var once = sync.Once{}
 var cfg = &Config{}
 var errCfg error
 
-func New(gitCommit, giVersion, configPath string, skipConfig bool) (*Config, error) {
+func New(gitCommit, gitVersion, configPath string, skipConfig bool) (*Config, error) {
 	once.Do(func() {
-		cfg = &Config{GitCommit: gitCommit, GitVersion: giVersion}
+		cfg = &Config{GitCommit: gitCommit, GitVersion: gitVersion}
 
 		if skipConfig {
 			errCfg = cleanenv.ReadEnv(cfg)

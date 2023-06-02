@@ -20,8 +20,8 @@ var (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "oxygen",
-	Short: "Oxygen service",
-	Long:  "Main O2Pay backend service",
+	Short: "OxygenPay",
+	Long:  "OxygenPay: Accept crypto payments. Free and source-available crypto payment gateway",
 }
 
 var envHelp = &cobra.Command{
@@ -52,7 +52,7 @@ func resolveConfig() *config.Config {
 	return cfg
 }
 
-func envCommand(c *cobra.Command, _ []string) {
+func envCommand(_ *cobra.Command, _ []string) {
 	if err := config.PrintUsage(os.Stdout); err != nil {
 		fmt.Println(err.Error())
 	}

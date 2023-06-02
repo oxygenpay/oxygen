@@ -51,7 +51,7 @@ mock: ## Generate mocks (not included in codegen command)
 build: ## Build app
 	go build ${LDFLAGS} -o bin/oxygen main.go
 
-run: ## ## Run application (without building)
+run: ## Run application (without building)
 	./bin/oxygen start --config=$$(pwd)/config/oxygen.yml
 
 run-kms: ## Run KMS (without building)

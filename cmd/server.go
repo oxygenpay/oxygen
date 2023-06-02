@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"log"
 
 	"github.com/oxygenpay/oxygen/internal/app"
 	"github.com/oxygenpay/oxygen/pkg/graceful"
@@ -16,8 +17,14 @@ var startServerCmd = &cobra.Command{
 
 func startServer(_ *cobra.Command, _ []string) {
 	ctx := context.Background()
+	cfg := resolveConfig()
 
-	service := app.New(ctx, resolveConfig())
+	if cfg.Oxygen.Postgres.MigrateOnStart {
+		log.Printf("Enabled migration on start\n")
+		performMigration(ctx, cfg, "up", true)
+	}
+
+	service := app.New(ctx, cfg)
 	service.RunServer()
 
 	if err := graceful.WaitShutdown(); err != nil {
