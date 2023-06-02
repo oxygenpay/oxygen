@@ -90,17 +90,23 @@ func (app *App) RunServer() {
 		app.services.JobLogger(),
 	)
 
+	withInternalAPI := httpServer.NoOpt()
+	if app.config.Oxygen.Server.EnableInternalAPI {
+		admin := internalapi.New(
+			app.services.WalletService(),
+			app.services.BlockchainService(),
+			schedulerHandler,
+			app.logger,
+		)
+
+		withInternalAPI = httpServer.WithInternalAPI(admin)
+	}
+
 	srv := httpServer.New(
 		app.config.Oxygen.Server,
 		app.config.Debug,
 		httpServer.WithRecover(),
 		httpServer.WithLogger(app.logger),
-		httpServer.WithInternalAPI(internalapi.New(
-			app.services.WalletService(),
-			app.services.BlockchainService(),
-			schedulerHandler,
-			app.logger,
-		)),
 		httpServer.WithAuthDebug(web.AuthDebugFiles()),
 		httpServer.WithDocs(web.SwaggerFiles()),
 		httpServer.WithMerchantAPI(merchantAPIHandler, app.services.TokenManagerService()),
@@ -112,6 +118,7 @@ func (app *App) RunServer() {
 		),
 		httpServer.WithPaymentAPI(paymentAPIHandler, app.config.Oxygen.Server),
 		httpServer.WithWebhookAPI(incomingWebhooksHandler),
+		withInternalAPI,
 	)
 
 	app.registerEventHandlers()

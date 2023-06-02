@@ -13,6 +13,7 @@ oxygen:
     cors:
       allow_origins:
         - https://pay.site.com
+    enable_internal_api: false
   processing:
     webhook_base_path: https://pay.site.com
     payment_frontend_base_path: https://pay.site.com

@@ -18,6 +18,8 @@ type Config struct {
 	Session middleware.SessionConfig `yaml:"session"`
 	CSRF    middleware.CSRFConfig    `yaml:"csrf"`
 	CORS    middleware.CORSConfig    `yaml:"cors"`
+
+	EnableInternalAPI bool `yaml:"enable_internal_api" env:"WEB_ENABLE_INTERNAL_API" env-default:"false" env-description:"Enables internal API /internal/v1/*. DO NOT EXPOSE TO PUBLIC"`
 }
 
 type Server struct {
@@ -28,6 +30,10 @@ type Server struct {
 }
 
 type Opt func(s *Server)
+
+func NoOpt() Opt {
+	return func(_ *Server) {}
+}
 
 func New(cfg Config, logRequests bool, opts ...Opt) *Server {
 	e := echo.New()
