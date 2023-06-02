@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/olekukonko/tablewriter"
 	"github.com/oxygenpay/oxygen/internal/auth"
 	"github.com/oxygenpay/oxygen/internal/db/connection/bolt"
 	"github.com/oxygenpay/oxygen/internal/db/connection/pg"
@@ -82,10 +83,15 @@ func PrintUsage(w io.Writer) error {
 		return err
 	}
 
+	const delimiter = "||"
+
 	// 1 line == 1 env var
-	desc = strings.ReplaceAll(desc, "\n    \t", "\t\t")
+	desc = strings.ReplaceAll(desc, "\n    \t", delimiter)
 
 	lines := strings.Split(desc, "\n")
+
+	// remove header
+	lines = lines[1:]
 
 	// hide internal vars
 	lines = util.FilterSlice(lines, func(line string) bool {
@@ -95,14 +101,23 @@ func PrintUsage(w io.Writer) error {
 	// remove duplicates
 	lines = lo.Uniq(lines)
 
-	// sort a-z (except header)
+	// sort a-z (skip header)
 	sort.Strings(lines[1:])
 
-	desc = strings.Join(lines, "\n")
+	// write as a table
+	t := tablewriter.NewWriter(w)
+	t.SetBorder(false)
+	t.SetAutoWrapText(false)
+	t.SetHeader([]string{"ENV", "Description"})
+	t.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
 
-	if _, err = w.Write([]byte(desc + "\n")); err != nil {
-		return err
+	for _, line := range lines {
+		cells := strings.Split(line, delimiter)
+		cells = util.MapSlice(cells, strings.TrimSpace)
+		t.Append(cells)
 	}
+
+	t.Render()
 
 	return nil
 }
