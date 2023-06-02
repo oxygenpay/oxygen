@@ -7,18 +7,17 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 	"github.com/oxygenpay/oxygen/internal/server/http/middleware"
-	"github.com/oxygenpay/oxygen/internal/service/processing"
 	"github.com/rs/zerolog"
 	"github.com/ziflex/lecho/v3"
 )
 
 type Config struct {
-	Address    string                   `yaml:"address" env:"WEB_ADDRESS" env-default:"0.0.0.0"`
-	Port       string                   `yaml:"port" env:"WEB_PORT" env-default:"8000"`
-	Session    middleware.SessionConfig `yaml:"session"`
-	CSRF       middleware.CSRFConfig    `yaml:"csrf"`
-	CORS       middleware.CORSConfig    `yaml:"cors"`
-	Processing processing.Config        `yaml:"processing"`
+	Address string `yaml:"address" env:"WEB_ADDRESS" env-default:"0.0.0.0" env-description:"Listen address"`
+	Port    string `yaml:"port" env:"WEB_PORT" env-default:"80" env-description:"Listen port"`
+
+	Session middleware.SessionConfig `yaml:"session"`
+	CSRF    middleware.CSRFConfig    `yaml:"csrf"`
+	CORS    middleware.CORSConfig    `yaml:"cors"`
 }
 
 type Server struct {

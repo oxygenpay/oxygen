@@ -9,7 +9,7 @@ import (
 )
 
 type Config struct {
-	DataSource string `yaml:"data_source" env:"DB_DATA_SOURCE"`
+	DataSource string `yaml:"data_source" env:"DB_DATA_SOURCE" env-description:"Postgres connection string. Example: 'host=localhost sslmode=disable dbname=oxygen user=oxygen password=qwerty pool_max_conns=32'"`
 }
 
 type Connection struct {

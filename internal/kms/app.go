@@ -45,7 +45,7 @@ func (app *App) Logger() *zerolog.Logger {
 }
 
 func (app *App) connectToDB() {
-	conn, err := bolt.Open(app.config.Bolt, app.logger)
+	conn, err := bolt.Open(app.config.KMS.Bolt, app.logger)
 	if err != nil {
 		app.logger.Fatal().Err(err).Msg("unable to run kms without db")
 	}
@@ -72,7 +72,7 @@ func (app *App) runWebServer(ctx context.Context) {
 	kmsService := wallet.New(walletRepo, walletGenerator, app.logger)
 
 	srv := httpServer.New(
-		app.config.Web,
+		app.config.KMS.Server,
 		app.config.Debug,
 		httpServer.WithRecover(),
 		httpServer.WithLogger(app.logger),

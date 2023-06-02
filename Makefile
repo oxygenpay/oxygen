@@ -55,7 +55,7 @@ run: ## ## Run application (without building)
 	./bin/oxygen start --config=$$(pwd)/config/oxygen.yml
 
 run-kms: ## Run KMS (without building)
-	./bin/oxygen kms-server --config=$$(pwd)/config/kms.yml
+	./bin/oxygen kms-server --config=$$(pwd)/config/oxygen.yml
 
 run-scheduler: ## Run Scheduler (without building)
 	./bin/oxygen scheduler --config=$$(pwd)/config/oxygen.yml

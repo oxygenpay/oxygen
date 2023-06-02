@@ -12,10 +12,10 @@ import (
 )
 
 type GoogleConfig struct {
-	ClientID              string `yaml:"client_id" env:"GOOGLE_AUTH_CLIENT_ID"`
-	ClientSecret          string `yaml:"client_secret" env:"GOOGLE_AUTH_CLIENT_SECRET"`
-	RedirectCallback      string `yaml:"redirect_callback" env:"GOOGLE_AUTH_REDIRECT_CALLBACK"`
-	AuthenticatedRedirect string `json:"authenticated_redirect" env:"GOOGLE_AUTH_REDIRECT_SUCCESS" env-default:"/"`
+	ClientID              string `yaml:"client_id" env:"GOOGLE_AUTH_CLIENT_ID" env-description:"Internal variable"`
+	ClientSecret          string `yaml:"client_secret" env:"GOOGLE_AUTH_CLIENT_SECRET" env-description:"Internal variable"`
+	RedirectCallback      string `yaml:"redirect_callback" env:"GOOGLE_AUTH_REDIRECT_CALLBACK" env-description:"Internal variable"`
+	AuthenticatedRedirect string `json:"authenticated_redirect" env:"GOOGLE_AUTH_REDIRECT_SUCCESS" env-default:"/" env-description:"Internal variable"`
 }
 
 type GoogleOAuthManager struct {

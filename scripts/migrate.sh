@@ -3,6 +3,13 @@
 config_env=local
 config_path=$(pwd)/configs/migrations.yml
 
+# Sample migrations file:
+# local:
+#   dialect: postgres
+#   datasource: "host=localhost sslmode=disable dbname=oxygen user=oxygen password=oxygen"
+#   dir: scripts/migrations
+#   table: migrations
+
 command=$1
 shift
 command_args=$@

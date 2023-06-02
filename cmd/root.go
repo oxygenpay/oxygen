@@ -24,6 +24,12 @@ var rootCmd = &cobra.Command{
 	Long:  "Main O2Pay backend service",
 }
 
+var envHelp = &cobra.Command{
+	Use:   "env",
+	Short: "Outputs available ENV variables",
+	Run:   envCommand,
+}
+
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
@@ -46,6 +52,12 @@ func resolveConfig() *config.Config {
 	return cfg
 }
 
+func envCommand(c *cobra.Command, _ []string) {
+	if err := config.PrintUsage(os.Stdout); err != nil {
+		fmt.Println(err.Error())
+	}
+}
+
 // nolint gochecknoinits
 func init() {
 	rootCmd.AddCommand(startServerCmd)
@@ -64,6 +76,8 @@ func init() {
 	migrateCmd.PersistentFlags().StringVar(&configPath, "config", "oxygen.yml", "--config=oxygen.yml")
 	migrateCmd.PersistentFlags().BoolVar(&skipConfig, "skip-config", false, "--skip-config=false")
 	migrateCmd.PersistentFlags().StringVar(&migrateSelectedCommand, "command", "status", "--command=status")
+
+	rootCmd.AddCommand(envHelp)
 
 	rand.Seed(time.Now().Unix())
 }

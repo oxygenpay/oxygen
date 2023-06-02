@@ -18,9 +18,9 @@ import (
 )
 
 type Config struct {
-	MainnetBaseURL string `yaml:"mainnet_url" env:"TRONGRID_MAINNET_URL"`
-	TestnetBaseURL string `yaml:"testnet_url" env:"TRONGRID_TESTNET_URL"`
-	APIKey         string `yaml:"api_key" env:"TRONGRID_API_KEY"`
+	MainnetBaseURL string `yaml:"mainnet_url" env:"TRONGRID_MAINNET_URL" env-default:"https://api.trongrid.io" env-description:"Trongrid API base path"`
+	TestnetBaseURL string `yaml:"testnet_url" env:"TRONGRID_TESTNET_URL" env-default:"https://api.shasta.trongrid.io" env-description:"Trongrid testnet (shasta) API base path"`
+	APIKey         string `yaml:"api_key" env:"TRONGRID_API_KEY" env-description:"Trongrid API Key"`
 }
 
 type Provider struct {

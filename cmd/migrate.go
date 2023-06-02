@@ -73,7 +73,7 @@ func migration(_ *cobra.Command, _ []string) {
 }
 
 func migrationConnection(cfg *config.Config) *sql.DB {
-	db, err := sql.Open("pgx", cfg.Postgres.DataSource)
+	db, err := sql.Open("pgx", cfg.Oxygen.Postgres.DataSource)
 	if err != nil {
 		log.Fatalf("unable to open DB connection: %s\n", err.Error())
 	}

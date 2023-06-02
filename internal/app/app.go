@@ -91,7 +91,7 @@ func (app *App) RunServer() {
 	)
 
 	srv := httpServer.New(
-		app.config.Web,
+		app.config.Oxygen.Server,
 		app.config.Debug,
 		httpServer.WithRecover(),
 		httpServer.WithLogger(app.logger),
@@ -107,10 +107,10 @@ func (app *App) RunServer() {
 		httpServer.WithDashboardAPI(
 			merchantAPIHandler,
 			dashboardAuthHandler,
-			app.config.Web,
+			app.config.Oxygen.Server,
 			app.services.TokenManagerService(),
 		),
-		httpServer.WithPaymentAPI(paymentAPIHandler, app.config.Web),
+		httpServer.WithPaymentAPI(paymentAPIHandler, app.config.Oxygen.Server),
 		httpServer.WithWebhookAPI(incomingWebhooksHandler),
 	)
 

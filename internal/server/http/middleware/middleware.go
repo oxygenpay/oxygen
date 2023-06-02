@@ -13,14 +13,14 @@ import (
 )
 
 type SessionConfig struct {
-	FilesystemPath string `yaml:"path" env:"SESSION_FS_PATH"`
-	Secret         string `yaml:"secret" env:"SESSION_SECRET"`
-	CookieDomain   string `yaml:"cookie_domain" env:"SESSION_COOKIE_DOMAIN"`
-	CookiePath     string `yaml:"cookie_path" env:"SESSION_COOKIE_PATH" env-default:"/"`
-	CookieMaxAge   int    `yaml:"cookie_max_age" env:"SESSION_COOKIE_MAX_AGE" env-default:"86400"` // 60*60*24 = 24h
-	CookieSecure   bool   `yaml:"cookie_secure" env:"SESSION_COOKIE_SECURE"`
-	CookieHTTPOnly bool   `yaml:"cookie_http_only" env:"SESSION_COOKIE_HTTP_ONLY" env-default:"true"`
-	CookieSameSite string `yaml:"cookie_same_site" env:"SESSION_COOKIE_SAME_SITE" env-default:"default"`
+	FilesystemPath string `yaml:"path" env:"SESSION_FS_PATH" env-description:"Path to sessions directory"`
+	Secret         string `yaml:"secret" env:"SESSION_SECRET" env-description:"Sessions secret, use random string with 8+ characters"`
+	CookieDomain   string `yaml:"cookie_domain" env:"SESSION_COOKIE_DOMAIN" env-description:"Cookie domain"`
+	CookiePath     string `yaml:"cookie_path" env:"SESSION_COOKIE_PATH" env-default:"/" env-description:"Cookie path"`
+	CookieMaxAge   int    `yaml:"cookie_max_age" env:"SESSION_COOKIE_MAX_AGE" env-default:"86400" env-description:"Cookie max-age"` // 60*60*24 = 24h
+	CookieSecure   bool   `yaml:"cookie_secure" env:"SESSION_COOKIE_SECURE" env-default:"true" env-description:"Allow secure cookies only"`
+	CookieHTTPOnly bool   `yaml:"cookie_http_only" env:"SESSION_COOKIE_HTTP_ONLY" env-default:"true" env-description:"Allow HTTP cookies only"`
+	CookieSameSite string `yaml:"cookie_same_site" env:"SESSION_COOKIE_SAME_SITE" env-default:"default" env-description:"Cookie same site"`
 }
 
 const sessionOptionsKey = "session_options"
@@ -55,12 +55,12 @@ type CSRFConfig struct {
 	// CookieDomain Defines the host to which the cookie will be sent.
 	// If omitted, this attribute defaults to the host of the current document URL, not including subdomains.
 	// Multiple host/domain values are not allowed, but if a domain is specified, then subdomains are always included.
-	CookieDomain   string `yaml:"cookie_domain" env:"CSRF_COOKIE_DOMAIN"`
-	CookiePath     string `yaml:"cookie_path" env:"CSRF_COOKIE_PATH" env-default:"/"`
-	CookieMaxAge   int    `yaml:"cookie_max_age" env:"CSRF_COOKIE_MAX_AGE" env-default:"7200"` // 2h
-	CookieSecure   bool   `yaml:"cookie_secure" env:"CSRF_COOKIE_SECURE"`
-	CookieHTTPOnly bool   `yaml:"cookie_http_only" env:"CSRF_COOKIE_HTTP_ONLY" env-default:"true"`
-	CookieSameSite string `yaml:"cookie_same_site" env:"CSRF_COOKIE_SAME_SITE" env-default:"default"`
+	CookieDomain   string `yaml:"cookie_domain" env:"CSRF_COOKIE_DOMAIN" env-description:"CSRF (Cross Site Request Forgery) cookie domain"`
+	CookiePath     string `yaml:"cookie_path" env:"CSRF_COOKIE_PATH" env-default:"/" env-description:"CSRF cookie path"`
+	CookieMaxAge   int    `yaml:"cookie_max_age" env:"CSRF_COOKIE_MAX_AGE" env-default:"7200" env-description:"CSRF cookie max-age"` // 2h
+	CookieSecure   bool   `yaml:"cookie_secure" env:"CSRF_COOKIE_SECURE" env-default:"true" env-description:"CSRF secure cookie"`
+	CookieHTTPOnly bool   `yaml:"cookie_http_only" env:"CSRF_COOKIE_HTTP_ONLY" env-default:"true" env-description:"CSRF HTTP only cookie"`
+	CookieSameSite string `yaml:"cookie_same_site" env:"CSRF_COOKIE_SAME_SITE" env-default:"default" env-description:"CSRF cookie same site"`
 }
 
 func CSRF(cfg CSRFConfig) echo.MiddlewareFunc {
@@ -84,8 +84,8 @@ func CSRF(cfg CSRFConfig) echo.MiddlewareFunc {
 }
 
 type CORSConfig struct {
-	AllowCredentials bool     `yaml:"allow_credentials" env:"CORS_ALLOW_CREDENTIALS" env-default:"true"`
-	AllowOrigins     []string `yaml:"allow_origins" env:"CORS_ALLOW_ORIGINS"`
+	AllowCredentials bool     `yaml:"allow_credentials" env:"CORS_ALLOW_CREDENTIALS" env-default:"true" env-description:"CORS (Cross Origin Resource Sharing) allow credentials"`
+	AllowOrigins     []string `yaml:"allow_origins" env:"CORS_ALLOW_ORIGINS" env-description:"Comma separated list (without spaces) of origins (with schema). Example: https://pay.site.com"`
 }
 
 func CORS(cfg CORSConfig) echo.MiddlewareFunc {

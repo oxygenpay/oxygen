@@ -21,13 +21,13 @@ import (
 
 type Config struct {
 	BasePath   string
-	APIKey     string `yaml:"api_key" env:"TATUM_API_KEY"`
-	TestAPIKey string `yaml:"test_api_key" env:"TATUM_TEST_API_KEY"`
-	HMACSecret string `yaml:"tatum_hmac_secret" env:"TATUM_HMAC_SECRET"`
+	APIKey     string `yaml:"api_key" env:"TATUM_API_KEY" env-description:"Tatum API Key"`
+	TestAPIKey string `yaml:"test_api_key" env:"TATUM_TEST_API_KEY" env-description:"Tatum Test API Key"`
+	HMACSecret string `yaml:"tatum_hmac_secret" env:"TATUM_HMAC_SECRET" env-description:"Tatum HMAC Secret. Use any random string with 8+ chars"`
 
 	// HMACForceSet will make "set hmac set" request on every service start.
 	// Useful if HMAC secret was changed.
-	HMACForceSet bool `yaml:"tatum_hmac_force_set" env:"TATUM_HMAC_FORCE_SET"`
+	HMACForceSet bool `yaml:"tatum_hmac_force_set" env:"TATUM_HMAC_FORCE_SET" env-description:"Internal variable"`
 }
 
 type Provider struct {
