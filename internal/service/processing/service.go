@@ -4,6 +4,7 @@ package processing
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -43,11 +44,26 @@ type Service struct {
 
 type Config struct {
 	WebhookBasePath         string `yaml:"webhook_base_path" env:"PROCESSING_WEBHOOK_BASE_PATH" env-description:"Base path for webhooks (sub)domain. Example: https://pay.site.com"`
-	PaymentFrontendBasePath string `yaml:"payment_frontend_base_path" env:"PROCESSING_PAYMENT_FRONTEND_BASE_PATH" env-description:"Base path for oxygen dashboard. Example: https://pay.site.com"`
+	PaymentFrontendBasePath string `yaml:"payment_frontend_base_path" env:"PROCESSING_PAYMENT_FRONTEND_BASE_PATH" env-description:"Base path for payment UI. Example: https://pay.site.com"`
+	PaymentFrontendSubPath  string `yaml:"payment_frontend_sub_path" env:"PROCESSING_PAYMENT_FRONTEND_SUB_PATH" env-default:"/p" env-description:"Sub path for payment UI"`
+}
+
+func (c *Config) PaymentFrontendPath() string {
+	base := strings.TrimSuffix(c.PaymentFrontendBasePath, "/")
+	sub := strings.Trim(c.PaymentFrontendSubPath, "/")
+
+	return base + "/" + sub
 }
 
 // 1.5%
 const ServiceFee = 0.015
+
+var (
+	ErrStatusInvalid         = errors.New("payment status is invalid")
+	ErrPaymentOptionsMissing = errors.New("payment options are not fully fulfilled")
+	ErrSignatureVerification = errors.New("unable to verify request signature")
+	ErrInboundWallet         = errors.New("inbound wallet error")
+)
 
 func New(
 	config Config,

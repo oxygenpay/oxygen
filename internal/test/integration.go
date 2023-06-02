@@ -84,6 +84,7 @@ type Providers struct {
 var processingConfig = processing.Config{
 	WebhookBasePath:         "http://localhost/webhok",
 	PaymentFrontendBasePath: "https://pay.o2pay.co",
+	PaymentFrontendSubPath:  "/",
 }
 
 func NewIntegrationTest(t *testing.T) *IntegrationTest {

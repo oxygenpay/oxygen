@@ -238,7 +238,7 @@ func (loc *Locator) PaymentService() *payment.Service {
 	loc.init("service.payment", func() {
 		loc.paymentService = payment.New(
 			loc.Repository(),
-			loc.config.Oxygen.Processing.PaymentFrontendBasePath,
+			loc.config.Oxygen.Processing.PaymentFrontendPath(),
 			loc.TransactionService(),
 			loc.MerchantService(),
 			loc.WalletService(),

@@ -16,7 +16,6 @@ oxygen:
   processing:
     webhook_base_path: https://pay.site.com
     payment_frontend_base_path: https://pay.site.com
-    payment_frontend_sub_path: /abc # todo # todo support /path/a/b/c/
 
 kms:
   server:
