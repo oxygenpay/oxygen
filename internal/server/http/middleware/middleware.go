@@ -18,7 +18,7 @@ type SessionConfig struct {
 	CookieDomain   string `yaml:"cookie_domain" env:"SESSION_COOKIE_DOMAIN" env-description:"Cookie domain"`
 	CookiePath     string `yaml:"cookie_path" env:"SESSION_COOKIE_PATH" env-default:"/" env-description:"Cookie path"`
 	CookieMaxAge   int    `yaml:"cookie_max_age" env:"SESSION_COOKIE_MAX_AGE" env-default:"86400" env-description:"Cookie max-age"` // 60*60*24 = 24h
-	CookieSecure   bool   `yaml:"cookie_secure" env:"SESSION_COOKIE_SECURE" env-default:"true" env-description:"Allow secure cookies only"`
+	CookieSecure   bool   `yaml:"cookie_secure" env:"SESSION_COOKIE_SECURE" env-description:"Allow secure cookies only"`
 	CookieHTTPOnly bool   `yaml:"cookie_http_only" env:"SESSION_COOKIE_HTTP_ONLY" env-default:"true" env-description:"Allow HTTP cookies only"`
 	CookieSameSite string `yaml:"cookie_same_site" env:"SESSION_COOKIE_SAME_SITE" env-default:"default" env-description:"Cookie same site"`
 }
@@ -58,7 +58,7 @@ type CSRFConfig struct {
 	CookieDomain   string `yaml:"cookie_domain" env:"CSRF_COOKIE_DOMAIN" env-description:"CSRF (Cross Site Request Forgery) cookie domain"`
 	CookiePath     string `yaml:"cookie_path" env:"CSRF_COOKIE_PATH" env-default:"/" env-description:"CSRF cookie path"`
 	CookieMaxAge   int    `yaml:"cookie_max_age" env:"CSRF_COOKIE_MAX_AGE" env-default:"7200" env-description:"CSRF cookie max-age"` // 2h
-	CookieSecure   bool   `yaml:"cookie_secure" env:"CSRF_COOKIE_SECURE" env-default:"true" env-description:"CSRF secure cookie"`
+	CookieSecure   bool   `yaml:"cookie_secure" env:"CSRF_COOKIE_SECURE" env-description:"CSRF secure cookie"`
 	CookieHTTPOnly bool   `yaml:"cookie_http_only" env:"CSRF_COOKIE_HTTP_ONLY" env-default:"true" env-description:"CSRF HTTP only cookie"`
 	CookieSameSite string `yaml:"cookie_same_site" env:"CSRF_COOKIE_SAME_SITE" env-default:"default" env-description:"CSRF cookie same site"`
 }

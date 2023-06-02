@@ -85,6 +85,7 @@ var processingConfig = processing.Config{
 	WebhookBasePath:         "http://localhost/webhok",
 	PaymentFrontendBasePath: "https://pay.o2pay.co",
 	PaymentFrontendSubPath:  "/",
+	DefaultServiceFee:       0.015, // 1.5%
 }
 
 func NewIntegrationTest(t *testing.T) *IntegrationTest {
