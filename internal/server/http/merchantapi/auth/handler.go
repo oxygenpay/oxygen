@@ -1,4 +1,4 @@
-package merchantapi
+package auth
 
 import (
 	"net/http"
@@ -13,37 +13,29 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// AuthHandler user session auth handler. Uses Google OAuth.
-type AuthHandler struct {
+// Handler user session auth handler. Uses Google OAuth.
+type Handler struct {
 	googleAuth *auth.GoogleOAuthManager
 	users      *user.Service
 	logger     *zerolog.Logger
 }
 
-func NewAuthHandler(
-	googleAuth *auth.GoogleOAuthManager,
-	users *user.Service,
-	logger *zerolog.Logger,
-) *AuthHandler {
+func NewHandler(googleAuth *auth.GoogleOAuthManager, users *user.Service, logger *zerolog.Logger) *Handler {
 	log := logger.With().Str("channel", "auth_handler").Logger()
 
-	return &AuthHandler{
+	return &Handler{
 		googleAuth: googleAuth,
 		users:      users,
 		logger:     &log,
 	}
 }
 
-func (h *AuthHandler) UserService() *user.Service {
-	return h.users
-}
-
 // GetCookie get csrf cookie & header in this response
-func (h *AuthHandler) GetCookie(c echo.Context) error {
+func (h *Handler) GetCookie(c echo.Context) error {
 	tokenRaw := c.Get("csrf")
 	token, ok := tokenRaw.(string)
 	if !ok {
-		return c.JSON(http.StatusInternalServerError, "err")
+		return common.ErrorResponse(c, "internal_error")
 	}
 
 	c.Response().Header().Set(echo.HeaderXCSRFToken, token)
@@ -52,7 +44,7 @@ func (h *AuthHandler) GetCookie(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (h *AuthHandler) GetRedirect(c echo.Context) error {
+func (h *Handler) GetRedirect(c echo.Context) error {
 	if person := middleware.ResolveUser(c); person != nil {
 		return c.Redirect(http.StatusTemporaryRedirect, h.googleAuth.GetAuthenticatedRedirectURL())
 	}
@@ -60,7 +52,7 @@ func (h *AuthHandler) GetRedirect(c echo.Context) error {
 	return c.Redirect(http.StatusTemporaryRedirect, h.googleAuth.RedirectURL())
 }
 
-func (h *AuthHandler) GetCallback(c echo.Context) error {
+func (h *Handler) GetCallback(c echo.Context) error {
 	if person := middleware.ResolveUser(c); person != nil {
 		return c.Redirect(http.StatusTemporaryRedirect, h.googleAuth.GetAuthenticatedRedirectURL())
 	}
@@ -95,7 +87,7 @@ func (h *AuthHandler) GetCallback(c echo.Context) error {
 	return c.Redirect(http.StatusTemporaryRedirect, h.googleAuth.GetAuthenticatedRedirectURL())
 }
 
-func (h *AuthHandler) GetMe(c echo.Context) error {
+func (h *Handler) GetMe(c echo.Context) error {
 	person := middleware.ResolveUser(c)
 
 	return c.JSON(http.StatusOK, &model.User{
@@ -106,7 +98,7 @@ func (h *AuthHandler) GetMe(c echo.Context) error {
 	})
 }
 
-func (h *AuthHandler) PostLogout(c echo.Context) error {
+func (h *Handler) PostLogout(c echo.Context) error {
 	userSession := middleware.ResolveSession(c)
 	userSession.Values["user_id"] = nil
 	if err := userSession.Save(c.Request(), c.Response()); err != nil {

@@ -17,6 +17,7 @@ import (
 	httpServer "github.com/oxygenpay/oxygen/internal/server/http"
 	"github.com/oxygenpay/oxygen/internal/server/http/internalapi"
 	"github.com/oxygenpay/oxygen/internal/server/http/merchantapi"
+	merchantauth "github.com/oxygenpay/oxygen/internal/server/http/merchantapi/auth"
 	"github.com/oxygenpay/oxygen/internal/server/http/paymentapi"
 	"github.com/oxygenpay/oxygen/internal/server/http/webhook"
 	"github.com/oxygenpay/oxygen/pkg/graceful"
@@ -61,7 +62,7 @@ func (app *App) RunServer() {
 		app.Logger(),
 	)
 
-	dashboardAuthHandler := merchantapi.NewAuthHandler(
+	dashboardAuthHandler := merchantauth.NewHandler(
 		app.services.GoogleAuth(),
 		app.services.UserService(),
 		app.Logger(),
@@ -111,10 +112,11 @@ func (app *App) RunServer() {
 		httpServer.WithDocs(web.SwaggerFiles()),
 		httpServer.WithMerchantAPI(merchantAPIHandler, app.services.TokenManagerService()),
 		httpServer.WithDashboardAPI(
+			app.config.Oxygen.Server,
 			merchantAPIHandler,
 			dashboardAuthHandler,
-			app.config.Oxygen.Server,
 			app.services.TokenManagerService(),
+			app.services.UserService(),
 		),
 		httpServer.WithPaymentAPI(paymentAPIHandler, app.config.Oxygen.Server),
 		httpServer.WithWebhookAPI(incomingWebhooksHandler),

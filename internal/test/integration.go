@@ -19,6 +19,7 @@ import (
 	"github.com/oxygenpay/oxygen/internal/provider/trongrid"
 	httpServer "github.com/oxygenpay/oxygen/internal/server/http"
 	"github.com/oxygenpay/oxygen/internal/server/http/merchantapi"
+	merchantauth "github.com/oxygenpay/oxygen/internal/server/http/merchantapi/auth"
 	"github.com/oxygenpay/oxygen/internal/server/http/middleware"
 	"github.com/oxygenpay/oxygen/internal/server/http/paymentapi"
 	"github.com/oxygenpay/oxygen/internal/server/http/webhook"
@@ -180,7 +181,7 @@ func NewIntegrationTest(t *testing.T) *IntegrationTest {
 		&logger,
 	)
 
-	dashboardAuthHandler := merchantapi.NewAuthHandler(googleAuthService, usersService, &logger)
+	dashboardAuthHandler := merchantauth.NewHandler(googleAuthService, usersService, &logger)
 
 	paymentAPIHandler := paymentapi.New(
 		paymentsService,
@@ -210,10 +211,11 @@ func NewIntegrationTest(t *testing.T) *IntegrationTest {
 		false,
 		httpServer.WithLogger(&logger),
 		httpServer.WithDashboardAPI(
+			webConfig,
 			merchantAPIHandler,
 			dashboardAuthHandler,
-			webConfig,
 			authTokenManager,
+			usersService,
 		),
 		httpServer.WithMerchantAPI(merchantAPIHandler, authTokenManager),
 		httpServer.WithPaymentAPI(paymentAPIHandler, webConfig),

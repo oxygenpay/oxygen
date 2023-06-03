@@ -8,17 +8,20 @@ import (
 	"github.com/oxygenpay/oxygen/internal/auth"
 	v1 "github.com/oxygenpay/oxygen/internal/server/http/internalapi"
 	"github.com/oxygenpay/oxygen/internal/server/http/merchantapi"
+	merchantauth "github.com/oxygenpay/oxygen/internal/server/http/merchantapi/auth"
 	"github.com/oxygenpay/oxygen/internal/server/http/middleware"
 	"github.com/oxygenpay/oxygen/internal/server/http/paymentapi"
 	"github.com/oxygenpay/oxygen/internal/server/http/webhook"
+	"github.com/oxygenpay/oxygen/internal/service/user"
 )
 
 // WithDashboardAPI setups routes for Merchant's Dashboard (app.o2pay.co)
 func WithDashboardAPI(
-	handler *merchantapi.Handler,
-	authHandler *merchantapi.AuthHandler,
 	cfg Config,
+	handler *merchantapi.Handler,
+	authHandler *merchantauth.Handler,
 	tokensManager *auth.TokenAuthManager,
+	users *user.Service,
 ) Opt {
 	return func(s *Server) {
 		guardsUsersMW := middleware.GuardsUsers()
@@ -27,8 +30,8 @@ func WithDashboardAPI(
 			"/api/dashboard/v1",
 			middleware.CORS(cfg.CORS),
 			middleware.Session(cfg.Session),
-			middleware.ResolvesUserBySession(authHandler.UserService()),
-			middleware.ResolvesUserByToken(tokensManager, authHandler.UserService()),
+			middleware.ResolvesUserBySession(users),
+			middleware.ResolvesUserByToken(tokensManager, users),
 			middleware.CSRF(cfg.CSRF),
 		)
 
