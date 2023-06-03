@@ -9,12 +9,12 @@ import (
 )
 
 var kmsServerCmd = &cobra.Command{
-	Use:   "kms-server",
-	Short: "Start Key Management Server",
-	Run:   kmsServer,
+	Use:   "serve-kms",
+	Short: "Start KMS (Key Management Server)",
+	Run:   serveKMS,
 }
 
-func kmsServer(_ *cobra.Command, _ []string) {
+func serveKMS(_ *cobra.Command, _ []string) {
 	service := kms.NewApp(resolveConfig())
 	service.Run(context.Background())
 

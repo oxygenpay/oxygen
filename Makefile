@@ -52,13 +52,13 @@ build: ## Build app
 	go build ${LDFLAGS} -o bin/oxygen main.go
 
 run: ## Run application (without building)
-	./bin/oxygen start --config=$$(pwd)/config/oxygen.yml
+	./bin/oxygen serve-web --config=$$(pwd)/config/oxygen.yml
 
 run-kms: ## Run KMS (without building)
-	./bin/oxygen kms-server --config=$$(pwd)/config/oxygen.yml
+	./bin/oxygen serve-kms --config=$$(pwd)/config/oxygen.yml
 
 run-scheduler: ## Run Scheduler (without building)
-	./bin/oxygen scheduler --config=$$(pwd)/config/oxygen.yml
+	./bin/oxygen run-scheduler --config=$$(pwd)/config/oxygen.yml
 
 local: codegen build run ## Build & Run App
 

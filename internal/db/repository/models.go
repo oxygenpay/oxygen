@@ -176,6 +176,7 @@ type User struct {
 	UpdatedAt       time.Time
 	DeletedAt       sql.NullTime
 	Settings        pgtype.JSONB
+	Password        sql.NullString
 }
 
 type Wallet struct {
