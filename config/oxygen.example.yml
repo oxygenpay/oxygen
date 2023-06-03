@@ -16,6 +16,10 @@ oxygen:
   processing:
     webhook_base_path: https://pay.site.com
     payment_frontend_base_path: https://pay.site.com
+  auth:
+    email:
+      merchant_email: your.address@gmail.com
+      merchant_password: <your-password-at-least-8-chars>
 
 kms:
   server:

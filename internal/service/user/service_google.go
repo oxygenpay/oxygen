@@ -51,7 +51,7 @@ func (s *Service) registerGoogleUser(ctx context.Context, user *auth.GoogleUser)
 		s.logger.Error().Err(err).Msg("unable to publish event")
 	}
 
-	return entryToUser(entry), nil
+	return entryToUser(entry)
 }
 
 func (s *Service) updateGoogleUser(ctx context.Context, userID int64, user *auth.GoogleUser) (*User, error) {
@@ -65,5 +65,5 @@ func (s *Service) updateGoogleUser(ctx context.Context, userID int64, user *auth
 		return nil, errors.Wrap(err, "unable to update user")
 	}
 
-	return entryToUser(entry), nil
+	return entryToUser(entry)
 }

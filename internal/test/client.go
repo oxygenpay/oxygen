@@ -154,6 +154,10 @@ func (r *Response) Bytes() []byte {
 	return data
 }
 
+func (r *Response) Headers() http.Header {
+	return r.res.Header()
+}
+
 func (r *Response) JSON(output any) error {
 	data, err := io.ReadAll(r.res.Body)
 	if err != nil {

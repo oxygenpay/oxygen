@@ -22,6 +22,8 @@ func WithDashboardAPI(
 	authHandler *merchantauth.Handler,
 	tokensManager *auth.TokenAuthManager,
 	users *user.Service,
+	enableEmailAuth bool,
+	enableGoogleAuth bool,
 ) Opt {
 	return func(s *Server) {
 		guardsUsersMW := middleware.GuardsUsers()
@@ -36,11 +38,23 @@ func WithDashboardAPI(
 		)
 
 		authGroup := dashboardAPI.Group("/auth")
+
+		// common auth routes
+		authGroup.GET("/provider", authHandler.ListAvailableProviders)
 		authGroup.GET("/csrf-cookie", authHandler.GetCookie)
-		authGroup.GET("/redirect", authHandler.GetRedirect)
-		authGroup.GET("/callback", authHandler.GetCallback)
 		authGroup.GET("/me", authHandler.GetMe, guardsUsersMW)
 		authGroup.POST("/logout", authHandler.PostLogout, guardsUsersMW)
+
+		// email auth routes
+		if enableEmailAuth {
+			authGroup.POST("/login", authHandler.PostLogin)
+		}
+
+		// google auth routes
+		if enableGoogleAuth {
+			authGroup.GET("/redirect", authHandler.GetRedirect)
+			authGroup.GET("/callback", authHandler.GetCallback)
+		}
 
 		dashboardAPI.GET("/merchant", handler.ListMerchants, guardsUsersMW)
 		dashboardAPI.POST("/merchant", handler.CreateMerchant, guardsUsersMW)

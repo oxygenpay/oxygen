@@ -60,24 +60,19 @@ func envCommand(_ *cobra.Command, _ []string) {
 
 // nolint gochecknoinits
 func init() {
+	rootCmd.PersistentFlags().StringVar(&configPath, "config", "oxygen.yml", "path to yml config")
+	rootCmd.PersistentFlags().BoolVar(&skipConfig, "skip-config", false, "skips config and uses ENV only")
+
 	rootCmd.AddCommand(startServerCmd)
-	startServerCmd.PersistentFlags().StringVar(&configPath, "config", "oxygen.yml", "--config=oxygen.yml")
-	startServerCmd.PersistentFlags().BoolVar(&skipConfig, "skip-config", false, "--skip-config=false")
-
 	rootCmd.AddCommand(kmsServerCmd)
-	kmsServerCmd.PersistentFlags().StringVar(&configPath, "config", "oxygen.yml", "--config=oxygen.yml")
-	kmsServerCmd.PersistentFlags().BoolVar(&skipConfig, "skip-config", false, "--skip-config=false")
-
 	rootCmd.AddCommand(schedulerCmd)
-	schedulerCmd.PersistentFlags().StringVar(&configPath, "config", "oxygen.yml", "--config=oxygen.yml")
-	schedulerCmd.PersistentFlags().BoolVar(&skipConfig, "skip-config", false, "--skip-config=false")
+	rootCmd.AddCommand(envHelp)
 
 	rootCmd.AddCommand(migrateCmd)
-	migrateCmd.PersistentFlags().StringVar(&configPath, "config", "oxygen.yml", "--config=oxygen.yml")
-	migrateCmd.PersistentFlags().BoolVar(&skipConfig, "skip-config", false, "--skip-config=false")
-	migrateCmd.PersistentFlags().StringVar(&migrateSelectedCommand, "command", "status", "--command=status")
+	migrateCmd.PersistentFlags().StringVar(&migrateSelectedCommand, "command", "status", "migration command")
 
-	rootCmd.AddCommand(envHelp)
+	rootCmd.AddCommand(createUser)
+	createUser.PersistentFlags().BoolVar(&overridePassword, "override-password", false, "overrides password if user already exists")
 
 	rand.Seed(time.Now().Unix())
 }

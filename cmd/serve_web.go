@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"context"
-	"log"
+	"errors"
 
 	"github.com/oxygenpay/oxygen/internal/app"
 	"github.com/oxygenpay/oxygen/pkg/graceful"
@@ -19,14 +19,26 @@ func serveWeb(_ *cobra.Command, _ []string) {
 	ctx := context.Background()
 	cfg := resolveConfig()
 
-	if cfg.Oxygen.Postgres.MigrateOnStart {
-		log.Printf("Enabled migration on start\n")
-		performMigration(ctx, cfg, "up", true)
-	}
-
 	service := app.New(ctx, cfg)
-	service.RunServer()
 
+	service.OnBeforeRun(func(ctx context.Context, a *app.App) error {
+		if cfg.Oxygen.Postgres.MigrateOnStart {
+			a.Logger().Info().Msg("Enabled migration on start")
+			performMigration(ctx, cfg, "up", true)
+		}
+
+		return nil
+	})
+
+	service.OnBeforeRun(func(ctx context.Context, a *app.App) error {
+		if len(cfg.Oxygen.Auth.EnabledProviders()) == 0 {
+			return errors.New("unable to run server: at least one auth provider should be enabled")
+		}
+
+		return nil
+	})
+
+	service.RunServer()
 	if err := graceful.WaitShutdown(); err != nil {
 		service.Logger().Error().Err(err).Msg("unable to shutdown service gracefully")
 		return

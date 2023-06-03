@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -32,6 +33,7 @@ import (
 	"github.com/oxygenpay/oxygen/internal/service/user"
 	"github.com/oxygenpay/oxygen/internal/service/wallet"
 	"github.com/oxygenpay/oxygen/internal/test/fakes"
+	"github.com/oxygenpay/oxygen/internal/util"
 	kmsmock "github.com/oxygenpay/oxygen/pkg/api-kms/v1/mock"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
@@ -181,7 +183,7 @@ func NewIntegrationTest(t *testing.T) *IntegrationTest {
 		&logger,
 	)
 
-	dashboardAuthHandler := merchantauth.NewHandler(googleAuthService, usersService, &logger)
+	dashboardAuthHandler := merchantauth.NewHandler(googleAuthService, usersService, nil, &logger)
 
 	paymentAPIHandler := paymentapi.New(
 		paymentsService,
@@ -201,8 +203,9 @@ func NewIntegrationTest(t *testing.T) *IntegrationTest {
 		Address: "0.0.0.0",
 		Port:    "8888",
 		Session: middleware.SessionConfig{
-			FilesystemPath: os.TempDir(),
+			FilesystemPath: setupTmpDir(t, "sessions"),
 			Secret:         "secret",
+			CookieMaxAge:   60,
 		},
 	}
 
@@ -216,6 +219,8 @@ func NewIntegrationTest(t *testing.T) *IntegrationTest {
 			dashboardAuthHandler,
 			authTokenManager,
 			usersService,
+			true,
+			true,
 		),
 		httpServer.WithMerchantAPI(merchantAPIHandler, authTokenManager),
 		httpServer.WithPaymentAPI(paymentAPIHandler, webConfig),
@@ -322,4 +327,13 @@ func (i *IntegrationTest) CreateRawPayment(
 func (i *IntegrationTest) TearDown() {
 	_ = i.server.Shutdown(context.Background())
 	i.Database.TearDown()
+}
+
+func setupTmpDir(t *testing.T, dir string) string {
+	fullPath := fmt.Sprintf("%s%s/%s", os.TempDir(), util.Strings.Random(6), dir)
+
+	require.NoError(t, os.MkdirAll(fullPath, os.ModePerm))
+	t.Cleanup(func() { require.NoError(t, os.RemoveAll(fullPath)) })
+
+	return fullPath
 }

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 config_env=local
-config_path=$(pwd)/configs/migrations.yml
+config_path=$(pwd)/config/migrations.yml
 
 # Sample migrations file:
 # local:

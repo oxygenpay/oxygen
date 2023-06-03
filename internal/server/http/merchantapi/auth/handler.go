@@ -8,29 +8,36 @@ import (
 	"github.com/oxygenpay/oxygen/internal/server/http/common"
 	"github.com/oxygenpay/oxygen/internal/server/http/middleware"
 	"github.com/oxygenpay/oxygen/internal/service/user"
+	"github.com/oxygenpay/oxygen/internal/util"
 	"github.com/oxygenpay/oxygen/pkg/api-dashboard/v1/model"
-	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
 )
 
 // Handler user session auth handler. Uses Google OAuth.
 type Handler struct {
-	googleAuth *auth.GoogleOAuthManager
-	users      *user.Service
-	logger     *zerolog.Logger
+	googleAuth       *auth.GoogleOAuthManager
+	users            *user.Service
+	enabledProviders []auth.ProviderType
+	logger           *zerolog.Logger
 }
 
-func NewHandler(googleAuth *auth.GoogleOAuthManager, users *user.Service, logger *zerolog.Logger) *Handler {
+func NewHandler(
+	googleAuth *auth.GoogleOAuthManager,
+	users *user.Service,
+	enabledProviders []auth.ProviderType,
+	logger *zerolog.Logger,
+) *Handler {
 	log := logger.With().Str("channel", "auth_handler").Logger()
 
 	return &Handler{
-		googleAuth: googleAuth,
-		users:      users,
-		logger:     &log,
+		googleAuth:       googleAuth,
+		users:            users,
+		enabledProviders: enabledProviders,
+		logger:           &log,
 	}
 }
 
-// GetCookie get csrf cookie & header in this response
+// GetCookie returns csrf cookie & csrf header in the same response.
 func (h *Handler) GetCookie(c echo.Context) error {
 	tokenRaw := c.Get("csrf")
 	token, ok := tokenRaw.(string)
@@ -44,47 +51,12 @@ func (h *Handler) GetCookie(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (h *Handler) GetRedirect(c echo.Context) error {
-	if person := middleware.ResolveUser(c); person != nil {
-		return c.Redirect(http.StatusTemporaryRedirect, h.googleAuth.GetAuthenticatedRedirectURL())
-	}
+func (h *Handler) ListAvailableProviders(c echo.Context) error {
+	providers := util.MapSlice(h.enabledProviders, func(t auth.ProviderType) *model.Provider {
+		return &model.Provider{Name: string(t)}
+	})
 
-	return c.Redirect(http.StatusTemporaryRedirect, h.googleAuth.RedirectURL())
-}
-
-func (h *Handler) GetCallback(c echo.Context) error {
-	if person := middleware.ResolveUser(c); person != nil {
-		return c.Redirect(http.StatusTemporaryRedirect, h.googleAuth.GetAuthenticatedRedirectURL())
-	}
-
-	ctx := c.Request().Context()
-
-	code := c.Request().URL.Query().Get("code")
-	googleUser, err := h.googleAuth.ResolveUser(ctx, code)
-	if err != nil {
-		msg := "unable to resolve googleUser"
-		h.logger.Error().Err(err).Msg(msg)
-		return c.JSON(http.StatusInternalServerError, msg)
-	}
-
-	// check that user exists
-	person, err := h.users.ResolveWithGoogle(ctx, googleUser)
-
-	switch {
-	case errors.Is(err, user.ErrRestricted):
-		return common.ValidationErrorResponse(c, "Registration is available by whitelists only")
-	case err != nil:
-		return errors.Wrap(err, "unable to resolve google user")
-	}
-
-	userSession := middleware.ResolveSession(c)
-	userSession.Values["user_id"] = person.ID
-	if err := userSession.Save(c.Request(), c.Response()); err != nil {
-		h.logger.Error().Err(err).Msg("unable to persist user session")
-		return common.ErrorResponse(c, "internal error")
-	}
-
-	return c.Redirect(http.StatusTemporaryRedirect, h.googleAuth.GetAuthenticatedRedirectURL())
+	return c.JSON(http.StatusOK, &model.AvailableProvidersResponse{Providers: providers})
 }
 
 func (h *Handler) GetMe(c echo.Context) error {
@@ -106,4 +78,16 @@ func (h *Handler) PostLogout(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (h *Handler) persistSessionUserID(c echo.Context, id int64, provider string) error {
+	s := middleware.ResolveSession(c)
+	s.Values[middleware.UserIDContextKey] = id
+
+	if err := s.Save(c.Request(), c.Response()); err != nil {
+		h.logger.Error().Err(err).Str("provider", provider).Msg("unable to persist user session")
+		return err
+	}
+
+	return nil
 }
