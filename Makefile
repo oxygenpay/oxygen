@@ -77,7 +77,10 @@ require-deps: ## Require cli tools for development
     # todo go-swagger as swagger
 
 docker-build: ## Build docker image for Oxygen
-	DOCKER_BUILDKIT=1 docker build -t oxygen-local --ssh default .
+	DOCKER_BUILDKIT=1 docker build -t oxygen-local .
+
+docker-local:
+	docker-compose -f docker-compose.local.yml up
 
 clean-test-dbs: ## Drop test "oxygen_test*" databases
 	psql -c "\l" | grep "oxygen_test" | awk '{print $$1}' | xargs -I {} psql -c "drop database {};"

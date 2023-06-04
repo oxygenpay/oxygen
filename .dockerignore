@@ -1,2 +1,6 @@
 .idea
 .vscode
+ui-dashboard/node_modules
+ui-payment/node_modules
+tmp
+bin

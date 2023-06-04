@@ -1,0 +1,77 @@
+version: '3.8'
+services:
+  oxygen: &oxygen
+    image: oxygen-local
+    command: serve-web --skip-config
+    environment:
+      # server
+      WEB_PORT: 80
+      APP_ENV: local
+      APP_DEBUG: true
+      LOGGER_PRETTY: true
+      # database
+      DB_DATA_SOURCE: "host=postgres sslmode=disable dbname=oxygen user=oxygen password=oxygen pool_max_conns=32"
+      # web
+      SESSION_FS_PATH: /src/tmp/sessions
+      SESSION_SECRET: secret-abc-123
+      SESSION_COOKIE_SECURE: false
+      CSRF_COOKIE_SECURE: false
+      CORS_ALLOW_ORIGINS: http://frontend-path.com:8080
+      # processing
+      PROCESSING_WEBHOOK_BASE_PATH: http://localhost:80 # Backend Base Path
+      PROCESSING_PAYMENT_FRONTEND_SUB_PATH: http://frontend-path.com:8080 # Payment UI Base Path
+      # auth
+      EMAIL_AUTH_USER_EMAIL: test@o2pay.com
+      EMAIL_AUTH_USER_PASSWORD: qwerty123
+      # providers
+      KMS_CLIENT_HOST: kms:14000
+    volumes:
+      - './tmp:/src/tmp'
+    ports:
+      - '80:80'
+    networks:
+      - net-oxygen
+    depends_on:
+      - postgres
+      - kms
+
+  scheduler:
+    <<: *oxygen
+    command: run-scheduler --skip-config
+    ports: [ ]
+
+  kms:
+    image: oxygen-local
+    command: serve-kms --skip-config
+    environment:
+      WEB_PORT: 14000
+      LOGGER_PRETTY: true
+      KMS_DB_DATA_SOURCE: /src/tmp/bolt.db
+    volumes:
+      - './tmp:/src/tmp'
+    ports:
+      - '14000:14000'
+    networks:
+      - net-oxygen
+
+  postgres:
+    image: postgres:15-alpine
+    command: postgres -c log_statement=all
+    restart: on-failure
+    environment:
+      - POSTGRES_DB=oxygen
+      - POSTGRES_USER=oxygen
+      - POSTGRES_PASSWORD=oxygen
+    volumes:
+      - 'pg-data:/var/lib/postgresql/data'
+    ports:
+      - '5432:5432'
+    networks:
+      - net-oxygen
+
+networks:
+  net-oxygen:
+
+volumes:
+  app-volume:
+  pg-data:
