@@ -24,7 +24,7 @@ const (
 	migrationsTable = "migrations"
 )
 
-var migrateCmd = &cobra.Command{
+var migrateCommand = &cobra.Command{
 	Use:   "migrate",
 	Short: "Migrate DB",
 	Long:  "Allows to use sql-migration commands: status, up, down",

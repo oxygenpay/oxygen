@@ -1,11 +1,12 @@
 version: '3.8'
 services:
-  oxygen: &oxygen
+  oxygen:
     image: oxygen-local
-    command: serve-web --skip-config
+    command: all-in-one --skip-config
     environment:
       # server
       WEB_PORT: 80
+      WEB_ENABLE_INTERNAL_API: true
       APP_ENV: local
       APP_DEBUG: true
       LOGGER_PRETTY: true
@@ -23,36 +24,13 @@ services:
       # auth
       EMAIL_AUTH_USER_EMAIL: test@o2pay.com
       EMAIL_AUTH_USER_PASSWORD: qwerty123
-      # providers
-      KMS_CLIENT_HOST: kms:14000
-    volumes:
-      - './tmp:/src/tmp'
-    ports:
-      - '80:80'
-    networks:
-      - net-oxygen
-    depends_on:
-      - postgres
-      - kms
-
-  scheduler:
-    <<: *oxygen
-    command: run-scheduler --skip-config
-    ports: [ ]
-
-  kms:
-    image: oxygen-local
-    command: serve-kms --skip-config
-    environment:
-      WEB_PORT: 14000
-      LOGGER_PRETTY: true
+      # kms
       KMS_DB_DATA_SOURCE: /src/tmp/bolt.db
     volumes:
       - './tmp:/src/tmp'
-    ports:
-      - '14000:14000'
-    networks:
-      - net-oxygen
+    ports: [ '80:80' ]
+    networks: [ net-oxygen ]
+    depends_on: [ postgres ]
 
   postgres:
     image: postgres:15-alpine
@@ -64,10 +42,8 @@ services:
       - POSTGRES_PASSWORD=oxygen
     volumes:
       - 'pg-data:/var/lib/postgresql/data'
-    ports:
-      - '5432:5432'
-    networks:
-      - net-oxygen
+    ports: [ '5432:5432' ]
+    networks: [ net-oxygen ]
 
 networks:
   net-oxygen:

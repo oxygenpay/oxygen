@@ -8,15 +8,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var kmsServerCmd = &cobra.Command{
+var serverKMSCommand = &cobra.Command{
 	Use:   "serve-kms",
 	Short: "Start KMS (Key Management Server)",
 	Run:   serveKMS,
 }
 
 func serveKMS(_ *cobra.Command, _ []string) {
-	service := kms.NewApp(resolveConfig())
-	service.Run(context.Background())
+	service := kms.NewApp(context.Background(), resolveConfig())
+	service.Run()
 
 	if err := graceful.WaitShutdown(); err != nil {
 		service.Logger().Error().Err(err).Msg("unable to shutdown service gracefully")

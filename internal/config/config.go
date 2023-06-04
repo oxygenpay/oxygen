@@ -44,6 +44,11 @@ type Oxygen struct {
 }
 
 type KMS struct {
+	// IsEmbedded indicates that app is running in 'all-in-one' mode.
+	// Not suitable for safety reasons as KMS should operate in isolated environment in order to
+	// keep private keys secure.
+	IsEmbedded bool `yaml:"-"`
+
 	Server http.Config `yaml:"server"`
 	Bolt   bolt.Config `yaml:"store"`
 }

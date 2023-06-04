@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var schedulerCmd = &cobra.Command{
+var runSchedulerCommand = &cobra.Command{
 	Use:   "run-scheduler",
 	Short: "Start Scheduler Service",
 	Run:   runScheduler,

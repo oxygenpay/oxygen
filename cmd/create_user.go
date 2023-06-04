@@ -9,17 +9,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var createUser = &cobra.Command{
+var createUserCommand = &cobra.Command{
 	Use:     "create-user",
 	Short:   "Creates new user with provided email & password",
 	Args:    cobra.ExactArgs(2),
 	Example: "oxygen create-user user@gmail.com qwerty123",
-	Run:     createUserCommand,
+	Run:     createUser,
 }
 
 var overridePassword bool
 
-func createUserCommand(_ *cobra.Command, args []string) {
+func createUser(_ *cobra.Command, args []string) {
 	var (
 		ctx         = context.Background()
 		cfg         = resolveConfig()

@@ -63,16 +63,17 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&configPath, "config", "oxygen.yml", "path to yml config")
 	rootCmd.PersistentFlags().BoolVar(&skipConfig, "skip-config", false, "skips config and uses ENV only")
 
-	rootCmd.AddCommand(startServerCmd)
-	rootCmd.AddCommand(kmsServerCmd)
-	rootCmd.AddCommand(schedulerCmd)
+	rootCmd.AddCommand(serveWebCommand)
+	rootCmd.AddCommand(serverKMSCommand)
+	rootCmd.AddCommand(runSchedulerCommand)
+	rootCmd.AddCommand(allInOneCommand)
 	rootCmd.AddCommand(envHelp)
 
-	rootCmd.AddCommand(migrateCmd)
-	migrateCmd.PersistentFlags().StringVar(&migrateSelectedCommand, "command", "status", "migration command")
+	rootCmd.AddCommand(migrateCommand)
+	migrateCommand.PersistentFlags().StringVar(&migrateSelectedCommand, "command", "status", "migration command")
 
-	rootCmd.AddCommand(createUser)
-	createUser.PersistentFlags().BoolVar(&overridePassword, "override-password", false, "overrides password if user already exists")
+	rootCmd.AddCommand(createUserCommand)
+	createUserCommand.PersistentFlags().BoolVar(&overridePassword, "override-password", false, "overrides password if user already exists")
 
 	rand.Seed(time.Now().Unix())
 }
