@@ -2,6 +2,7 @@ package http
 
 import (
 	"io/fs"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 	mw "github.com/labstack/echo/v4/middleware"
@@ -37,7 +38,8 @@ func WithDashboardAPI(
 			middleware.CSRF(cfg.CSRF),
 		)
 
-		authGroup := dashboardAPI.Group("/auth")
+		authRL := mw.NewRateLimiterMemoryStore(10)
+		authGroup := dashboardAPI.Group("/auth", mw.RateLimiter(authRL))
 
 		// common auth routes
 		authGroup.GET("/provider", authHandler.ListAvailableProviders)
@@ -209,4 +211,25 @@ func WithInternalAPI(h *v1.Handler) Opt {
 		admin.POST("/blockchain/broadcast", h.BroadcastTransaction)
 		admin.GET("/blockchain/receipt", h.GetTransactionReceipt)
 	}
+}
+
+func WithEmbeddedFrontend(dashboardUI, paymentsUI fs.FS) Opt {
+	const (
+		dashboardPrefix = "/dashboard"
+		paymentsPrefix  = "/p"
+	)
+
+	return func(s *Server) {
+		spaRouter(s.echo, dashboardPrefix, dashboardUI)
+		spaRouter(s.echo, paymentsPrefix, paymentsUI)
+	}
+}
+
+func spaRouter(e *echo.Echo, prefix string, files fs.FS) {
+	e.Group(prefix, mw.StaticWithConfig(mw.StaticConfig{
+		Root:       "/",
+		Index:      "index.html",
+		HTML5:      true,
+		Filesystem: http.FS(files),
+	}))
 }

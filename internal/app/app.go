@@ -22,6 +22,8 @@ import (
 	"github.com/oxygenpay/oxygen/internal/server/http/webhook"
 	"github.com/oxygenpay/oxygen/internal/service/user"
 	"github.com/oxygenpay/oxygen/pkg/graceful"
+	uidashboard "github.com/oxygenpay/oxygen/ui-dashboard"
+	uipayment "github.com/oxygenpay/oxygen/ui-payment"
 	"github.com/oxygenpay/oxygen/web"
 	"github.com/pkg/errors"
 	"github.com/robfig/cron/v3"
@@ -116,6 +118,12 @@ func (app *App) RunServer() {
 		withInternalAPI = httpServer.WithInternalAPI(admin)
 	}
 
+	withEmbeddedFrontend := httpServer.NoOpt()
+	if app.config.EmbedFrontend {
+		app.Logger().Info().Msg("Enabled frontend embedding")
+		withEmbeddedFrontend = httpServer.WithEmbeddedFrontend(uidashboard.Files(), uipayment.Files())
+	}
+
 	srv := httpServer.New(
 		app.config.Oxygen.Server,
 		app.config.Debug,
@@ -136,6 +144,7 @@ func (app *App) RunServer() {
 		httpServer.WithPaymentAPI(paymentAPIHandler, app.config.Oxygen.Server),
 		httpServer.WithWebhookAPI(incomingWebhooksHandler),
 		withInternalAPI,
+		withEmbeddedFrontend,
 	)
 
 	app.registerEventHandlers()

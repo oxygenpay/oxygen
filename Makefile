@@ -2,11 +2,12 @@
 
 VERSION=$(shell git describe --tags --dirty --always)
 COMMIT=$(shell git rev-parse HEAD)
+EMBED_FRONTEND ?= 1
 
 # The -w turns off DWARF debugging information
 # The -s turns off generation of the Go symbol table
 # The -X adds a string value definition of the form importpath.name=value
-LDFLAGS=-ldflags "-w -s -X 'main.gitVersion=${VERSION}' -X 'main.gitCommit=${COMMIT}'"
+LDFLAGS=-ldflags "-w -s -X 'main.gitVersion=${VERSION}' -X 'main.gitCommit=${COMMIT}' -X 'main.embedFrontend=${EMBED_FRONTEND}'"
 
 PKG_LIST := $(shell go list ./... | grep -v pkg/api- | grep -v internal/db | tr "\n" " ")
 

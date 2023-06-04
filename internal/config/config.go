@@ -22,11 +22,14 @@ import (
 )
 
 type Config struct {
-	GitCommit  string
-	GitVersion string
-	Env        string     `yaml:"env" env:"APP_ENV" env-default:"production" env-description:"Environment [production, local, sandbox]"`
-	Debug      bool       `yaml:"debug" env:"APP_DEBUG" env-default:"false" env-description:"Enables debug mode"`
-	Logger     log.Config `yaml:"logger"`
+	// compile-time parameters
+	GitCommit     string
+	GitVersion    string
+	EmbedFrontend bool
+
+	Env    string     `yaml:"env" env:"APP_ENV" env-default:"production" env-description:"Environment [production, local, sandbox]"`
+	Debug  bool       `yaml:"debug" env:"APP_DEBUG" env-default:"false" env-description:"Enables debug mode"`
+	Logger log.Config `yaml:"logger"`
 
 	Oxygen Oxygen `yaml:"oxygen"`
 	KMS    KMS    `yaml:"kms"`
@@ -67,9 +70,13 @@ var once = sync.Once{}
 var cfg = &Config{}
 var errCfg error
 
-func New(gitCommit, gitVersion, configPath string, skipConfig bool) (*Config, error) {
+func New(gitCommit, gitVersion, configPath string, skipConfig, embedFrontend bool) (*Config, error) {
 	once.Do(func() {
-		cfg = &Config{GitCommit: gitCommit, GitVersion: gitVersion}
+		cfg = &Config{
+			GitCommit:     gitCommit,
+			GitVersion:    gitVersion,
+			EmbedFrontend: embedFrontend,
+		}
 
 		if skipConfig {
 			errCfg = cleanenv.ReadEnv(cfg)

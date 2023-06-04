@@ -11,10 +11,11 @@ import (
 )
 
 var (
-	Commit     = "none"
-	Version    = "none"
-	configPath = "config.yml"
-	skipConfig = false
+	Commit        = "none"
+	Version       = "none"
+	EmbedFrontend = false
+	configPath    = "config.yml"
+	skipConfig    = false
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -39,7 +40,7 @@ func Execute() {
 
 // resolveConfig or exit with error
 func resolveConfig() *config.Config {
-	cfg, err := config.New(Version, Commit, configPath, skipConfig)
+	cfg, err := config.New(Version, Commit, configPath, skipConfig, EmbedFrontend)
 	if err != nil {
 		fmt.Printf("unable to initialize config: %s\n", err.Error())
 		os.Exit(1)
