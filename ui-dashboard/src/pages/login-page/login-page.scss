@@ -19,7 +19,17 @@
             margin: 0 !important;
             margin-left: 5px !important;
         }
-    }   
+    } 
+    
+    &__form {
+        margin-bottom: 15px;
+    }
+
+    &__text-or {
+        display: block;
+        text-align: center;
+        margin-bottom: 15px;
+    }
     
     &__btn {
         display: flex;
