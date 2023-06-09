@@ -1,5 +1,5 @@
 import apiRequest from "src/utils/api-request";
-import {User} from "src/types";
+import {User, UserCreateForm} from "src/types";
 import withApiPath from "src/utils/with-api-path";
 
 const authProvider = {
@@ -9,6 +9,11 @@ const authProvider = {
 
         apiRequest.defaults.headers.common["x-csrf-token"] = csrf;
         return csrf ?? "";
+    },
+
+    async createUser(user: UserCreateForm): Promise<void> {
+        await apiRequest.post(withApiPath(`/auth/login`), user);
+        return;
     },
 
     async getMe(): Promise<User> {

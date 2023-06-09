@@ -44,6 +44,11 @@ interface User {
     uuid: string;
 }
 
+interface UserCreateForm {
+    email: string;
+    password: string;
+}
+
 interface MerchantBalance {
     amount: string;
     usdAmount: string;
@@ -277,6 +282,7 @@ export type {
     CustomerPayment,
     PaymentLinkParams,
     PaymentLink,
-    PaymentLinkAction
+    PaymentLinkAction,
+    UserCreateForm
 };
 export {BLOCKCHAIN, BLOCKCHAIN_TICKER, CURRENCY, CURRENCY_SYMBOL};
