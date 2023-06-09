@@ -29,7 +29,11 @@ dev: ## Run dev
 	npx vite --host app-local.sandbox.o2pay.co
 
 build: ## Build dist
+ifdef path
+	npx tsc && npx vite build --base=$(path)
+else
 	npx tsc && npx vite build
+endif
 
 preview: ## Preview
 	npx vite preview
