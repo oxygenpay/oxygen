@@ -281,7 +281,7 @@ func (s *Service) createInternalTransfer(
 	_, err = s.wallets.UpdateBalanceByID(ctx, params.SenderBalance.ID, wallet.UpdateBalanceByIDQuery{
 		Operation: wallet.OperationDecrement,
 		Amount:    params.Amount,
-		Comment:   "Locking balance for internal transaction",
+		Comment:   "locking balance for internal transaction",
 		MetaData: wallet.MetaData{
 			wallet.MetaTransactionID:     strconv.Itoa(int(tx.ID)),
 			wallet.MetaSenderWalletID:    strconv.Itoa(int(params.SenderWallet.ID)),
