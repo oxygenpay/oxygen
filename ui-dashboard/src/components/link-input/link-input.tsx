@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Form, Select, Space, FormRule, Input} from "antd";
+import {Form, Select, FormRule, Input} from "antd";
 
 interface Props {
     placeholder: string;
@@ -44,16 +44,18 @@ const LinkInput: React.FC<Props> = (props: Props) => {
             style={{width: 300}}
             required={props.required}
         >
-            <Space.Compact>
-                <Select
-                    defaultValue="https://"
-                    options={[{value: "https://", label: "https://"}]}
-                    className="withdraw-form__currency-selection"
-                    disabled
-                    showArrow={false}
-                />
-                <Input placeholder={props.placeholder} />
-            </Space.Compact>
+            <Input
+                addonBefore={
+                    <Select
+                        defaultValue="https://"
+                        options={[{value: "https://", label: "https://"}]}
+                        className="withdraw-form__currency-selection"
+                        disabled
+                        showArrow={false}
+                    />
+                }
+                placeholder={props.placeholder}
+            />
         </Form.Item>
     );
 };
