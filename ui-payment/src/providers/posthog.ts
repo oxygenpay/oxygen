@@ -1,6 +1,6 @@
 const posthogConfig = {
-    apiKey: "phc_HPPpSjMSF6Sqm4GlKtJTXfFeavsX9NVehKA8ALFQmfO",
-    options: {api_host: "https://c.o2pay.co"}
+    apiKey: import.meta.env.VITE_POSTHOG_KEY as string,
+    options: {api_host: import.meta.env.VITE_POSTHOG_HOST as string}
 };
 
 export {posthogConfig};
