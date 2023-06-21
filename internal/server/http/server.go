@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
@@ -73,11 +74,25 @@ func WithLogger(logger *zerolog.Logger) Opt {
 			return
 		}
 
+		skippedPaths := []string{
+			healthcheckPath,
+			dashboardPrefix,
+			paymentsPrefix,
+		}
+
 		s.echo.Use(lecho.Middleware(lecho.Config{
 			Logger:       lecho.From(l, lecho.WithLevel(log.INFO)),
 			RequestIDKey: middleware.RequestIDKey,
 			Skipper: func(c echo.Context) bool {
-				return c.Request().URL.Path == healthcheckPath
+				path := c.Request().URL.Path
+
+				for _, match := range skippedPaths {
+					if strings.HasPrefix(path, match) {
+						return true
+					}
+				}
+
+				return false
 			},
 		}))
 	}

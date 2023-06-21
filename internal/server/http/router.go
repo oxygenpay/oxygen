@@ -213,12 +213,12 @@ func WithInternalAPI(h *v1.Handler) Opt {
 	}
 }
 
-func WithEmbeddedFrontend(dashboardUI, paymentsUI fs.FS) Opt {
-	const (
-		dashboardPrefix = "/dashboard"
-		paymentsPrefix  = "/p"
-	)
+const (
+	dashboardPrefix = "/dashboard"
+	paymentsPrefix  = "/p"
+)
 
+func WithEmbeddedFrontend(dashboardUI, paymentsUI fs.FS) Opt {
 	return func(s *Server) {
 		spaRouter(s.echo, dashboardPrefix, dashboardUI)
 		spaRouter(s.echo, paymentsPrefix, paymentsUI)
