@@ -16,11 +16,7 @@ const Icon: React.FC<Props> = (props) => {
         if (!loaded) {
             try {
                 cache[props.name] = (
-                    await import(
-                        `../../${import.meta.env.VITE_ASSETS_PATH_FROM_PROJECT}/icons/${
-                            props.dir ? props.dir + "/" : ""
-                        }${props.name}.svg`
-                    )
+                    await import(`../../assets/icons/${props.dir ? props.dir + "/" : ""}${props.name}.svg`)
                 )?.ReactComponent;
                 setLoaded(true);
             } catch (e) {

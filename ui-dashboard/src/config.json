@@ -1,9 +1,3 @@
 {
-    "dashboardApi": "/api/dashboard/v1",
-    "posthog": {
-        "apiKey": "phc_HPPpSjMSF6Sqm4GlKtJTXfFeavsX9NVehKA8ALFQmfO",
-        "options": {
-            "api_host": "https://c.o2pay.co"
-        }
-    }
+    "dashboardApi": "/api/dashboard/v1"
 }

@@ -1,7 +1,9 @@
 .PHONY: help
 
+include .env
+
 help: ## List of commands
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' Makefile | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 precommit-ts: ## Precommit TS
 	NODE_OPTIONS="--max-old-space-size=5000" npx tsc \
@@ -29,11 +31,7 @@ dev: ## Run dev
 	npx vite --host app-local.sandbox.o2pay.co
 
 build: ## Build dist
-ifdef path
-	npx tsc && npx vite build --base=$(path)
-else
-	npx tsc && npx vite build
-endif
+	npx tsc && npx vite build --base=${VITE_ROOTPATH}
 
 preview: ## Preview
 	npx vite preview
