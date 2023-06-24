@@ -7,10 +7,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - uses: actions/setup-go@v4
         with:
           go-version: '1.20'
           cache: false
+
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
@@ -22,12 +24,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Install modules
+
+      - name: Install dependencies
         run: npm ci --ignore-scripts
         working-directory: ui-payment
+
       - name: ESLint
         run: npx eslint src --ext .js,.jsx,.ts,.tsx
         working-directory: ui-payment
+
       - name: TS Verify
         run: npx tsc --noEmit --skipLibCheck -p ./tsconfig.json
         working-directory: ui-payment
@@ -37,12 +42,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Install modules
+
+      - name: Install dependencies
         run: npm ci --ignore-scripts
         working-directory: ui-dashboard
+
       - name: ESLint
         run: npx eslint src --ext .js,.jsx,.ts,.tsx
         working-directory: ui-dashboard
+
       - name: TS Verify
         run: npx tsc --noEmit --skipLibCheck -p ./tsconfig.json
         working-directory: ui-dashboard
