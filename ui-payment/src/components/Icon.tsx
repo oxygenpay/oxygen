@@ -11,9 +11,7 @@ interface Props {
 const Icon: React.FC<Props> = ({name, className}) => {
     const [loaded, setLoaded] = React.useState<boolean>(Boolean(cache[name]));
     const loadIcon = async () => {
-        cache[name] = (
-            await import(`../${import.meta.env.VITE_ASSETS_PATH_FROM_PROJECT}/icons/${name}.svg`)
-        )?.ReactComponent;
+        cache[name] = (await import(`../assets/icons/${name}.svg`))?.ReactComponent;
         setLoaded(true);
     };
 
