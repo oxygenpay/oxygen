@@ -1,5 +1,6 @@
 run:
-  go: '1.18'
+  go: '1.20'
+  timeout: 5m
   skip-dirs:
     - ./api/proto
     - ./bin
@@ -59,7 +60,6 @@ linters:
   disable-all: true
   enable:
     - bodyclose
-    - depguard
     - dogsled
     - errcheck
     - funlen
@@ -86,6 +86,3 @@ linters:
     - whitespace
     - prealloc
     - nonamedreturns
-
-service:
-  golangci-lint-version: 1.45.x # use the fixed version to not introduce new linters unexpectedly

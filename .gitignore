@@ -6,3 +6,4 @@ config/*.yml
 !config/*example.yml
 web/redoc/**/*.json
 docker.env
+.actrc

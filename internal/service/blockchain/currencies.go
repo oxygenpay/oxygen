@@ -87,6 +87,7 @@ func (r *CurrencyResolver) GetUSDMinimalInternalTransferByTicker(ticker string) 
 
 // GetCurrencyByBlockchainAndContract searches currency by blockchain
 // and contract address across both mainnet & testnet.
+//
 //nolint:gocritic
 func (r *CurrencyResolver) GetCurrencyByBlockchainAndContract(bc money.Blockchain, networkID, addr string) (money.CryptoCurrency, error) {
 	if bc == "" || networkID == "" || addr == "" {
