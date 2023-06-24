@@ -16,3 +16,33 @@ jobs:
         with:
           version: v1.53.3
           args: --config=.golangci.yml
+
+  lint-ui-payment:
+    name: Lint Payment UI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install modules
+        run: npm ci --ignore-scripts
+        working-directory: ui-payment
+      - name: ESLint
+        run: npx eslint src --ext .js,.jsx,.ts,.tsx
+        working-directory: ui-payment
+      - name: TS Verify
+        run: npx tsc --noEmit --skipLibCheck -p ./tsconfig.json
+        working-directory: ui-payment
+
+  lint-ui-dashboard:
+    name: Lint Dashboard UI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install modules
+        run: npm ci --ignore-scripts
+        working-directory: ui-dashboard
+      - name: ESLint
+        run: npx eslint src --ext .js,.jsx,.ts,.tsx
+        working-directory: ui-dashboard
+      - name: TS Verify
+        run: npx tsc --noEmit --skipLibCheck -p ./tsconfig.json
+        working-directory: ui-dashboard
