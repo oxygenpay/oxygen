@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNew(t *testing.T) {
+func TestNew(_ *testing.T) {
 	// todo returns sorted list
 	// todo returns sorted by blockchain
 	// todo add token to two different blockchain
