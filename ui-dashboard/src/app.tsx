@@ -97,7 +97,7 @@ const App: React.FC = () => {
                 await authProvider.getCookie();
             } catch (e) {
                 if (e instanceof AxiosError && e.response?.status === 401) {
-                    posthog?.reset(true);
+                    // posthog?.reset(true);
                     navigate("/login");
                 }
             }
@@ -109,7 +109,7 @@ const App: React.FC = () => {
                 setUser(user);
             } catch (e) {
                 if (e instanceof AxiosError && e.response?.status === 401) {
-                    posthog?.reset(true);
+                    // posthog?.reset(true);
                     navigate("/login");
                 }
             }
@@ -146,13 +146,13 @@ const App: React.FC = () => {
     });
 
     React.useEffect(() => {
-        if (user) {
-            posthog?.reset(true);
-            posthog?.identify(user.email, {
-                email: user.email,
-                uuid: user.uuid
-            });
-        }
+        // if (user) {
+        //     posthog?.reset(true);
+        //     posthog?.identify(user.email, {
+        //         email: user.email,
+        //         uuid: user.uuid
+        //     });
+        // }
     }, [posthog, user]);
 
     const isManageMerchantsActive = location.pathname === "/manage-merchants";
@@ -178,7 +178,7 @@ const App: React.FC = () => {
     }, [location, merchants]);
 
     const logout = async () => {
-        posthog?.reset(true);
+        // posthog?.reset(true);
         await authProvider.logout();
         navigate("/login");
     };
