@@ -81,6 +81,7 @@ const PaymentsPage: React.FC = () => {
 
         await sleep(1000);
         listPayments.remove();
+
         await listPayments.refetch();
     });
 

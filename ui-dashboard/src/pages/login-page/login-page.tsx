@@ -35,11 +35,12 @@ const LoginPage: React.FC = () => {
         try {
             setIsFormSubmitting(true);
             await authProvider.createUser(values);
-            navigate("/");
+            navigate("/", {
+                state: {realoadUserInfo: true}
+            });
             openNotification("Welcome to the our community", "");
 
             await sleep(1000);
-            await authProvider.getMe();
             form.resetFields();
         } catch (error) {
             console.error("error occurred: ", error);

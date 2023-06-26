@@ -76,7 +76,12 @@ const menus = defaultMenus.concat(manageMerchantsMenus);
 
 const b = bevis("app");
 
+interface AppLoadState {
+    realoadUserInfo: boolean;
+}
+
 const App: React.FC = () => {
+    const state: AppLoadState = useLocation().state;
     const posthog = usePostHog();
     const location = useLocation();
     const navigate = useNavigate();
@@ -90,7 +95,7 @@ const App: React.FC = () => {
     const [isSupportFormOpen, setIsSupportFormOpen] = React.useState<boolean>(false);
     const [isFormSubmitting, setIsFormSubmitting] = React.useState<boolean>(false);
 
-    useMount(async () => {
+    const loadUserInfo = async () => {
         let newMerchantId = merchantId;
         let user: User;
 
@@ -151,7 +156,17 @@ const App: React.FC = () => {
         await getMe();
         await listMerchants();
         await listMerchant();
+    };
+
+    useMount(async () => {
+        await loadUserInfo();
     });
+
+    React.useEffect(() => {
+        if (state?.realoadUserInfo) {
+            loadUserInfo();
+        }
+    }, [state]);
 
     React.useEffect(() => {
         if (user && isPosthogActive) {
