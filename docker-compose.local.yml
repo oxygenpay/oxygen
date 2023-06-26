@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   oxygen:
-    image: oxygen-local
+    image: ghcr.io/oxygenpay/oxygen:latest
     command: all-in-one --skip-config
     env_file:
       - docker.env

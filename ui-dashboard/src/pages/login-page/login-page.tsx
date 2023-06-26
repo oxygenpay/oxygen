@@ -49,6 +49,15 @@ const LoginPage: React.FC = () => {
         }
     };
 
+    const googleRedirectLink = (): string => {
+        let host = import.meta.env.VITE_BACKEND_HOST;
+        if (host == "//") {
+            host = "";
+        }
+
+        return `${host}/api/dashboard/v1/auth/redirect`;
+    };
+
     useMount(async () => {
         window.addEventListener("popstate", () => navigate("/login", {replace: true}));
         localStorage.remove("merchantId");
@@ -121,11 +130,11 @@ const LoginPage: React.FC = () => {
                                     <Typography.Text className={b("text-or")}>OR</Typography.Text>
                                 ) : null}
 
-                                {providersList.findIndex((item) => item.name === "googleAuth") !== -1 ? (
+                                {providersList.findIndex((item) => item.name === "google") !== -1 ? (
                                     <Button
                                         key="submit"
                                         type="primary"
-                                        href={`${import.meta.env.VITE_BACKEND_HOST}/api/dashboard/v1/auth/redirect`}
+                                        href={googleRedirectLink()}
                                         className={b("btn")}
                                     >
                                         Sign in / Register with Google <GoogleOutlined />
