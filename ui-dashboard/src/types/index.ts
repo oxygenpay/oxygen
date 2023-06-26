@@ -44,6 +44,10 @@ interface User {
     uuid: string;
 }
 
+interface AuthProvider {
+    name: string;
+}
+
 interface UserCreateForm {
     email: string;
     password: string;
@@ -283,6 +287,7 @@ export type {
     PaymentLinkParams,
     PaymentLink,
     PaymentLinkAction,
-    UserCreateForm
+    UserCreateForm,
+    AuthProvider
 };
 export {BLOCKCHAIN, BLOCKCHAIN_TICKER, CURRENCY, CURRENCY_SYMBOL};

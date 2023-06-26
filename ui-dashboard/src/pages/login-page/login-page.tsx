@@ -8,9 +8,10 @@ import logoImg from "/fav/android-chrome-192x192.png";
 import bevis from "src/utils/bevis";
 import {useMount} from "react-use";
 import localStorage from "src/utils/local-storage";
-import {UserCreateForm} from "src/types";
+import {AuthProvider, UserCreateForm} from "src/types";
 import authProvider from "src/providers/auth-provider";
 import {sleep} from "src/utils";
+import SpinWithMask from "src/components/spin-with-mask/spin-with-mask";
 
 const b = bevis("login-page");
 
@@ -18,6 +19,7 @@ const LoginPage: React.FC = () => {
     const [form] = Form.useForm<UserCreateForm>();
     const [api, contextHolder] = notification.useNotification();
     const [isFormSubmitting, setIsFormSubmitting] = React.useState<boolean>(false);
+    const [providersList, setProvidersList] = React.useState<AuthProvider[]>([]);
     const navigate = useNavigate();
 
     const openNotification = (title: string, description: string) => {
@@ -33,7 +35,9 @@ const LoginPage: React.FC = () => {
         try {
             setIsFormSubmitting(true);
             await authProvider.createUser(values);
-            navigate("/");
+            navigate("/", {
+                state: {realoadUserInfo: true}
+            });
             openNotification("Welcome to the our community", "");
 
             await sleep(1000);
@@ -45,10 +49,14 @@ const LoginPage: React.FC = () => {
         }
     };
 
-    useMount(() => {
+    useMount(async () => {
         window.addEventListener("popstate", () => navigate("/login", {replace: true}));
         localStorage.remove("merchantId");
+        const availProviders = await authProvider.getProviders();
+        setProvidersList(availProviders ?? []);
     });
+
+    const isLoading = providersList.length === 0;
 
     return (
         <>
@@ -61,52 +69,70 @@ const LoginPage: React.FC = () => {
                             <Typography.Title className={b("logo-text")}>OxygenPay</Typography.Title>
                         </div>
                         <Typography.Title level={2}>Sign In 🔐</Typography.Title>
-                        <Form<UserCreateForm> form={form} onFinish={onSubmit} layout="vertical" className={b("form")}>
-                            <Form.Item
-                                name="email"
-                                rules={[
-                                    {
-                                        type: "email",
-                                        message: "The input is not valid email"
-                                    },
-                                    {
-                                        required: true,
-                                        message: "Please input your email"
-                                    }
-                                ]}
-                            >
-                                <Input placeholder="Email" />
-                            </Form.Item>
-                            <Form.Item
-                                name="password"
-                                rules={[
-                                    {
-                                        required: true,
-                                        message: "Please input your password"
-                                    }
-                                ]}
-                            >
-                                <Input.Password placeholder="Password" />
-                            </Form.Item>
-                            <Button
-                                disabled={isFormSubmitting}
-                                loading={isFormSubmitting}
-                                type="primary"
-                                htmlType="submit"
-                                className={b("btn")}
-                            >
-                                Sign in
-                            </Button>
-                        </Form>
-                        <Typography.Text className={b("text-or")}>OR</Typography.Text>
-                        <Button
-                            key="submit"
-                            type="primary"
-                            href={`${import.meta.env.VITE_BACKEND_HOST}/api/dashboard/v1/auth/redirect`}
-                            className={b("btn")}
-                        >
-                            Sign in / Register with Google <GoogleOutlined />
-                        </Button>
+                        <SpinWithMask isLoading={isLoading} />
+                        {!isLoading ? (
+                            <>
+                                {providersList.findIndex((item) => item.name === "email") !== -1 ? (
+                                    <Form<UserCreateForm>
+                                        form={form}
+                                        onFinish={onSubmit}
+                                        layout="vertical"
+                                        className={b("form")}
+                                    >
+                                        <Form.Item
+                                            name="email"
+                                            rules={[
+                                                {
+                                                    type: "email",
+                                                    message: "The input is not valid email"
+                                                },
+                                                {
+                                                    required: true,
+                                                    message: "Please input your email"
+                                                }
+                                            ]}
+                                        >
+                                            <Input placeholder="Email" />
+                                        </Form.Item>
+                                        <Form.Item
+                                            name="password"
+                                            rules={[
+                                                {
+                                                    required: true,
+                                                    message: "Please input your password"
+                                                }
+                                            ]}
+                                        >
+                                            <Input.Password placeholder="Password" />
+                                        </Form.Item>
+                                        <Button
+                                            disabled={isFormSubmitting}
+                                            loading={isFormSubmitting}
+                                            type="primary"
+                                            htmlType="submit"
+                                            className={b("btn")}
+                                        >
+                                            Sign in
+                                        </Button>
+                                    </Form>
+                                ) : null}
+
+                                {providersList.length == 2 ? (
+                                    <Typography.Text className={b("text-or")}>OR</Typography.Text>
+                                ) : null}
+
+                                {providersList.findIndex((item) => item.name === "googleAuth") !== -1 ? (
+                                    <Button
+                                        key="submit"
+                                        type="primary"
+                                        href={`${import.meta.env.VITE_BACKEND_HOST}/api/dashboard/v1/auth/redirect`}
+                                        className={b("btn")}
+                                    >
+                                        Sign in / Register with Google <GoogleOutlined />
+                                    </Button>
+                                ) : null}
+                            </>
+                        ) : null}
                     </>
                 }
                 maskStyle={{

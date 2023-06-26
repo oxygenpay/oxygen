@@ -26,6 +26,7 @@ import merchantProvider from "src/providers/merchant-provider";
 import CustomersPage from "src/pages/customers-page/customers-page";
 import {sleep} from "src/utils";
 import PaymentLinksPage from "src/pages/payment-links-page/payments-links-page";
+import useSharedPosthogStatus from "src/hooks/use-posthog-status";
 
 interface MenuItem {
     path: string;
@@ -75,7 +76,12 @@ const menus = defaultMenus.concat(manageMerchantsMenus);
 
 const b = bevis("app");
 
+interface AppLoadState {
+    realoadUserInfo: boolean;
+}
+
 const App: React.FC = () => {
+    const state: AppLoadState = useLocation().state;
     const posthog = usePostHog();
     const location = useLocation();
     const navigate = useNavigate();
@@ -84,11 +90,12 @@ const App: React.FC = () => {
     const {merchants, getMerchants} = useSharedMerchants();
     const {getMerchant} = useSharedMerchant();
     const {merchantId, setMerchantId} = useSharedMerchantId();
+    const {isPosthogActive} = useSharedPosthogStatus();
     const [user, setUser] = React.useState<User>();
     const [isSupportFormOpen, setIsSupportFormOpen] = React.useState<boolean>(false);
     const [isFormSubmitting, setIsFormSubmitting] = React.useState<boolean>(false);
 
-    useMount(async () => {
+    const loadUserInfo = async () => {
         let newMerchantId = merchantId;
         let user: User;
 
@@ -97,7 +104,10 @@ const App: React.FC = () => {
                 await authProvider.getCookie();
             } catch (e) {
                 if (e instanceof AxiosError && e.response?.status === 401) {
-                    posthog?.reset(true);
+                    if (isPosthogActive) {
+                        posthog?.reset(true);
+                    }
+
                     navigate("/login");
                 }
             }
@@ -109,7 +119,10 @@ const App: React.FC = () => {
                 setUser(user);
             } catch (e) {
                 if (e instanceof AxiosError && e.response?.status === 401) {
-                    posthog?.reset(true);
+                    if (isPosthogActive) {
+                        posthog?.reset(true);
+                    }
+
                     navigate("/login");
                 }
             }
@@ -143,10 +156,20 @@ const App: React.FC = () => {
         await getMe();
         await listMerchants();
         await listMerchant();
+    };
+
+    useMount(async () => {
+        await loadUserInfo();
     });
 
     React.useEffect(() => {
-        if (user) {
+        if (state?.realoadUserInfo) {
+            loadUserInfo();
+        }
+    }, [state]);
+
+    React.useEffect(() => {
+        if (user && isPosthogActive) {
             posthog?.reset(true);
             posthog?.identify(user.email, {
                 email: user.email,
@@ -178,7 +201,10 @@ const App: React.FC = () => {
     }, [location, merchants]);
 
     const logout = async () => {
-        posthog?.reset(true);
+        if (isPosthogActive) {
+            posthog?.reset(true);
+        }
+
         await authProvider.logout();
         navigate("/login");
     };

@@ -4,7 +4,6 @@ import * as React from "react";
 import {flatten} from "lodash-es";
 
 import {PageContainer} from "@ant-design/pro-components";
-import {usePostHog} from "posthog-js/react";
 import {Button, Result, Table, Typography, Row, notification, FormInstance} from "antd";
 import {CheckOutlined} from "@ant-design/icons";
 import {ColumnsType} from "antd/es/table";
@@ -63,7 +62,6 @@ const columns: ColumnsType<Payment> = [
 
 const PaymentsPage: React.FC = () => {
     const [api, contextHolder] = notification.useNotification();
-    const posthog = usePostHog();
     const listPayments = paymentsQueries.listPayments();
     const createPayment = paymentsQueries.createPayment();
     const [isFormOpen, setFormOpen] = React.useState<boolean>(false);
@@ -83,6 +81,7 @@ const PaymentsPage: React.FC = () => {
 
         await sleep(1000);
         listPayments.remove();
+
         await listPayments.refetch();
     });
 
@@ -135,14 +134,7 @@ const PaymentsPage: React.FC = () => {
             {contextHolder}
             <Row align="middle" justify="space-between">
                 <Typography.Title>Payments</Typography.Title>
-                <Button
-                    type="primary"
-                    onClick={() => {
-                        posthog?.capture("Clicked new payment");
-                        setFormOpen(true);
-                    }}
-                    style={{marginTop: 20}}
-                >
+                <Button type="primary" onClick={() => setFormOpen(true)} style={{marginTop: 20}}>
                     New Payment
                 </Button>
             </Row>
