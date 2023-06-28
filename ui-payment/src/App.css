@@ -60,3 +60,7 @@ html {
     border-radius: 14px;
     border: 3px solid #d0e6e8;
 }
+
+.color-oxygen {
+    color: rgb(80, 175, 149);
+}

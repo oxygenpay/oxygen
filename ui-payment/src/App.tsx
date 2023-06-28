@@ -14,6 +14,7 @@ import paymentProvider from "src/providers/paymentProvider";
 import {Payment, PaymentLink} from "src/types";
 import Icon from "src/components/Icon";
 import LinkPage from "src/pages/LinkPage";
+import {toggled} from "./providers/toggles";
 
 const App: React.FC = () => {
     const navigate = useNavigate();
@@ -98,6 +99,16 @@ const App: React.FC = () => {
                                 </Routes>
                             </div>
                         </div>
+                        {toggled("show_branding") && (
+                            <div className="pt-2 pb-4 text-sm sm:hidden">
+                                <p className="text-center text-gray-500">
+                                    Powered by self-hosted{" "}
+                                    <a className="color-oxygen" target="_blank" href="https://o2pay.co">
+                                        OxygenPay
+                                    </a>
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </main>
             </PaymentLinkContext.Provider>

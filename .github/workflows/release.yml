@@ -24,6 +24,7 @@ jobs:
           VITE_BACKEND_HOST: '//'
           VITE_SUPPORT_EMAIL: 'help@site.com'
           VITE_ROOTPATH: '/p/'
+          VITE_SHOW_BRANDING: 'true'
 
       - name: Publish dist
         uses: actions/upload-artifact@v3
