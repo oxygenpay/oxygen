@@ -76,5 +76,7 @@ func init() {
 	rootCmd.AddCommand(createUserCommand)
 	createUserCommand.PersistentFlags().BoolVar(&overridePassword, "override-password", false, "overrides password if user already exists")
 
+	rootCmd.AddCommand(listWalletsCommand)
+
 	rand.Seed(time.Now().Unix())
 }
