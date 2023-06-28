@@ -27,6 +27,7 @@ import CustomersPage from "src/pages/customers-page/customers-page";
 import {sleep} from "src/utils";
 import PaymentLinksPage from "src/pages/payment-links-page/payments-links-page";
 import useSharedPosthogStatus from "src/hooks/use-posthog-status";
+import {toggled} from "./providers/toggles";
 
 interface MenuItem {
     path: string;
@@ -58,12 +59,15 @@ const defaultMenus: MenuItem[] = [
     {
         path: "https://docs.o2pay.co/",
         name: "Documentation"
-    },
-    {
-        path: "/support",
-        name: "Support / Feedback"
     }
 ];
+
+if (toggled("feedback")) {
+    defaultMenus.push({
+        path: "/support",
+        name: "Support / Feedback"
+    });
+}
 
 const manageMerchantsMenus: MenuItem[] = [
     {
