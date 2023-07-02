@@ -106,31 +106,13 @@ func (app *App) RunServer() {
 		app.services.JobLogger(),
 	)
 
-	withInternalAPI := httpServer.NoOpt()
-	if app.config.Oxygen.Server.EnableInternalAPI {
-		admin := internalapi.New(
-			app.services.WalletService(),
-			app.services.BlockchainService(),
-			schedulerHandler,
-			app.logger,
-		)
-
-		withInternalAPI = httpServer.WithInternalAPI(admin)
-	}
-
-	withEmbeddedFrontend := httpServer.NoOpt()
-	if app.config.EmbedFrontend {
-		app.Logger().Info().Msg("Enabled frontend embedding")
-		withEmbeddedFrontend = httpServer.WithEmbeddedFrontend(uidashboard.Files(), uipayment.Files())
-	}
+	withInternalAPI := app.config.Oxygen.Server.EnableInternalAPI
 
 	srv := httpServer.New(
 		app.config.Oxygen.Server,
 		app.config.Debug,
 		httpServer.WithRecover(),
 		httpServer.WithLogger(app.logger),
-		httpServer.WithAuthDebug(web.AuthDebugFiles()),
-		httpServer.WithDocs(web.SwaggerFiles()),
 		httpServer.WithMerchantAPI(merchantAPIHandler, app.services.TokenManagerService()),
 		httpServer.WithDashboardAPI(
 			app.config.Oxygen.Server,
@@ -143,8 +125,20 @@ func (app *App) RunServer() {
 		),
 		httpServer.WithPaymentAPI(paymentAPIHandler, app.config.Oxygen.Server),
 		httpServer.WithWebhookAPI(incomingWebhooksHandler),
-		withInternalAPI,
-		withEmbeddedFrontend,
+		httpServer.When(
+			app.config.EmbedFrontend,
+			httpServer.WithEmbeddedFrontend(uidashboard.Files(), uipayment.Files()),
+		),
+		httpServer.When(withInternalAPI, httpServer.WithInternalAPI(
+			internalapi.New(
+				app.services.WalletService(),
+				app.services.BlockchainService(),
+				schedulerHandler,
+				app.logger,
+			),
+		)),
+		httpServer.When(withInternalAPI, httpServer.WithDocs(web.SwaggerFiles())),
+		httpServer.When(withInternalAPI, httpServer.WithAuthDebug(web.AuthDebugFiles())),
 	)
 
 	app.registerEventHandlers()

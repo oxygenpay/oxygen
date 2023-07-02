@@ -36,6 +36,14 @@ func NoOpt() Opt {
 	return func(_ *Server) {}
 }
 
+func When(cond bool, opt Opt) Opt {
+	if !cond {
+		return NoOpt()
+	}
+
+	return opt
+}
+
 func New(cfg Config, logRequests bool, opts ...Opt) *Server {
 	e := echo.New()
 	e.HideBanner = true

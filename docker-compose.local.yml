@@ -10,6 +10,7 @@ services:
     ports: [ '80:80' ]
     networks: [ net-oxygen ]
     depends_on: [ postgres ]
+    restart: on-failure
 
   postgres:
     image: postgres:15-alpine
