@@ -97,6 +97,7 @@ func (s *Service) GetExchangeRate(ctx context.Context, from, to string) (Exchang
 // Convert Converts currencies according to automatically resolved ConversionType. This method parses amount as float64,
 // please don't use it internally as output would contain huge error rate when dealing with 18 eth decimals.
 // Suitable for API responses.
+//
 //nolint:gocyclo
 func (s *Service) Convert(ctx context.Context, from, to, amount string) (Conversion, error) {
 	switch {

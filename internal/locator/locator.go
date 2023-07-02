@@ -76,7 +76,7 @@ func New(ctx context.Context, cfg *config.Config, logger *zerolog.Logger) *Locat
 
 func (loc *Locator) DB() *pg.Connection {
 	loc.init("db", func() {
-		db, err := pg.Open(loc.ctx, loc.config.Postgres, loc.logger)
+		db, err := pg.Open(loc.ctx, loc.config.Oxygen.Postgres, loc.logger)
 		if err != nil {
 			loc.logger.Fatal().Err(err).Msg("unable to open pg database")
 			return
@@ -146,9 +146,9 @@ func (loc *Locator) TrongridProvider() *trongrid.Provider {
 func (loc *Locator) KMSClient() *client.KMSInternalAPI {
 	loc.init("client.kms", func() {
 		kms := client.NewHTTPClientWithConfig(strfmt.Default, &client.TransportConfig{
-			Host:     loc.config.KmsClient.Host,
-			BasePath: loc.config.KmsClient.BasePath,
-			Schemes:  loc.config.KmsClient.Schemes,
+			Host:     loc.config.Providers.KmsClient.Host,
+			BasePath: loc.config.Providers.KmsClient.BasePath,
+			Schemes:  loc.config.Providers.KmsClient.Schemes,
 		})
 
 		// transport wrapper
@@ -215,7 +215,7 @@ func (loc *Locator) TokenManagerService() *auth.TokenAuthManager {
 
 func (loc *Locator) GoogleAuth() *auth.GoogleOAuthManager {
 	loc.init("service.auth.google", func() {
-		loc.googleAuth = auth.NewGoogleOAuth(loc.config.Auth.Google, loc.logger)
+		loc.googleAuth = auth.NewGoogleOAuth(loc.config.Oxygen.Auth.Google, loc.logger)
 	})
 
 	return loc.googleAuth
@@ -238,7 +238,7 @@ func (loc *Locator) PaymentService() *payment.Service {
 	loc.init("service.payment", func() {
 		loc.paymentService = payment.New(
 			loc.Repository(),
-			loc.config.Web.Processing.PaymentFrontendBasePath,
+			loc.config.Oxygen.Processing.PaymentFrontendPath(),
 			loc.TransactionService(),
 			loc.MerchantService(),
 			loc.WalletService(),
@@ -262,7 +262,7 @@ func (loc *Locator) WalletService() *wallet.Service {
 func (loc *Locator) ProcessingService() *processing.Service {
 	loc.init("service.processing", func() {
 		loc.processingService = processing.New(
-			loc.config.Web.Processing,
+			loc.config.Oxygen.Processing,
 			loc.WalletService(),
 			loc.MerchantService(),
 			loc.PaymentService(),

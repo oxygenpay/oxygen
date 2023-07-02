@@ -1,0 +1,37 @@
+.balance-page {
+    &__icon-container {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    &__icon {
+        margin-left: auto;
+        height: 24px;
+    }
+
+    &__description {
+        display: flex;
+        overflow: hidden;
+        max-height: 100%;
+    }
+
+    &__title-wrap {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    &__row {
+        cursor: pointer;
+    }
+
+    &__withdraw-btn {
+        border-color: #4096ff;
+        color: #4096ff;
+        margin-right: 10px;
+    }
+}

@@ -9,7 +9,8 @@ import (
 )
 
 type Config struct {
-	DataSource string `yaml:"data_source" env:"DB_DATA_SOURCE"`
+	DataSource     string `yaml:"data_source" env:"DB_DATA_SOURCE" env-description:"Postgres connection string. Example: 'host=localhost sslmode=disable dbname=oxygen user=oxygen password=qwerty pool_max_conns=32'"`
+	MigrateOnStart bool   `yaml:"migrate_on_start" env:"DB_MIGRATE_ON_START" env-default:"true" env-description:"Apply database migrations on start"`
 }
 
 type Connection struct {

@@ -18,6 +18,7 @@ const createUser = `-- name: CreateUser :one
 INSERT INTO users (
     name,
     email,
+    password,
     uuid,
     google_id,
     profile_image_url,
@@ -25,13 +26,14 @@ INSERT INTO users (
     updated_at,
     deleted_at,
     settings
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-RETURNING id, name, email, uuid, google_id, profile_image_url, created_at, updated_at, deleted_at, settings
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+RETURNING id, name, email, uuid, google_id, profile_image_url, created_at, updated_at, deleted_at, settings, password
 `
 
 type CreateUserParams struct {
 	Name            string
 	Email           string
+	Password        sql.NullString
 	Uuid            uuid.UUID
 	GoogleID        sql.NullString
 	ProfileImageUrl sql.NullString
@@ -45,6 +47,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	row := q.db.QueryRow(ctx, createUser,
 		arg.Name,
 		arg.Email,
+		arg.Password,
 		arg.Uuid,
 		arg.GoogleID,
 		arg.ProfileImageUrl,
@@ -65,6 +68,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.UpdatedAt,
 		&i.DeletedAt,
 		&i.Settings,
+		&i.Password,
 	)
 	return i, err
 }
@@ -79,8 +83,32 @@ func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
 	return err
 }
 
+const getUserByEmail = `-- name: GetUserByEmail :one
+SELECT id, name, email, uuid, google_id, profile_image_url, created_at, updated_at, deleted_at, settings, password FROM users
+WHERE email = $1 LIMIT 1
+`
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Uuid,
+		&i.GoogleID,
+		&i.ProfileImageUrl,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.Settings,
+		&i.Password,
+	)
+	return i, err
+}
+
 const getUserByGoogleID = `-- name: GetUserByGoogleID :one
-SELECT id, name, email, uuid, google_id, profile_image_url, created_at, updated_at, deleted_at, settings FROM users
+SELECT id, name, email, uuid, google_id, profile_image_url, created_at, updated_at, deleted_at, settings, password FROM users
 WHERE google_id = $1 LIMIT 1
 `
 
@@ -98,12 +126,13 @@ func (q *Queries) GetUserByGoogleID(ctx context.Context, googleID sql.NullString
 		&i.UpdatedAt,
 		&i.DeletedAt,
 		&i.Settings,
+		&i.Password,
 	)
 	return i, err
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT id, name, email, uuid, google_id, profile_image_url, created_at, updated_at, deleted_at, settings FROM users
+SELECT id, name, email, uuid, google_id, profile_image_url, created_at, updated_at, deleted_at, settings, password FROM users
 WHERE id = $1 LIMIT 1
 `
 
@@ -121,12 +150,13 @@ func (q *Queries) GetUserByID(ctx context.Context, id int64) (User, error) {
 		&i.UpdatedAt,
 		&i.DeletedAt,
 		&i.Settings,
+		&i.Password,
 	)
 	return i, err
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, name, email, uuid, google_id, profile_image_url, created_at, updated_at, deleted_at, settings FROM users
+SELECT id, name, email, uuid, google_id, profile_image_url, created_at, updated_at, deleted_at, settings, password FROM users
 ORDER BY id desc
 `
 
@@ -150,6 +180,7 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 			&i.UpdatedAt,
 			&i.DeletedAt,
 			&i.Settings,
+			&i.Password,
 		); err != nil {
 			return nil, err
 		}
@@ -167,7 +198,7 @@ SET name = $1,
     profile_image_url= $2,
     updated_at = $3
 WHERE id = $4
-RETURNING id, name, email, uuid, google_id, profile_image_url, created_at, updated_at, deleted_at, settings
+RETURNING id, name, email, uuid, google_id, profile_image_url, created_at, updated_at, deleted_at, settings, password
 `
 
 type UpdateUserParams struct {
@@ -196,6 +227,40 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.UpdatedAt,
 		&i.DeletedAt,
 		&i.Settings,
+		&i.Password,
+	)
+	return i, err
+}
+
+const updateUserPassword = `-- name: UpdateUserPassword :one
+UPDATE users
+SET password = $2,
+    updated_at = $3
+WHERE id = $1
+RETURNING id, name, email, uuid, google_id, profile_image_url, created_at, updated_at, deleted_at, settings, password
+`
+
+type UpdateUserPasswordParams struct {
+	ID        int64
+	Password  sql.NullString
+	UpdatedAt time.Time
+}
+
+func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUserPassword, arg.ID, arg.Password, arg.UpdatedAt)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.Uuid,
+		&i.GoogleID,
+		&i.ProfileImageUrl,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+		&i.Settings,
+		&i.Password,
 	)
 	return i, err
 }

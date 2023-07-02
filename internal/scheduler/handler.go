@@ -211,7 +211,7 @@ func (h *Handler) CheckInternalTransferProgress(ctx context.Context) error {
 	ids := util.MapSlice(txs, func(t *transaction.Transaction) int64 { return t.ID })
 
 	if err := h.processing.BatchCheckInternalTransfers(ctx, ids); err != nil {
-		return errors.Wrap(err, "unable to batch internal transfers")
+		return errors.Wrap(err, "unable to batch check internal transfers")
 	}
 
 	return nil

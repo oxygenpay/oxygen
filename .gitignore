@@ -1,6 +1,9 @@
 .idea
 .vscode
+!.vscode/extensions.json
 bin/
 config/*.yml
+!config/*example.yml
 web/redoc/**/*.json
 docker.env
+.actrc

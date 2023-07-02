@@ -20,9 +20,9 @@ import (
 
 func TestTronProvider_Generate(t *testing.T) {
 	const (
-		mockAddress    = "TQhXoaEfbYQFjdna5DdAXyYkFjT7ikUTxu"
-		mockPubKey     = "0x04e4f8056521e0da9cfbb85bf7023d45089588c143e7cf4f784ff319cdc9c423850a7970a19455c8c5a0c6fe4d4cce464bac9a6dfc3e3611fc650e93079eaaf83f"
-		mockPrivateKey = "0x0101010101010101024798bbd525dd3cfffad755af8ea0fffbbb8dec79497fc2"
+		mockAddress    = "TCNkawTmcQgYSU8nP8cHswT1QPjharxJr7"
+		mockPubKey     = "0x041b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f70beaf8f588b541507fed6a642c5ab42dfdf8120a7f639de5122d47a69a8e8d1"
+		mockPrivateKey = "0x0101010101010101010101010101010101010101010101010101010101010101"
 	)
 
 	p := &wallet.TronProvider{

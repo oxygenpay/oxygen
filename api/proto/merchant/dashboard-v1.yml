@@ -23,8 +23,14 @@ paths:
   /auth/csrf-cookie:
     $ref: './v1/auth.yml#/paths/~1csrf-cookie'
 
+  /auth/provider:
+    $ref: './v1/auth.yml#/paths/~1provider'
+
   /auth/me:
     $ref: './v1/auth.yml#/paths/~1me'
+
+  /auth/login:
+    $ref: './v1/auth.yml#/paths/~1login'
 
   /auth/logout:
     $ref: './v1/auth.yml#/paths/~1logout'

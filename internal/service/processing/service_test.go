@@ -18,6 +18,7 @@ import (
 )
 
 // TestSetPaymentMethod for that assertion-intensive test we need separate test context
+//
 //nolint:funlen
 func TestSetPaymentMethod(t *testing.T) {
 	tc := test.NewIntegrationTest(t)

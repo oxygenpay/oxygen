@@ -3,22 +3,24 @@ package http
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 	"github.com/oxygenpay/oxygen/internal/server/http/middleware"
-	"github.com/oxygenpay/oxygen/internal/service/processing"
 	"github.com/rs/zerolog"
 	"github.com/ziflex/lecho/v3"
 )
 
 type Config struct {
-	Address    string                   `yaml:"address" env:"WEB_ADDRESS" env-default:"0.0.0.0"`
-	Port       string                   `yaml:"port" env:"WEB_PORT" env-default:"8000"`
-	Session    middleware.SessionConfig `yaml:"session"`
-	CSRF       middleware.CSRFConfig    `yaml:"csrf"`
-	CORS       middleware.CORSConfig    `yaml:"cors"`
-	Processing processing.Config        `yaml:"processing"`
+	Address string `yaml:"address" env:"WEB_ADDRESS" env-default:"0.0.0.0" env-description:"Listen address"`
+	Port    string `yaml:"port" env:"WEB_PORT" env-default:"80" env-description:"Listen port"`
+
+	Session middleware.SessionConfig `yaml:"session"`
+	CSRF    middleware.CSRFConfig    `yaml:"csrf"`
+	CORS    middleware.CORSConfig    `yaml:"cors"`
+
+	EnableInternalAPI bool `yaml:"enable_internal_api" env:"WEB_ENABLE_INTERNAL_API" env-default:"false" env-description:"Enables internal API /internal/v1/*. DO NOT EXPOSE TO PUBLIC"`
 }
 
 type Server struct {
@@ -29,6 +31,10 @@ type Server struct {
 }
 
 type Opt func(s *Server)
+
+func NoOpt() Opt {
+	return func(_ *Server) {}
+}
 
 func New(cfg Config, logRequests bool, opts ...Opt) *Server {
 	e := echo.New()
@@ -68,11 +74,25 @@ func WithLogger(logger *zerolog.Logger) Opt {
 			return
 		}
 
+		skippedPaths := []string{
+			healthcheckPath,
+			dashboardPrefix,
+			paymentsPrefix,
+		}
+
 		s.echo.Use(lecho.Middleware(lecho.Config{
 			Logger:       lecho.From(l, lecho.WithLevel(log.INFO)),
 			RequestIDKey: middleware.RequestIDKey,
 			Skipper: func(c echo.Context) bool {
-				return c.Request().URL.Path == healthcheckPath
+				path := c.Request().URL.Path
+
+				for _, match := range skippedPaths {
+					if strings.HasPrefix(path, match) {
+						return true
+					}
+				}
+
+				return false
 			},
 		}))
 	}

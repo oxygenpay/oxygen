@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+    font-family: "General Sans";
+    src: url("/src/assets/fonts/GeneralSans-Bold.otf") format("opentype");
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "General Sans";
+    src: url("src/assets/fonts/GeneralSans-Italic.otf") format("opentype");
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "General Sans";
+    src: url("src/assets/fonts/GeneralSans-Regular.otf") format("opentype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "General Sans";
+    src: url("src/assets/fonts/GeneralSans-Medium.otf") format("opentype");
+    font-weight: 500;
+    font-style: normal;
+}
+
+:root {
+    /* https://css-tricks.com/snippets/css/system-font-stack/ */
+    --system-ui: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+        "Segoe UI Symbol";
+}
+
+html {
+    font-family: "General Sans", var(--system-ui);
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #d0e6e8 #ffffff;
+}
+
+/* Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+    width: 15px;
+}
+
+*::-webkit-scrollbar-track {
+    background: #d0e6e8;
+    border-radius: 5px;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: #ffffff;
+    border-radius: 14px;
+    border: 3px solid #d0e6e8;
+}
+
+.color-oxygen {
+    color: rgb(80, 175, 149);
+}

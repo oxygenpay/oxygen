@@ -2,23 +2,29 @@ package http
 
 import (
 	"io/fs"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 	mw "github.com/labstack/echo/v4/middleware"
 	"github.com/oxygenpay/oxygen/internal/auth"
 	v1 "github.com/oxygenpay/oxygen/internal/server/http/internalapi"
 	"github.com/oxygenpay/oxygen/internal/server/http/merchantapi"
+	merchantauth "github.com/oxygenpay/oxygen/internal/server/http/merchantapi/auth"
 	"github.com/oxygenpay/oxygen/internal/server/http/middleware"
 	"github.com/oxygenpay/oxygen/internal/server/http/paymentapi"
 	"github.com/oxygenpay/oxygen/internal/server/http/webhook"
+	"github.com/oxygenpay/oxygen/internal/service/user"
 )
 
 // WithDashboardAPI setups routes for Merchant's Dashboard (app.o2pay.co)
 func WithDashboardAPI(
-	handler *merchantapi.Handler,
-	authHandler *merchantapi.AuthHandler,
 	cfg Config,
+	handler *merchantapi.Handler,
+	authHandler *merchantauth.Handler,
 	tokensManager *auth.TokenAuthManager,
+	users *user.Service,
+	enableEmailAuth bool,
+	enableGoogleAuth bool,
 ) Opt {
 	return func(s *Server) {
 		guardsUsersMW := middleware.GuardsUsers()
@@ -27,17 +33,30 @@ func WithDashboardAPI(
 			"/api/dashboard/v1",
 			middleware.CORS(cfg.CORS),
 			middleware.Session(cfg.Session),
-			middleware.ResolvesUserBySession(authHandler.UserService()),
-			middleware.ResolvesUserByToken(tokensManager, authHandler.UserService()),
+			middleware.ResolvesUserBySession(users),
+			middleware.ResolvesUserByToken(tokensManager, users),
 			middleware.CSRF(cfg.CSRF),
 		)
 
-		authGroup := dashboardAPI.Group("/auth")
+		authRL := mw.NewRateLimiterMemoryStore(10)
+		authGroup := dashboardAPI.Group("/auth", mw.RateLimiter(authRL))
+
+		// common auth routes
+		authGroup.GET("/provider", authHandler.ListAvailableProviders)
 		authGroup.GET("/csrf-cookie", authHandler.GetCookie)
-		authGroup.GET("/redirect", authHandler.GetRedirect)
-		authGroup.GET("/callback", authHandler.GetCallback)
 		authGroup.GET("/me", authHandler.GetMe, guardsUsersMW)
 		authGroup.POST("/logout", authHandler.PostLogout, guardsUsersMW)
+
+		// email auth routes
+		if enableEmailAuth {
+			authGroup.POST("/login", authHandler.PostLogin)
+		}
+
+		// google auth routes
+		if enableGoogleAuth {
+			authGroup.GET("/redirect", authHandler.GetRedirect)
+			authGroup.GET("/callback", authHandler.GetCallback)
+		}
 
 		dashboardAPI.GET("/merchant", handler.ListMerchants, guardsUsersMW)
 		dashboardAPI.POST("/merchant", handler.CreateMerchant, guardsUsersMW)
@@ -192,4 +211,25 @@ func WithInternalAPI(h *v1.Handler) Opt {
 		admin.POST("/blockchain/broadcast", h.BroadcastTransaction)
 		admin.GET("/blockchain/receipt", h.GetTransactionReceipt)
 	}
+}
+
+const (
+	dashboardPrefix = "/dashboard"
+	paymentsPrefix  = "/p"
+)
+
+func WithEmbeddedFrontend(dashboardUI, paymentsUI fs.FS) Opt {
+	return func(s *Server) {
+		spaRouter(s.echo, dashboardPrefix, dashboardUI)
+		spaRouter(s.echo, paymentsPrefix, paymentsUI)
+	}
+}
+
+func spaRouter(e *echo.Echo, prefix string, files fs.FS) {
+	e.Group(prefix, mw.StaticWithConfig(mw.StaticConfig{
+		Root:       "/",
+		Index:      "index.html",
+		HTML5:      true,
+		Filesystem: http.FS(files),
+	}))
 }

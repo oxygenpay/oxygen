@@ -20,24 +20,26 @@ import (
 )
 
 type App struct {
+	ctx    context.Context
 	config *config.Config
 	logger *zerolog.Logger
 	db     *bbolt.DB
 }
 
-func NewApp(cfg *config.Config) *App {
+func NewApp(ctx context.Context, cfg *config.Config) *App {
 	hostname, _ := os.Hostname()
 	logger := log.New(cfg.Logger, "kms", cfg.GitVersion, cfg.Env, hostname)
 
 	return &App{
+		ctx:    ctx,
 		config: cfg,
 		logger: &logger,
 	}
 }
 
-func (app *App) Run(ctx context.Context) {
+func (app *App) Run() {
 	app.connectToDB()
-	app.runWebServer(ctx)
+	app.runWebServer(app.ctx)
 }
 
 func (app *App) Logger() *zerolog.Logger {
@@ -45,7 +47,7 @@ func (app *App) Logger() *zerolog.Logger {
 }
 
 func (app *App) connectToDB() {
-	conn, err := bolt.Open(app.config.Bolt, app.logger)
+	conn, err := bolt.Open(app.config.KMS.Bolt, app.logger)
 	if err != nil {
 		app.logger.Fatal().Err(err).Msg("unable to run kms without db")
 	}
@@ -71,8 +73,12 @@ func (app *App) runWebServer(ctx context.Context) {
 	walletRepo := wallet.NewRepository(app.db)
 	kmsService := wallet.New(walletRepo, walletGenerator, app.logger)
 
+	if app.config.KMS.IsEmbedded {
+		app.config.KMS.Server.Port = "14000"
+	}
+
 	srv := httpServer.New(
-		app.config.Web,
+		app.config.KMS.Server,
 		app.config.Debug,
 		httpServer.WithRecover(),
 		httpServer.WithLogger(app.logger),

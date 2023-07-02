@@ -4,6 +4,7 @@ package processing
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -42,12 +43,30 @@ type Service struct {
 }
 
 type Config struct {
-	WebhookBasePath         string `yaml:"webhook_base_path" env:"PROCESSING_WEBHOOK_BASE_PATH"`
-	PaymentFrontendBasePath string `yaml:"payment_frontend_base_path" env:"PROCESSING_PAYMENT_FRONTEND_BASE_PATH"`
+	WebhookBasePath         string `yaml:"webhook_base_path" env:"PROCESSING_WEBHOOK_BASE_PATH" env-description:"Base path for webhooks (sub)domain. Example: https://pay.site.com"`
+	PaymentFrontendBasePath string `yaml:"payment_frontend_base_path" env:"PROCESSING_PAYMENT_FRONTEND_BASE_PATH" env-description:"Base path for payment UI. Example: https://pay.site.com"`
+	PaymentFrontendSubPath  string `yaml:"payment_frontend_sub_path" env:"PROCESSING_PAYMENT_FRONTEND_SUB_PATH" env-default:"/p" env-description:"Sub path for payment UI"`
+	// DefaultServiceFee as float percentage. 1% is 0.01
+	DefaultServiceFee float64 `yaml:"default_service_fee" env:"PROCESSING_DEFAULT_SERVICE_FEE" env-default:"0" env-description:"Internal variable"`
 }
 
-// 1.5%
-const ServiceFee = 0.015
+func (c *Config) PaymentFrontendPath() string {
+	base := strings.TrimSuffix(c.PaymentFrontendBasePath, "/")
+	sub := strings.Trim(c.PaymentFrontendSubPath, "/")
+
+	if sub == "" {
+		return base
+	}
+
+	return base + "/" + sub
+}
+
+var (
+	ErrStatusInvalid         = errors.New("payment status is invalid")
+	ErrPaymentOptionsMissing = errors.New("payment options are not fully fulfilled")
+	ErrSignatureVerification = errors.New("unable to verify request signature")
+	ErrInboundWallet         = errors.New("inbound wallet error")
+)
 
 func New(
 	config Config,
@@ -330,9 +349,12 @@ func (s *Service) createIncomingTransaction(
 
 	cryptoAmount := conv.To
 
-	serviceFee, err := cryptoAmount.MultiplyFloat64(ServiceFee)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to calculate service fee")
+	var cryptoServiceFee money.Money
+	if s.config.DefaultServiceFee > 0 {
+		cryptoServiceFee, err = cryptoAmount.MultiplyFloat64(s.config.DefaultServiceFee)
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to calculate service fee")
+		}
 	}
 
 	conv, err = s.blockchain.FiatToFiat(ctx, pt.Price, money.USD)
@@ -360,7 +382,7 @@ func (s *Service) createIncomingTransaction(
 		RecipientWallet: acquiredWallet,
 		Currency:        currency,
 		Amount:          cryptoAmount,
-		ServiceFee:      serviceFee,
+		ServiceFee:      cryptoServiceFee,
 		USDAmount:       usdAmount,
 		IsTest:          pt.IsTest,
 	})

@@ -17,9 +17,13 @@ import (
 	httpServer "github.com/oxygenpay/oxygen/internal/server/http"
 	"github.com/oxygenpay/oxygen/internal/server/http/internalapi"
 	"github.com/oxygenpay/oxygen/internal/server/http/merchantapi"
+	merchantauth "github.com/oxygenpay/oxygen/internal/server/http/merchantapi/auth"
 	"github.com/oxygenpay/oxygen/internal/server/http/paymentapi"
 	"github.com/oxygenpay/oxygen/internal/server/http/webhook"
+	"github.com/oxygenpay/oxygen/internal/service/user"
 	"github.com/oxygenpay/oxygen/pkg/graceful"
+	uidashboard "github.com/oxygenpay/oxygen/ui-dashboard"
+	uipayment "github.com/oxygenpay/oxygen/ui-payment"
 	"github.com/oxygenpay/oxygen/web"
 	"github.com/pkg/errors"
 	"github.com/robfig/cron/v3"
@@ -27,11 +31,14 @@ import (
 )
 
 type App struct {
-	config   *config.Config
-	ctx      context.Context
-	logger   *zerolog.Logger
-	services *locator.Locator
+	config    *config.Config
+	ctx       context.Context
+	logger    *zerolog.Logger
+	services  *locator.Locator
+	beforeRun []BeforeRun
 }
+
+type BeforeRun func(ctx context.Context, app *App) error
 
 func New(ctx context.Context, cfg *config.Config) *App {
 	hostname, _ := os.Hostname()
@@ -43,6 +50,14 @@ func New(ctx context.Context, cfg *config.Config) *App {
 		logger:   &logger,
 		services: locator.New(ctx, cfg, &logger),
 	}
+}
+
+func (app *App) Locator() *locator.Locator {
+	return app.services
+}
+
+func (app *App) OnBeforeRun(fn BeforeRun) {
+	app.beforeRun = append(app.beforeRun, fn)
 }
 
 func (app *App) Logger() *zerolog.Logger {
@@ -61,9 +76,10 @@ func (app *App) RunServer() {
 		app.Logger(),
 	)
 
-	dashboardAuthHandler := merchantapi.NewAuthHandler(
+	dashboardAuthHandler := merchantauth.NewHandler(
 		app.services.GoogleAuth(),
 		app.services.UserService(),
+		app.config.Oxygen.Auth.EnabledProviders(),
 		app.Logger(),
 	)
 
@@ -90,31 +106,75 @@ func (app *App) RunServer() {
 		app.services.JobLogger(),
 	)
 
-	srv := httpServer.New(
-		app.config.Web,
-		app.config.Debug,
-		httpServer.WithRecover(),
-		httpServer.WithLogger(app.logger),
-		httpServer.WithInternalAPI(internalapi.New(
+	withInternalAPI := httpServer.NoOpt()
+	if app.config.Oxygen.Server.EnableInternalAPI {
+		admin := internalapi.New(
 			app.services.WalletService(),
 			app.services.BlockchainService(),
 			schedulerHandler,
 			app.logger,
-		)),
+		)
+
+		withInternalAPI = httpServer.WithInternalAPI(admin)
+	}
+
+	withEmbeddedFrontend := httpServer.NoOpt()
+	if app.config.EmbedFrontend {
+		app.Logger().Info().Msg("Enabled frontend embedding")
+		withEmbeddedFrontend = httpServer.WithEmbeddedFrontend(uidashboard.Files(), uipayment.Files())
+	}
+
+	srv := httpServer.New(
+		app.config.Oxygen.Server,
+		app.config.Debug,
+		httpServer.WithRecover(),
+		httpServer.WithLogger(app.logger),
 		httpServer.WithAuthDebug(web.AuthDebugFiles()),
 		httpServer.WithDocs(web.SwaggerFiles()),
 		httpServer.WithMerchantAPI(merchantAPIHandler, app.services.TokenManagerService()),
 		httpServer.WithDashboardAPI(
+			app.config.Oxygen.Server,
 			merchantAPIHandler,
 			dashboardAuthHandler,
-			app.config.Web,
 			app.services.TokenManagerService(),
+			app.services.UserService(),
+			app.config.Oxygen.Auth.Email.Enabled,
+			app.config.Oxygen.Auth.Google.Enabled,
 		),
-		httpServer.WithPaymentAPI(paymentAPIHandler, app.config.Web),
+		httpServer.WithPaymentAPI(paymentAPIHandler, app.config.Oxygen.Server),
 		httpServer.WithWebhookAPI(incomingWebhooksHandler),
+		withInternalAPI,
+		withEmbeddedFrontend,
 	)
 
 	app.registerEventHandlers()
+
+	app.OnBeforeRun(func(ctx context.Context, app *App) error {
+		cfg := app.config.Oxygen.Auth.Email
+		if !cfg.Enabled {
+			return nil
+		}
+
+		u, err := app.services.UserService().Register(ctx, cfg.FirstUserEmail, cfg.FirstUserPass)
+		switch {
+		case errors.Is(err, user.ErrAlreadyExists):
+			app.Logger().Info().Msg("Skipped user registration from config: already exists")
+			return nil
+		case err != nil:
+			return errors.Wrapf(err, "unable to create user %q from config", cfg.FirstUserEmail)
+		}
+
+		app.Logger().Info().Str("email", u.Email).Msg("Registered user from config")
+
+		return nil
+	})
+
+	for _, fn := range app.beforeRun {
+		if err := fn(app.ctx, app); err != nil {
+			app.logger.Fatal().Err(err).Msg("error while running onBeforeRun")
+			return
+		}
+	}
 
 	go func() {
 		app.logger.Info().Str("address", srv.Address()).Msg("starting http server")

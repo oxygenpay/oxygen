@@ -22,6 +22,36 @@ definitions:
         example: https://site.com/image.jpeg
         x-nullable: true
 
+  AvailableProvidersResponse:
+    type: object
+    properties:
+      providers:
+        type: array
+        items:
+          $ref: '#/definitions/Provider'
+
+  Provider:
+    type: object
+    properties:
+      name:
+        type: string
+        enum: [ google, email ]
+
+  LoginRequest:
+    type: object
+    required: [ email, password ]
+    properties:
+      email:
+        type: string
+        description: Email
+        format: email
+        x-nullable: false
+      password:
+        type: string
+        description: Password
+        minLength: 8
+        x-nullable: false
+
 paths:
   /csrf-cookie:
     get:
@@ -46,6 +76,40 @@ paths:
           description: Unauthorized
           schema:
             $ref: 'common.yml#/definitions/ErrorResponse'
+
+  /provider:
+    get:
+      summary: List available auth providers
+      operationId: listAuthenticationProviders
+      tags: [ Authentication ]
+      responses:
+        200:
+          description: Available providers
+          schema:
+            $ref: '#/definitions/AvailableProvidersResponse'
+
+  /login:
+    post:
+      summary: Login via email
+      description: Logs user in via email.
+      operationId: login
+      tags: [ Authentication ]
+      parameters:
+        - in: body
+          name: data
+          required: true
+          description: Credentials
+          schema:
+            $ref: '#/definitions/LoginRequest'
+      responses:
+        204:
+          description: Logged in or already logged in. Response contacts session cookie.
+        400:
+          description: Validation error / Bad request
+          schema:
+            $ref: 'common.yml#/definitions/ErrorResponse'
+        429:
+          description: Too many requests
 
   /logout:
     post:

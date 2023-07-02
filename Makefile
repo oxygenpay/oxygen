@@ -2,11 +2,12 @@
 
 VERSION=$(shell git describe --tags --dirty --always)
 COMMIT=$(shell git rev-parse HEAD)
+EMBED_FRONTEND ?= 1
 
 # The -w turns off DWARF debugging information
 # The -s turns off generation of the Go symbol table
 # The -X adds a string value definition of the form importpath.name=value
-LDFLAGS=-ldflags "-w -s -X 'main.gitVersion=${VERSION}' -X 'main.gitCommit=${COMMIT}'"
+LDFLAGS=-ldflags "-w -s -X 'main.gitVersion=${VERSION}' -X 'main.gitCommit=${COMMIT}' -X 'main.embedFrontend=${EMBED_FRONTEND}'"
 
 PKG_LIST := $(shell go list ./... | grep -v pkg/api- | grep -v internal/db | tr "\n" " ")
 
@@ -51,14 +52,14 @@ mock: ## Generate mocks (not included in codegen command)
 build: ## Build app
 	go build ${LDFLAGS} -o bin/oxygen main.go
 
-run: ## ## Run application (without building)
-	./bin/oxygen start --config=$$(pwd)/config/oxygen.yml
+run: ## Run application (without building)
+	./bin/oxygen serve-web --config=$$(pwd)/config/oxygen.yml
 
 run-kms: ## Run KMS (without building)
-	./bin/oxygen kms-server --config=$$(pwd)/config/kms.yml
+	./bin/oxygen serve-kms --config=$$(pwd)/config/oxygen.yml
 
 run-scheduler: ## Run Scheduler (without building)
-	./bin/oxygen scheduler --config=$$(pwd)/config/oxygen.yml
+	./bin/oxygen run-scheduler --config=$$(pwd)/config/oxygen.yml
 
 local: codegen build run ## Build & Run App
 
@@ -73,11 +74,14 @@ require-deps: ## Require cli tools for development
 	go install github.com/kyleconroy/sqlc/cmd/sqlc@latest
 	go install github.com/cespare/reflex@latest
 	go install github.com/vektra/mockery/v2@latest
-	# todo linter
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.53.3
     # todo go-swagger as swagger
 
 docker-build: ## Build docker image for Oxygen
-	DOCKER_BUILDKIT=1 docker build -t oxygen-local --ssh default .
+	DOCKER_BUILDKIT=1 docker build -t oxygen-local .
+
+docker-local:
+	docker-compose -f docker-compose.local.yml up
 
 clean-test-dbs: ## Drop test "oxygen_test*" databases
 	psql -c "\l" | grep "oxygen_test" | awk '{print $$1}' | xargs -I {} psql -c "drop database {};"

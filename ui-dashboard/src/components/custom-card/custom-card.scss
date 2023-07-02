@@ -1,0 +1,37 @@
+.custom-card {
+    border-bottom: 1px solid #f0f0f0;
+    border-radius: 8px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+
+    &:not(:last-child) {
+        margin-bottom: 16px;
+    }
+
+    &__title {
+        color: rgba(0, 0, 0, 0.88);
+        font-weight: 600;
+        font-size: 16px;
+        min-width: 150px;
+        max-width: 300px;
+
+        &-wrap {
+            width: 350px;
+        }
+    }
+
+    &__description {
+        color: rgba(0, 0, 0, 0.88);
+        font-size: 14px;
+        line-height: 1.5714285714285714;
+        margin-left: 24px;
+    }
+
+    &__right-icon {
+        margin-left: auto;
+        padding: 4px;
+        cursor: pointer;
+    }
+}

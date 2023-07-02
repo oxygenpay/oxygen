@@ -308,8 +308,9 @@ func (s *Service) tronFee(ctx context.Context, baseCurrency, currency money.Cryp
 		bandwidthSunCost      = int64(1000)
 		coinTransferBandwidth = int64(350)
 
-		// based on avg tronscan data (15 trx) ~ 30.01.2023
-		tokenTransactionSun = int64(15 * 1_000_000)
+		// 30.01.23: based on avg tronscan data ~ 15 trx
+		// 14.06.23: https://support.ledger.com/hc/en-us/articles/8085235615133-Tether-USDT-transaction-on-Tron-failed-and-ran-out-of-energy
+		tokenTransactionSun = int64(30 * 1_000_000)
 	)
 
 	intToTRON := func(i int64) (money.Money, error) {

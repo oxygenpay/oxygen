@@ -1,0 +1,100 @@
+name: Build Oxygen
+on:
+  release:
+    types: [ created ]
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-ui-payment:
+    name: Build Payment UI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+        working-directory: ui-payment
+
+      - name: Build
+        run: npx tsc && npx vite build --base=${{ env.VITE_ROOTPATH }}
+        working-directory: ui-payment
+        env:
+          VITE_BACKEND_HOST: '//'
+          VITE_SUPPORT_EMAIL: 'help@site.com'
+          VITE_ROOTPATH: '/p/'
+          VITE_SHOW_BRANDING: 'true'
+
+      - name: Publish dist
+        uses: actions/upload-artifact@v3
+        with:
+          name: ui-payment-artifact
+          path: ui-payment/dist/
+
+  build-ui-dashboard:
+    name: Build Dashboard UI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ui-dashboard
+
+      - name: Build
+        run: npx tsc && npx vite build --base=${{ env.VITE_ROOTPATH }}
+        working-directory: ui-dashboard
+        env:
+          VITE_BACKEND_HOST: '//'
+          VITE_ROOTPATH: '/dashboard/'
+
+      - name: Publish dist
+        uses: actions/upload-artifact@v3
+        with:
+          name: ui-dashboard-artifact
+          path: ui-dashboard/dist/
+
+  build-docker-image:
+    name: Build Docker Image
+    needs: [ build-ui-payment, build-ui-dashboard ]
+    runs-on: ubuntu-latest
+    # allow job to upload container images to ghcr
+    permissions: write-all
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Copy UI Payment UI artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ui-payment-artifact
+          path: ui-payment/dist/
+
+      - name: Copy Dashboard UI artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ui-dashboard-artifact
+          path: ui-dashboard/dist/
+
+      - name: Login to GitHub container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        run: |
+          # refs/tags/*
+          TAG=${GITHUB_REF:10}
+          echo "TAG=$TAG"
+
+          docker build -t $REGISTRY/$IMAGE:$TAG -t $REGISTRY/$IMAGE:latest .
+          docker push $REGISTRY/$IMAGE:$TAG
+          docker push $REGISTRY/$IMAGE:latest
+        env:
+          IMAGE: ${{ github.repository }}

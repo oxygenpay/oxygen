@@ -1,0 +1,38 @@
+logger:
+  pretty: true
+  level: info
+
+oxygen:
+  postgres:
+    data_source: "host=localhost sslmode=disable dbname=oxygen user=oxygen password=qwerty pool_max_conns=32"
+  server:
+    port: 80
+    session:
+      path: /opt/oxygen/sessions/
+      secret: session-secret
+    cors:
+      allow_origins:
+        - https://pay.site.com
+  processing:
+    webhook_base_path: https://pay.site.com
+    payment_frontend_base_path: https://pay.site.com
+  auth:
+    email:
+      merchant_email: your.address@gmail.com
+      merchant_password: <your-password-at-least-8-chars>
+
+kms:
+  server:
+    port: 14000
+  store:
+    path: /opt/oxygen/kms.db
+
+providers:
+  tatum:
+    api_key: <tatum-api-key>
+    test_api_key: <tatum-test-api-key>
+    tatum_hmac_secret: <replace-with-random-string>
+  trongrid:
+    api_key: <trongrid-api-key>
+  kms:
+    host: localhost:14000

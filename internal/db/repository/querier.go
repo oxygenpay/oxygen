@@ -68,6 +68,7 @@ type Querier interface {
 	GetTransactionByHashAndNetworkID(ctx context.Context, arg GetTransactionByHashAndNetworkIDParams) (Transaction, error)
 	GetTransactionByID(ctx context.Context, arg GetTransactionByIDParams) (Transaction, error)
 	GetTransactionsByFilter(ctx context.Context, arg GetTransactionsByFilterParams) ([]Transaction, error)
+	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByGoogleID(ctx context.Context, googleID sql.NullString) (User, error)
 	GetUserByID(ctx context.Context, id int64) (User, error)
 	GetWalletByID(ctx context.Context, id int64) (Wallet, error)
@@ -100,6 +101,7 @@ type Querier interface {
 	UpdateRegistryItem(ctx context.Context, arg UpdateRegistryItemParams) (Registry, error)
 	UpdateTransaction(ctx context.Context, arg UpdateTransactionParams) (Transaction, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
+	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) (User, error)
 	UpdateWalletMainnetTransactionCounters(ctx context.Context, arg UpdateWalletMainnetTransactionCountersParams) error
 	UpdateWalletTatumFields(ctx context.Context, arg UpdateWalletTatumFieldsParams) (Wallet, error)
 	UpdateWalletTestnetTransactionCounters(ctx context.Context, arg UpdateWalletTestnetTransactionCountersParams) error

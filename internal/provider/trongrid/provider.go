@@ -18,9 +18,9 @@ import (
 )
 
 type Config struct {
-	MainnetBaseURL string `yaml:"mainnet_url" env:"TRONGRID_MAINNET_URL"`
-	TestnetBaseURL string `yaml:"testnet_url" env:"TRONGRID_TESTNET_URL"`
-	APIKey         string `yaml:"api_key" env:"TRONGRID_API_KEY"`
+	MainnetBaseURL string `yaml:"mainnet_url" env:"TRONGRID_MAINNET_URL" env-default:"https://api.trongrid.io" env-description:"Trongrid API base path"`
+	TestnetBaseURL string `yaml:"testnet_url" env:"TRONGRID_TESTNET_URL" env-default:"https://api.shasta.trongrid.io" env-description:"Trongrid testnet (shasta) API base path"`
+	APIKey         string `yaml:"api_key" env:"TRONGRID_API_KEY" env-description:"Trongrid API Key"`
 }
 
 type Provider struct {
@@ -186,20 +186,21 @@ func (p *Provider) CallContract(
 }
 
 // BroadcastResponse. Examples:
-//  {
-//    "code": "CONTRACT_VALIDATE_ERROR",
-//    "txid": "50d52436163be5c38af269bbdee0a7e258e94cfa9cc05f975e543b98c6994f2e",
-//    "message": "Contract validate error : account [TDVEJbSyEtk8L4htanm8h5mp2sNutRm5ou] does not exist"
-//  }
-//  {
-//    "code": "DUP_TRANSACTION_ERROR",
-//    "txid": "fbb158948b240f88b188c65f5a623b562fe4d7a9a90eecef4495146acf87a484",
-//    "message": "Dup transaction."
-//  }
-//  {
-//    "result": true,
-//    "txid": "fbb158948b240f88b188c65f5a623b562fe4d7a9a90eecef4495146acf87a484"
-//  }
+//
+//	{
+//	  "code": "CONTRACT_VALIDATE_ERROR",
+//	  "txid": "50d52436163be5c38af269bbdee0a7e258e94cfa9cc05f975e543b98c6994f2e",
+//	  "message": "Contract validate error : account [TDVEJbSyEtk8L4htanm8h5mp2sNutRm5ou] does not exist"
+//	}
+//	{
+//	  "code": "DUP_TRANSACTION_ERROR",
+//	  "txid": "fbb158948b240f88b188c65f5a623b562fe4d7a9a90eecef4495146acf87a484",
+//	  "message": "Dup transaction."
+//	}
+//	{
+//	  "result": true,
+//	  "txid": "fbb158948b240f88b188c65f5a623b562fe4d7a9a90eecef4495146acf87a484"
+//	}
 type BroadcastResponse struct {
 	Result            bool   `json:"result"`
 	Code              string `json:"code"`
@@ -354,22 +355,22 @@ func (p *Provider) GetTransactionReceipt(
 	}, nil
 }
 
-// {
-//  "id": "a53122608dbe423c713f9a93b1511d56278df98659aeb12c0c544dc7a88e43c5",
-//  "fee": 36909560,
-//  "blockNumber": 31349959,
-//  "blockTimeStamp": 1676147655000,
-//  "contractResult": [ "..." ],
-//  "contract_address": "41ba221311e9f3ab22c27a2ad48e49f8ca56721da9",
-//  "receipt": {
-//    "energy_usage": 18612,
-//    "energy_fee": 36274560,
-//    "energy_usage_total": 148164,
-//    "net_fee": 635000,
-//  },
-//  "log": [ ... ],
-//  "internal_transactions": [ ... ]
-//}
+//	{
+//	 "id": "a53122608dbe423c713f9a93b1511d56278df98659aeb12c0c544dc7a88e43c5",
+//	 "fee": 36909560,
+//	 "blockNumber": 31349959,
+//	 "blockTimeStamp": 1676147655000,
+//	 "contractResult": [ "..." ],
+//	 "contract_address": "41ba221311e9f3ab22c27a2ad48e49f8ca56721da9",
+//	 "receipt": {
+//	   "energy_usage": 18612,
+//	   "energy_fee": 36274560,
+//	   "energy_usage_total": 148164,
+//	   "net_fee": 635000,
+//	 },
+//	 "log": [ ... ],
+//	 "internal_transactions": [ ... ]
+//	}
 func (p *Provider) getTransactionInfoByID(ctx context.Context, txID string, isTest bool) ([]byte, error) {
 	payload := map[string]string{"value": txID}
 
@@ -400,20 +401,20 @@ func (p *Provider) getTransactionInfoByID(ctx context.Context, txID string, isTe
 	return body, nil
 }
 
-// {
-//  "blockID": "...",
-//  "block_header": {
-//    "raw_data": {
-//      "number": 31579273,
-//      "txTrieRoot": "...",
-//      "witness_address": "41711cf6683d28621ae12030fd541b288c61d682cd",
-//      "parentHash": "0000000001e1dc88cbc3e4224d61fd349bcbcae3a7f7bccd5cc616b45fea7cef",
-//      "version": 26,
-//      "timestamp": 1676929908000
-//    },
-//    "witness_signature": "..."
-//  }
-//}
+//	{
+//	 "blockID": "...",
+//	 "block_header": {
+//	   "raw_data": {
+//	     "number": 31579273,
+//	     "txTrieRoot": "...",
+//	     "witness_address": "41711cf6683d28621ae12030fd541b288c61d682cd",
+//	     "parentHash": "0000000001e1dc88cbc3e4224d61fd349bcbcae3a7f7bccd5cc616b45fea7cef",
+//	     "version": 26,
+//	     "timestamp": 1676929908000
+//	   },
+//	   "witness_signature": "..."
+//	 }
+//	}
 func (p *Provider) getLatestBlock(ctx context.Context, isTest bool) ([]byte, error) {
 	req, err := p.newRequest(ctx, http.MethodGet, "/walletsolidity/getnowblock", nil, isTest)
 	if err != nil {
@@ -441,33 +442,33 @@ func (p *Provider) getLatestBlock(ctx context.Context, isTest bool) ([]byte, err
 	return body, nil
 }
 
-// {
-//  "ret": [
-//    { "contractRet": "SUCCESS" }
-//  ],
-//  "signature": [ "..." ],
-//  "txID": "0471ef93ae986f8c73900787e429c570d96c161b7b25c59271083e80b1d460fc",
-//  "raw_data": {
-//    "contract": [
-//      {
-//        "parameter": {
-//          "value": {
-//            "amount": 5000000000,
-//            "owner_address": "41b3dcf27c251da9363f1a4888257c16676cf54edf",
-//            "to_address": "4199409c7014a738224159a8d3e12cc90163ce6db2"
-//          },
-//          "type_url": "type.googleapis.com/protocol.TransferContract"
-//        },
-//        "type": "TransferContract"
-//      }
-//    ],
-//    "ref_block_bytes": "6828",
-//    "ref_block_hash": "9bdfb56481721d3e",
-//    "expiration": 1676157717000,
-//    "timestamp": 1676157659717
-//  },
-//  "raw_data_hex": "..."
-//}
+//	{
+//	 "ret": [
+//	   { "contractRet": "SUCCESS" }
+//	 ],
+//	 "signature": [ "..." ],
+//	 "txID": "0471ef93ae986f8c73900787e429c570d96c161b7b25c59271083e80b1d460fc",
+//	 "raw_data": {
+//	   "contract": [
+//	     {
+//	       "parameter": {
+//	         "value": {
+//	           "amount": 5000000000,
+//	           "owner_address": "41b3dcf27c251da9363f1a4888257c16676cf54edf",
+//	           "to_address": "4199409c7014a738224159a8d3e12cc90163ce6db2"
+//	         },
+//	         "type_url": "type.googleapis.com/protocol.TransferContract"
+//	       },
+//	       "type": "TransferContract"
+//	     }
+//	   ],
+//	   "ref_block_bytes": "6828",
+//	   "ref_block_hash": "9bdfb56481721d3e",
+//	   "expiration": 1676157717000,
+//	   "timestamp": 1676157659717
+//	 },
+//	 "raw_data_hex": "..."
+//	}
 func (p *Provider) getTransactionByID(ctx context.Context, txID string, isTest bool) ([]byte, error) {
 	payload := map[string]string{"value": txID}
 

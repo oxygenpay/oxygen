@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -19,6 +20,7 @@ import (
 	"github.com/oxygenpay/oxygen/internal/provider/trongrid"
 	httpServer "github.com/oxygenpay/oxygen/internal/server/http"
 	"github.com/oxygenpay/oxygen/internal/server/http/merchantapi"
+	merchantauth "github.com/oxygenpay/oxygen/internal/server/http/merchantapi/auth"
 	"github.com/oxygenpay/oxygen/internal/server/http/middleware"
 	"github.com/oxygenpay/oxygen/internal/server/http/paymentapi"
 	"github.com/oxygenpay/oxygen/internal/server/http/webhook"
@@ -31,6 +33,7 @@ import (
 	"github.com/oxygenpay/oxygen/internal/service/user"
 	"github.com/oxygenpay/oxygen/internal/service/wallet"
 	"github.com/oxygenpay/oxygen/internal/test/fakes"
+	"github.com/oxygenpay/oxygen/internal/util"
 	kmsmock "github.com/oxygenpay/oxygen/pkg/api-kms/v1/mock"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
@@ -84,6 +87,8 @@ type Providers struct {
 var processingConfig = processing.Config{
 	WebhookBasePath:         "http://localhost/webhok",
 	PaymentFrontendBasePath: "https://pay.o2pay.co",
+	PaymentFrontendSubPath:  "/",
+	DefaultServiceFee:       0.015, // 1.5%
 }
 
 func NewIntegrationTest(t *testing.T) *IntegrationTest {
@@ -178,7 +183,7 @@ func NewIntegrationTest(t *testing.T) *IntegrationTest {
 		&logger,
 	)
 
-	dashboardAuthHandler := merchantapi.NewAuthHandler(googleAuthService, usersService, &logger)
+	dashboardAuthHandler := merchantauth.NewHandler(googleAuthService, usersService, nil, &logger)
 
 	paymentAPIHandler := paymentapi.New(
 		paymentsService,
@@ -198,8 +203,9 @@ func NewIntegrationTest(t *testing.T) *IntegrationTest {
 		Address: "0.0.0.0",
 		Port:    "8888",
 		Session: middleware.SessionConfig{
-			FilesystemPath: os.TempDir(),
+			FilesystemPath: setupTmpDir(t, "sessions"),
 			Secret:         "secret",
+			CookieMaxAge:   60,
 		},
 	}
 
@@ -208,10 +214,13 @@ func NewIntegrationTest(t *testing.T) *IntegrationTest {
 		false,
 		httpServer.WithLogger(&logger),
 		httpServer.WithDashboardAPI(
+			webConfig,
 			merchantAPIHandler,
 			dashboardAuthHandler,
-			webConfig,
 			authTokenManager,
+			usersService,
+			true,
+			true,
 		),
 		httpServer.WithMerchantAPI(merchantAPIHandler, authTokenManager),
 		httpServer.WithPaymentAPI(paymentAPIHandler, webConfig),
@@ -318,4 +327,13 @@ func (i *IntegrationTest) CreateRawPayment(
 func (i *IntegrationTest) TearDown() {
 	_ = i.server.Shutdown(context.Background())
 	i.Database.TearDown()
+}
+
+func setupTmpDir(t *testing.T, dir string) string {
+	fullPath := fmt.Sprintf("%s%s/%s", os.TempDir(), util.Strings.Random(6), dir)
+
+	require.NoError(t, os.MkdirAll(fullPath, os.ModePerm))
+	t.Cleanup(func() { require.NoError(t, os.RemoveAll(fullPath)) })
+
+	return fullPath
 }
