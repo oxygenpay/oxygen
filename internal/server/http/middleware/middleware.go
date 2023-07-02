@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/sessions"
@@ -9,6 +10,7 @@ import (
 	mw "github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/gommon/log"
 	"github.com/oxygenpay/oxygen/internal/server/http/common"
+	"github.com/oxygenpay/oxygen/internal/util"
 	"github.com/rs/zerolog"
 )
 
@@ -25,7 +27,13 @@ type SessionConfig struct {
 
 const sessionOptionsKey = "session_options"
 
+const chmodReadWrite = 0660
+
 func Session(cfg SessionConfig) echo.MiddlewareFunc {
+	if err := util.EnsureDirectory(cfg.FilesystemPath, chmodReadWrite); err != nil {
+		panic(fmt.Sprintf("unable to ensure session directory %q", cfg.FilesystemPath))
+	}
+
 	sessionOptions := sessions.Options{
 		Path:     cfg.CookiePath,
 		Domain:   cfg.CookieDomain,
