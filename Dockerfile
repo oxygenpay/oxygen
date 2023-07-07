@@ -1,5 +1,7 @@
 FROM golang:1.19 as builder
 
+ARG EMBED_FRONTEND
+
 WORKDIR /src
 
 COPY go.mod /src/
