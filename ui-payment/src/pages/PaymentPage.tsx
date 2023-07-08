@@ -59,7 +59,7 @@ const PaymentPage: React.FC = () => {
                 await paymentProvider.putPayment(payment.id);
                 await updatePayment();
             } catch (error) {
-                console.error("Error ocurred:", error);
+                console.error("Error occurred:", error);
             }
         },
         validationSchema: schema
@@ -206,12 +206,10 @@ const PaymentPage: React.FC = () => {
     };
 
     const getCryptoIconName = (name: string) => {
-        name = name.toLowerCase();
-        if (name === "matic_usdt" || name === "tron_usdt") {
-            return "eth_usdt";
-        }
+        // ETH or ETH_USDT => "eth" or "usdt"
+        const lowered = name.toLowerCase();
 
-        return name;
+        return lowered.includes("_") ? lowered.split("_")[1] : lowered;
     };
 
     const getCurCryptoIconName = () => {
@@ -219,7 +217,7 @@ const PaymentPage: React.FC = () => {
             return "error";
         }
 
-        return getCryptoIconName(paymentMethod.ticker);
+        return getCryptoIconName(paymentMethod.name);
     };
 
     const genDropDownList = () => {
@@ -282,7 +280,7 @@ const PaymentPage: React.FC = () => {
                         error={paymentProcessError}
                     />
                     <h2 className="block mx-auto text-sm font-medium text-card-desc text-center">
-                        Error ocurred while processing your payment.
+                        Error occurred while processing your payment.
                     </h2>
                 </>
             )}
@@ -349,13 +347,14 @@ const PaymentPage: React.FC = () => {
                     <form onSubmit={formikConfig.handleSubmit}>
                         <div className="relative flex items-center mb-6">
                             {paymentMethod && (
-                                <Icon name={getCurCryptoIconName()} className="absolute h-6 w-6 left-4" />
+                                <Icon name={getCurCryptoIconName()} dir="crypto" className="absolute h-6 w-6 left-4" />
                             )}
 
                             <DropDown
                                 onChange={onSelectPaymentMethod}
                                 items={genDropDownList()}
                                 getIconName={getCryptoIconName}
+                                iconsDir="crypto"
                                 firstSelectedItem={getCurDropDownItem()}
                             />
                         </div>

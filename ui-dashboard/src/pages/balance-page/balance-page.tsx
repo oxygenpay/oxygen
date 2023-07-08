@@ -64,7 +64,7 @@ const BalancePage: React.FC = () => {
             width: "min-content",
             render: (_, record) => (
                 <Space align="center">
-                    <Icon name={renderIconName(record.ticker.toLowerCase())} dir="tokens" className={b("icon")} />
+                    <Icon name={renderIconName(record.ticker.toLowerCase())} dir="crypto" className={b("icon")} />
                     <span style={{whiteSpace: "nowrap"}}> {record.currency} </span>
                 </Space>
             )
