@@ -45,8 +45,11 @@ func New(
 
 func (h *Handler) Consumers() map[bus.Topic][]bus.Consumer {
 	return map[bus.Topic][]bus.Consumer{
-		bus.TopicPaymentStatusUpdate: {h.ProcessPaymentStatusUpdate},
-		bus.TopicWithdrawals:         {h.ProcessWithdrawals},
+		bus.TopicPaymentStatusUpdate: {
+			h.ProcessPaymentStatusUpdate,
+			h.SendSuccessfulPaymentNotification,
+		},
+		bus.TopicWithdrawals: {h.ProcessWithdrawals},
 	}
 }
 
