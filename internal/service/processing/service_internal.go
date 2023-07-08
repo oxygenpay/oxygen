@@ -17,9 +17,9 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// transferablePercentage determines how much funds to transfer from inbound to outbound wallet
-// We cant' transfer 100% because we need to make sure there are enough fees for other transactions
-const transferablePercentage = 0.90
+// transferableCoinPercentage determines how much funds to transfer from inbound to outbound wallet in case of native
+// network coin. We cant' transfer 100% because we need to make sure there are enough fees for other transactions.
+const transferableCoinPercentage = 0.90
 
 const revertReason = "blockchain confirmed failure (revert)"
 
@@ -104,7 +104,7 @@ func (s *Service) BatchCreateInternalTransfers(
 				return nil
 			}
 
-			amount, err := b.Amount.MultiplyFloat64(transferablePercentage)
+			amount, err := determineInternalTransferAmount(b.CurrencyType, b.Amount)
 			if err != nil {
 				result.registerErr(errors.Wrapf(err, "unable to calculate amount to transfer"))
 				return nil
@@ -153,6 +153,16 @@ func (s *Service) BatchCreateInternalTransfers(
 	}
 
 	return result, group.Wait()
+}
+
+// determineInternalTransferAmount calculates suitable amount of internal transfer.
+// We can confidently transfer all ERC-20 tokens, but for coins let's reserve some for gas fees.
+func determineInternalTransferAmount(crypto money.CryptoCurrencyType, amount money.Money) (money.Money, error) {
+	if crypto == money.Token {
+		return amount, nil
+	}
+
+	return amount.MultiplyFloat64(transferableCoinPercentage)
 }
 
 func (s *Service) BatchCheckInternalTransfers(ctx context.Context, transactionIDs []int64) error {

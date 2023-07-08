@@ -141,7 +141,9 @@ func TestService_BatchCreateInternalTransfers(t *testing.T) {
 			assert.Equal(t, txHashID, *tx.HashID)
 			assert.True(t, tx.ServiceFee.IsZero())
 			assert.Nil(t, tx.NetworkFee)
-			assert.NotEqual(t, tx.Amount, b1.Amount)
+
+			// For tokens, we should transfer 100% of crypto
+			assert.Equal(t, tx.Amount, b1.Amount)
 
 			// Get fresh wallet from DB
 			wt, err := tc.Services.Wallet.GetByID(tc.Context, *tx.SenderWalletID)
@@ -257,7 +259,9 @@ func TestService_BatchCreateInternalTransfers(t *testing.T) {
 			assert.Equal(t, txHashID, *tx.HashID)
 			assert.True(t, tx.ServiceFee.IsZero())
 			assert.Nil(t, tx.NetworkFee)
-			assert.NotEqual(t, tx.Amount, b1.Amount)
+
+			// For tokens, we should transfer 100% of crypto
+			assert.Equal(t, tx.Amount, b1.Amount)
 
 			// Get fresh wallet from DB
 			wt, err := tc.Services.Wallet.GetByID(tc.Context, *tx.SenderWalletID)
