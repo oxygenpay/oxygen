@@ -42,7 +42,7 @@ definitions:
         minItems: 1
         items:
           type: string
-          enum: [ ETH, ETH_USDT, MATIC, MATIC_USDT, TRON, TRON_USDT ]
+          example: ETH_USDT
 
   UpdateMerchantRequest: *createMerchantRequest
 

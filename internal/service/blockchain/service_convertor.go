@@ -71,10 +71,10 @@ func (s *Service) GetExchangeRate(ctx context.Context, from, to string) (Exchang
 
 	switch convType {
 	case ConversionTypeFiatToFiat, ConversionTypeCryptoToFiat:
-		rate, at, err = s.getExchangeRate(ctx, normalizeTicker(to), normalizeTicker(from))
+		rate, at, err = s.getExchangeRate(ctx, NormalizeTicker(to), NormalizeTicker(from))
 	case ConversionTypeFiatToCrypto:
 		// Tatum does not support USD to ETH, that's why we need to calculate ETH to USD and reverse it
-		rate, at, err = s.getExchangeRate(ctx, normalizeTicker(from), normalizeTicker(to))
+		rate, at, err = s.getExchangeRate(ctx, NormalizeTicker(from), NormalizeTicker(to))
 		if err == nil {
 			rate = 1 / rate
 		}
@@ -336,9 +336,14 @@ func determineConversionType(from, to string) (ConversionType, error) {
 // e.g. ETH_USDT -> USDT
 var normalizations = map[string]string{
 	"_USDT": "USDT",
+	"_USDC": "USDC",
+	"_BUSD": "BUSD",
 }
 
-func normalizeTicker(ticker string) string {
+// NormalizeTicker normalizes fiat / crypto ticker for further usage in external services (e.g. Tatum).
+func NormalizeTicker(ticker string) string {
+	ticker = strings.ToUpper(ticker)
+
 	for substr, replaced := range normalizations {
 		if strings.Contains(ticker, substr) {
 			return replaced
