@@ -5,13 +5,15 @@ const cache: Record<string, React.ElementType | undefined> = {};
 
 interface Props {
     name: string;
+    dir?: string;
     className?: string;
 }
 
-const Icon: React.FC<Props> = ({name, className}) => {
-    const [loaded, setLoaded] = React.useState<boolean>(Boolean(cache[name]));
+const Icon: React.FC<Props> = (props) => {
+    const [loaded, setLoaded] = React.useState<boolean>(Boolean(cache[props.name]));
     const loadIcon = async () => {
-        cache[name] = (await import(`../assets/icons/${name}.svg`))?.ReactComponent;
+        const path = props.dir ? props.dir + "/" + props.name : props.name;
+        cache[props.name] = (await import(`../assets/icons/${path}.svg`))?.ReactComponent;
         setLoaded(true);
     };
 
@@ -23,13 +25,13 @@ const Icon: React.FC<Props> = ({name, className}) => {
                 console.log(e instanceof Error ? e.message : "");
             }
         }
-    }, [name]);
+    }, [props.name]);
 
-    const CurrentIcon = cache[name];
+    const CurrentIcon = cache[props.name];
     return CurrentIcon && loaded ? (
-        <CurrentIcon className={className} />
+        <CurrentIcon className={props.className} />
     ) : (
-        <LoadingCircleIcon className={className} position="left" />
+        <LoadingCircleIcon className={props.className} position="left" />
     );
 };
 

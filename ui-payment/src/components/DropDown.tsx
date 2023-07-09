@@ -10,6 +10,7 @@ interface Props {
     onChange: (value: string) => void;
     items: DropDownItem[];
     getIconName: (name: string) => string;
+    iconsDir?: string;
     firstSelectedItem?: DropDownItem;
 }
 
@@ -45,7 +46,11 @@ const DropDown: React.FC<Props> = (props: Props) => {
                 <span className="font-medium text-sm text-black">{selectedItem.displayName}</span>
 
                 {selectedItem.key !== "emptyValue" && (
-                    <Icon name={props.getIconName(selectedItem.value)} className="absolute h-6 w-6 left-4" />
+                    <Icon
+                        name={props.getIconName(selectedItem.value)}
+                        dir={props.iconsDir}
+                        className="absolute h-6 w-6 left-4"
+                    />
                 )}
 
                 {!isFocused && (
@@ -71,6 +76,7 @@ const DropDown: React.FC<Props> = (props: Props) => {
                                     {props.items[idx].key !== "emptyValue" && (
                                         <Icon
                                             name={props.getIconName(child.value)}
+                                            dir={props.iconsDir}
                                             className="absolute h-6 w-6 left-0"
                                         />
                                     )}

@@ -59,7 +59,7 @@ const PaymentMethodsSelect: React.FC = () => {
                         <Checkbox value={item.ticker} style={{lineHeight: "32px"}} checked={item.enabled}>
                             {item.displayName}
                         </Checkbox>
-                        <Icon name={item.name.toLowerCase()} dir="tokens" className={b("icon")} />
+                        <Icon name={item.name.toLowerCase()} dir="crypto" className={b("icon")} />
                         {/* it's needed to prevent onClick on checkbox so as not to fire handler twice */}
                         <div
                             className={b("overlay")}

@@ -23,10 +23,12 @@ func TestConvertor(t *testing.T) {
 	tatum.SetupRates(money.USD.String(), money.EUR, 0.91)
 	tatum.SetupRates("ETH", money.USD, 1000)
 	tatum.SetupRates("ETH_USDT", money.USD, 1)
+	tatum.SetupRates("MATIC_USDC", money.USD, 1)
 	tatum.SetupRates("TRON", money.USD, 0.07)
 
 	eth := lo.Must(conv.GetCurrencyByTicker("ETH"))
 	ethUSDT := lo.Must(conv.GetCurrencyByTicker("ETH_USDT"))
+	ethUSDC := lo.Must(conv.GetCurrencyByTicker("ETH_USDC"))
 
 	for _, tt := range []struct {
 		from        string
@@ -99,6 +101,17 @@ func TestConvertor(t *testing.T) {
 				Rate: 1,
 				From: lo.Must(money.USD.MakeAmount("500_00")),
 				To:   lo.Must(ethUSDT.MakeAmount("500_000_000")),
+			},
+		},
+		{
+			from:   "USD",
+			to:     "ETH_USDC",
+			amount: "200",
+			expected: blockchain.Conversion{
+				Type: blockchain.ConversionTypeFiatToCrypto,
+				Rate: 1,
+				From: lo.Must(money.USD.MakeAmount("200_00")),
+				To:   lo.Must(ethUSDC.MakeAmount("200_000_000")),
 			},
 		},
 		{
