@@ -25,6 +25,19 @@
         "minimal_instant_internal_transfer_amount_usd": "100"
     },
     {
+        "blockchain": "ETH",
+        "blockchainName": "Ethereum",
+        "ticker": "ETH_USDC",
+        "type": "token",
+        "name": "USDC",
+        "tokenAddress": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+        "decimals": "6",
+        "networkId": "1",
+        "testNetworkId": "5",
+        "minimal_withdrawal_amount_usd": "40",
+        "minimal_instant_internal_transfer_amount_usd": "100"
+    },
+    {
         "blockchain": "MATIC",
         "blockchainName": "Polygon",
         "ticker": "MATIC",
@@ -43,6 +56,19 @@
         "type": "token",
         "name": "USDT",
         "tokenAddress": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+        "decimals": "6",
+        "networkId": "137",
+        "testNetworkId": "80001",
+        "minimal_withdrawal_amount_usd": "10",
+        "minimal_instant_internal_transfer_amount_usd": "30"
+    },
+    {
+        "blockchain": "MATIC",
+        "blockchainName": "Polygon",
+        "ticker": "MATIC_USDC",
+        "type": "token",
+        "name": "USDC",
+        "tokenAddress": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
         "decimals": "6",
         "networkId": "137",
         "testNetworkId": "80001",

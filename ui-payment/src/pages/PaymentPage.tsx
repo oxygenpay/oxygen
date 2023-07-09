@@ -303,6 +303,7 @@ const PaymentPage: React.FC = () => {
                         <QRCodeSVG size={180} level={"H"} value={payment.paymentInfo.paymentLink} />
                         <Icon
                             name={getCryptoIconName(payment.paymentMethod.ticker)}
+                            dir="crypto"
                             className="absolute p-1 w-12 h-12 bg-white border rounded-full left-1/2 -translate-y-1/2 top-1/2 -translate-x-1/2"
                         />
                     </div>
@@ -312,7 +313,11 @@ const PaymentPage: React.FC = () => {
 
                     <div className="mx-auto h-16 w-16 flex items-center justify-center mb-3.5 lg:hidden">
                         <div className="shrink-0">
-                            <Icon name={getCryptoIconName(payment.paymentMethod.ticker)} className="h-16 w-16" />
+                            <Icon
+                                name={getCryptoIconName(payment.paymentMethod.ticker)}
+                                dir="crypto"
+                                className="h-16 w-16"
+                            />
                         </div>
                     </div>
 

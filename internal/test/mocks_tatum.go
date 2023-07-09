@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/oxygenpay/oxygen/internal/money"
 	tatumprovider "github.com/oxygenpay/oxygen/internal/provider/tatum"
+	"github.com/oxygenpay/oxygen/internal/service/blockchain"
 	"github.com/oxygenpay/oxygen/internal/service/registry"
 	"github.com/oxygenpay/tatum-sdk/tatum"
 	"github.com/rs/zerolog"
@@ -53,7 +53,7 @@ func (m *TatumMock) SetupRates(from string, to money.FiatCurrency, rate float64)
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	from = transformTicker(from)
+	from = blockchain.NormalizeTicker(from)
 
 	if m.rates[from] == nil {
 		m.rates[from] = make(map[string]float64, 0)
@@ -62,11 +62,11 @@ func (m *TatumMock) SetupRates(from string, to money.FiatCurrency, rate float64)
 	m.rates[from][string(to)] = rate
 }
 
-func (m *TatumMock) SetupSubscription(blockchain, address string, isTest bool, resultID string) {
+func (m *TatumMock) SetupSubscription(chain, address string, isTest bool, resultID string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	m.wallets[tatumSubKey(blockchain, address, isTest)] = resultID
+	m.wallets[tatumSubKey(chain, address, isTest)] = resultID
 }
 
 func (m *TatumMock) Clear() {
@@ -78,7 +78,7 @@ func (m *TatumMock) Clear() {
 }
 
 func (m *TatumMock) ratesEndpoint(c echo.Context) error {
-	from := transformTicker(c.Param("from"))
+	from := blockchain.NormalizeTicker(c.Param("from"))
 	to := c.QueryParam("basePair")
 
 	rate, exists := m.rates[from][to]
@@ -127,14 +127,6 @@ func (m *TatumMock) subscriptionEndpoint(c echo.Context) error {
 	return c.JSON(http.StatusOK, tatumprovider.SubscriptionResponse{ID: id})
 }
 
-func tatumSubKey(blockchain, address string, isTest bool) string {
-	return fmt.Sprintf("%s/%s/is_test:%t", blockchain, address, isTest)
-}
-
-func transformTicker(from string) string {
-	if strings.Contains(from, "USDT") {
-		from = "USDT"
-	}
-
-	return from
+func tatumSubKey(chain, address string, isTest bool) string {
+	return fmt.Sprintf("%s/%s/is_test:%t", chain, address, isTest)
 }
