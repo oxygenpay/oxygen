@@ -7,8 +7,6 @@ package model
 
 import (
 	"context"
-	"encoding/json"
-	"strconv"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
@@ -41,25 +39,6 @@ func (m *UpdateSupportedPaymentMethodsRequest) Validate(formats strfmt.Registry)
 	return nil
 }
 
-var updateSupportedPaymentMethodsRequestSupportedPaymentMethodsItemsEnum []interface{}
-
-func init() {
-	var res []string
-	if err := json.Unmarshal([]byte(`["ETH","ETH_USDT","MATIC","MATIC_USDT","TRON","TRON_USDT"]`), &res); err != nil {
-		panic(err)
-	}
-	for _, v := range res {
-		updateSupportedPaymentMethodsRequestSupportedPaymentMethodsItemsEnum = append(updateSupportedPaymentMethodsRequestSupportedPaymentMethodsItemsEnum, v)
-	}
-}
-
-func (m *UpdateSupportedPaymentMethodsRequest) validateSupportedPaymentMethodsItemsEnum(path, location string, value string) error {
-	if err := validate.EnumCase(path, location, value, updateSupportedPaymentMethodsRequestSupportedPaymentMethodsItemsEnum, true); err != nil {
-		return err
-	}
-	return nil
-}
-
 func (m *UpdateSupportedPaymentMethodsRequest) validateSupportedPaymentMethods(formats strfmt.Registry) error {
 
 	if err := validate.Required("supportedPaymentMethods", "body", m.SupportedPaymentMethods); err != nil {
@@ -70,15 +49,6 @@ func (m *UpdateSupportedPaymentMethodsRequest) validateSupportedPaymentMethods(f
 
 	if err := validate.MinItems("supportedPaymentMethods", "body", iSupportedPaymentMethodsSize, 1); err != nil {
 		return err
-	}
-
-	for i := 0; i < len(m.SupportedPaymentMethods); i++ {
-
-		// value enum
-		if err := m.validateSupportedPaymentMethodsItemsEnum("supportedPaymentMethods"+"."+strconv.Itoa(i), "body", m.SupportedPaymentMethods[i]); err != nil {
-			return err
-		}
-
 	}
 
 	return nil
