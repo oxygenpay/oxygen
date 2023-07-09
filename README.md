@@ -5,9 +5,36 @@
 </p>
 
 [OxygenPay](https://o2pay.co) is a cloud or self-hosted crypto payment gateway.
-Accept ETH, MATIC, TRON, and USDT with ease. Open new opportunities for your product by accepting cryptocurrency.
+Accept ETH, MATIC, TRON, USDT, and USDC with ease. Open new opportunities for your product by accepting cryptocurrency.
 
 <img src="./.github/static/demo.jpg" alt="demo">
+
+## Supported Currencies 🔗
+
+<table>
+    <tr>
+        <td align="center">
+            <img src="./ui-dashboard/src/assets/icons/crypto/eth.svg" height="64" alt="eth">
+            <div>Ethereum</div>
+        </td>
+        <td>
+            <img src="./ui-dashboard/src/assets/icons/crypto/matic.svg" height="64" alt="matic">
+            <div>Polygon</div>
+        </td>
+        <td align="center">
+            <img src="./ui-dashboard/src/assets/icons/crypto/tron.svg" height="64" alt="tron">
+            <div>TRON</div>
+        </td>
+        <td align="center">
+            <img src="./ui-dashboard/src/assets/icons/crypto/usdt.svg" height="64" alt="usdt">
+            <div>USDT</div>
+        </td>
+        <td align="center">
+            <img src="./ui-dashboard/src/assets/icons/crypto/usdc.svg" height="64" alt="usdc">
+            <div>USDC</div>
+        </td>
+    </tr>
+</table>
 
 ## Features ✨
 
@@ -29,7 +56,7 @@ Visit [docs.o2pay.co](https://docs.o2pay.co) for setup guides.
 
 ## Roadmap 🛣️
 
-- [ ] Support for USDC
+- [x] Support for USDC
 - [ ] Support for Binance Smart Chain (BNB, BUSD)
 - [ ] Donations feature
 - [ ] Support for [WalletConnect](https://walletconnect.com/)
