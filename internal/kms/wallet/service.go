@@ -34,11 +34,7 @@ var (
 	ErrUnknownBlockchain      = errors.New("unknown blockchain")
 )
 
-func New(
-	repo *Repository,
-	generator *Generator,
-	logger *zerolog.Logger,
-) *Service {
+func New(repo *Repository, generator *Generator, logger *zerolog.Logger) *Service {
 	log := logger.With().Str("channel", "kms_service").Logger()
 
 	return &Service{

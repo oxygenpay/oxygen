@@ -114,7 +114,7 @@ definitions:
   Blockchain:
     type: string
     description: Supported blockchain
-    enum: [ BTC, ETH, TRON, MATIC ]
+    enum: [ BTC, ETH, TRON, MATIC, BSC ]
     x-nullable: false
     x-omitempty: false
 
