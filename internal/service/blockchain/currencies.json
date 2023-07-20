@@ -101,5 +101,17 @@
         "testNetworkId": "testnet",
         "minimal_withdrawal_amount_usd": "10",
         "minimal_instant_internal_transfer_amount_usd": "30"
+    },
+    {
+        "blockchain": "BSC",
+        "blockchainName": "Binance Smart Chain",
+        "ticker": "BNB",
+        "type": "coin",
+        "name": "BNB",
+        "decimals": "18",
+        "networkId": "56",
+        "testNetworkId": "97",
+        "minimal_withdrawal_amount_usd": "10",
+        "minimal_instant_internal_transfer_amount_usd": "30"
     }
 ]

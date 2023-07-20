@@ -25,8 +25,7 @@ type Config struct {
 	TestAPIKey string `yaml:"test_api_key" env:"TATUM_TEST_API_KEY" env-description:"Tatum Test API Key"`
 	HMACSecret string `yaml:"tatum_hmac_secret" env:"TATUM_HMAC_SECRET" env-description:"Tatum HMAC Secret. Use any random string with 8+ chars"`
 
-	// HMACForceSet will make "set hmac set" request on every service start.
-	// Useful if HMAC secret was changed.
+	// HMACForceSet will make "set hmac set" request on every service start. Useful if HMAC secret was changed.
 	HMACForceSet bool `yaml:"tatum_hmac_force_set" env:"TATUM_HMAC_FORCE_SET" env-description:"Internal variable"`
 }
 
@@ -102,7 +101,7 @@ type SubscriptionResponse struct {
 	ID string `json:"id"`
 }
 
-// SubscribeToWebhook fcking auto-generated sdk throws an error on this request, so it's rewritten manually.
+// SubscribeToWebhook auto-generated sdk throws an error on this request, so it's rewritten manually.
 func (p *Provider) SubscribeToWebhook(ctx context.Context, params SubscriptionParams) (string, error) {
 	url := fmt.Sprintf("%s/v3/subscription", p.config.BasePath)
 
