@@ -251,7 +251,7 @@ func (s *Service) checkIncomingTransaction(ctx context.Context, txID int64) erro
 	}
 
 	if nativeCoin.Ticker != receipt.NetworkFee.Ticker() {
-		return errors.Wrap(err, "invalid receipt network fee")
+		return errors.New("invalid receipt network fee")
 	}
 
 	if !receipt.IsConfirmed {

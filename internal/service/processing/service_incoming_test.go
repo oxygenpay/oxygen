@@ -369,9 +369,27 @@ func TestService_BatchCheckIncomingTransactions(t *testing.T) {
 			},
 		},
 		{
-			name: "transaction is not confirmed yet",
+			name: "ETH transaction is not confirmed yet",
 			transaction: func(isTest bool) *transaction.Transaction {
 				tx := incomingTX(money.USD, 100, eth, isTest)
+				factAmount := lo.Must(tx.Currency.MakeAmount("100_000_000_000_000_000_000"))
+
+				return whReceived(tx, "0x123-hash-abc", factAmount, transaction.StatusInProgress)
+			},
+			receipt: makeReceipt(1, false, true),
+			assert: func(t *testing.T, tx *transaction.Transaction, pt *payment.Payment) {
+				assert.Equal(t, payment.StatusInProgress, pt.Status)
+				assert.Equal(t, transaction.StatusInProgress, tx.Status)
+
+				tc.AssertTableRows(t, "wallet_locks", 0)
+
+				assertUpdateStatusEventSent(t, false)
+			},
+		},
+		{
+			name: "BNB transaction is not confirmed yet",
+			transaction: func(isTest bool) *transaction.Transaction {
+				tx := incomingTX(money.USD, 100, bnb, isTest)
 				factAmount := lo.Must(tx.Currency.MakeAmount("100_000_000_000_000_000_000"))
 
 				return whReceived(tx, "0x123-hash-abc", factAmount, transaction.StatusInProgress)
