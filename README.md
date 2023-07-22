@@ -26,6 +26,10 @@ Accept ETH, MATIC, TRON, USDT, and USDC with ease. Open new opportunities for yo
             <div>TRON</div>
         </td>
         <td align="center">
+            <img src="./ui-dashboard/src/assets/icons/crypto/bnb.svg" height="64" alt="bnb">
+            <div>BNB</div>
+        </td>
+        <td align="center">
             <img src="./ui-dashboard/src/assets/icons/crypto/usdt.svg" height="64" alt="usdt">
             <div>USDT</div>
         </td>
