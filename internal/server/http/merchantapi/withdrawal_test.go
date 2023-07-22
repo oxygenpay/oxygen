@@ -359,7 +359,7 @@ func TestWithdrawalRoutes(t *testing.T) {
 				)
 				require.NoError(t, err)
 
-				baseCurrency, err := tc.Services.Blockchain.GetCurrencyByTicker(currency.Blockchain.String())
+				baseCurrency, err := tc.Services.Blockchain.GetNativeCoin(currency.Blockchain)
 				require.NoError(t, err)
 
 				tc.Providers.TatumMock.SetupRates(currency.Ticker, money.USD, 2)

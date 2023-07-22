@@ -230,7 +230,7 @@ func (s *Service) createInternalTransfer(
 	out := internalTransferOutput{}
 
 	// 0. Get currency & baseCurrency (e.g. ETH and ETH_USDT)
-	baseCurrency, err := s.blockchain.GetCurrencyByTicker(sender.Blockchain.String())
+	baseCurrency, err := s.blockchain.GetNativeCoin(sender.Blockchain.ToMoneyBlockchain())
 	if err != nil {
 		return out, errors.Wrap(err, "unable to get base currency")
 	}

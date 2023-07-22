@@ -19,6 +19,7 @@ type Resolver interface {
 	ListSupportedCurrencies() []money.CryptoCurrency
 	ListBlockchainCurrencies(blockchain money.Blockchain) []money.CryptoCurrency
 	GetCurrencyByTicker(ticker string) (money.CryptoCurrency, error)
+	GetNativeCoin(blockchain money.Blockchain) (money.CryptoCurrency, error)
 	GetCurrencyByBlockchainAndContract(bc money.Blockchain, networkID, addr string) (money.CryptoCurrency, error)
 	GetMinimalWithdrawalByTicker(ticker string) (money.Money, error)
 	GetUSDMinimalInternalTransferByTicker(ticker string) (money.Money, error)
@@ -56,6 +57,19 @@ func (r *CurrencyResolver) GetCurrencyByTicker(ticker string) (money.CryptoCurre
 	}
 
 	return c, nil
+}
+
+// GetNativeCoin returns native coin by blockchain. Example: ETH -> ETH; BSC -> BNB.
+func (r *CurrencyResolver) GetNativeCoin(chain money.Blockchain) (money.CryptoCurrency, error) {
+	list := r.ListBlockchainCurrencies(chain)
+
+	for i := range list {
+		if list[i].Type == money.Coin {
+			return list[i], nil
+		}
+	}
+
+	return money.CryptoCurrency{}, ErrCurrencyNotFound
 }
 
 // GetMinimalWithdrawalByTicker returns minimal withdrawal amount in USD for selected ticker.

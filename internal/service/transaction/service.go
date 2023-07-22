@@ -193,7 +193,7 @@ func (s *Service) Create(
 		recipientWalletID = repository.Int64ToNullable(params.RecipientWallet.ID)
 	}
 
-	networkCurrency, err := s.blockchain.GetCurrencyByTicker(params.Currency.Blockchain.String())
+	networkCurrency, err := s.blockchain.GetNativeCoin(params.Currency.Blockchain)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get network currency")
 	}

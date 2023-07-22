@@ -188,7 +188,7 @@ func (s *Service) GetWithdrawalFee(ctx context.Context, merchantID int64, balanc
 	}
 
 	// e.g. ETH
-	baseCurrency, err := s.blockchain.GetCurrencyByTicker(currency.Blockchain.String())
+	baseCurrency, err := s.blockchain.GetNativeCoin(currency.Blockchain)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get currency by ticker")
 	}

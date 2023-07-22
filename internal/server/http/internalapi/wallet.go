@@ -79,7 +79,7 @@ func (h *Handler) CalculateTransactionFee(c echo.Context) error {
 		return common.ErrorResponse(c, err.Error())
 	}
 
-	baseCurrency, err := h.blockchain.GetCurrencyByTicker(currency.Blockchain.String())
+	baseCurrency, err := h.blockchain.GetNativeCoin(currency.Blockchain)
 	if err != nil {
 		return common.ErrorResponse(c, err.Error())
 	}

@@ -47,6 +47,10 @@ func (b *Balance) Covers(expenses ...money.Money) error {
 	return nil
 }
 
+func (b *Balance) Blockchain() money.Blockchain {
+	return money.Blockchain(b.Network)
+}
+
 func (b *Balance) compatibleTo(a *Balance) bool {
 	return b.Currency == a.Currency && b.NetworkID == a.NetworkID
 }

@@ -104,7 +104,7 @@
     },
     {
         "blockchain": "BSC",
-        "blockchainName": "Binance Smart Chain",
+        "blockchainName": "BNB Chain",
         "ticker": "BNB",
         "type": "coin",
         "name": "BNB",

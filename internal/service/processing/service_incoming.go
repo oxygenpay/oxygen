@@ -215,6 +215,7 @@ func (s *Service) BatchCheckIncomingTransactions(ctx context.Context, transactio
 
 	evt.Int64("checked_transactions_count", checked).
 		Ints64("transaction_ids", transactionIDs).
+		Ints64("failed_transaction_ids", failedTXs).
 		Msg("Checked incoming transactions")
 
 	return err
@@ -240,11 +241,16 @@ func (s *Service) checkIncomingTransaction(ctx context.Context, txID int64) erro
 	}
 
 	receipt, err := s.blockchain.GetTransactionReceipt(ctx, tx.Currency.Blockchain, *tx.HashID, tx.IsTest)
-
-	switch {
-	case err != nil:
+	if err != nil {
 		return errors.Wrap(err, "unable to get transaction receipt")
-	case tx.Currency.Blockchain.String() != receipt.NetworkFee.Ticker():
+	}
+
+	nativeCoin, err := s.blockchain.GetNativeCoin(receipt.Blockchain)
+	if err != nil {
+		return errors.Wrapf(err, "unable to get native coin for %q", receipt.Blockchain)
+	}
+
+	if nativeCoin.Ticker != receipt.NetworkFee.Ticker() {
 		return errors.Wrap(err, "invalid receipt network fee")
 	}
 
