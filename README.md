@@ -52,7 +52,7 @@ Accept ETH, MATIC, TRON, USDT, and USDC with ease. Open new opportunities for yo
 
 ## Documentation 📚
 
-Visit [docs.o2pay.co](https://docs.o2pay.co) for setup guides.
+Visit [docs.o2pay.co](https://docs.o2pay.co) for setup guides. If you have any questions, feel free to ask them in our [telegram community](https://t.me/oxygenpay_en)
 
 ## Roadmap 🛣️
 
