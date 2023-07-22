@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 
+	kms "github.com/oxygenpay/oxygen/internal/kms/wallet"
 	"github.com/oxygenpay/oxygen/internal/money"
 	"github.com/oxygenpay/oxygen/internal/util"
 	"github.com/pkg/errors"
@@ -304,10 +305,10 @@ func DefaultSetup(s *CurrencyResolver) error {
 }
 
 func CreatePaymentLink(addr string, currency money.CryptoCurrency, amount money.Money, isTest bool) (string, error) {
-	switch currency.Blockchain {
-	case "ETH", "MATIC":
+	switch kms.Blockchain(currency.Blockchain) {
+	case kms.ETH, kms.MATIC, kms.BSC:
 		return ethPaymentLink(addr, currency, amount, isTest), nil
-	case "TRON":
+	case kms.TRON:
 		return tronPaymentLink(addr, currency, amount, isTest), nil
 	}
 
