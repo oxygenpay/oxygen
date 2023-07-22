@@ -433,7 +433,12 @@ func (s *Service) entryToTransaction(tx repository.Transaction) (*Transaction, e
 
 	var networkFee *money.Money
 	if tx.NetworkFee.Status == pgtype.Present {
-		netFee, errM := repository.NumericToMoney(tx.NetworkFee, money.Crypto, tx.Blockchain, int64(tx.NetworkDecimals))
+		coin, errCoin := s.blockchain.GetNativeCoin(money.Blockchain(tx.Blockchain))
+		if errCoin != nil {
+			return nil, errors.Wrapf(errCoin, "unable to get native coin for %q", tx.Blockchain)
+		}
+
+		netFee, errM := repository.NumericToCrypto(tx.NetworkFee, coin)
 		if errM != nil {
 			return nil, errors.Wrap(errM, "unable to construct networkFee")
 		}

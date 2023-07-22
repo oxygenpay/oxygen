@@ -3,6 +3,7 @@ package blockchain
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 	"sync"
@@ -35,17 +36,19 @@ func (s *Service) BroadcastTransaction(ctx context.Context, blockchain money.Blo
 		err    error
 	)
 
-	switch blockchain {
-	case kms.ETH.ToMoneyBlockchain():
+	switch kms.Blockchain(blockchain) {
+	case kms.ETH:
 		opts := &client.EthereumApiEthBroadcastOpts{}
 		if isTest {
 			opts.XTestnetType = optional.NewString(tatum.EthTestnet)
 		}
 
 		txHash, _, err = api.EthereumApi.EthBroadcast(ctx, client.BroadcastKms{TxData: rawTX}, opts)
-	case kms.MATIC.ToMoneyBlockchain():
+	case kms.MATIC:
 		txHash, _, err = api.PolygonApi.PolygonBroadcast(ctx, client.BroadcastKms{TxData: rawTX})
-	case kms.TRON.ToMoneyBlockchain():
+	case kms.BSC:
+		txHash, _, err = api.BNBSmartChainApi.BscBroadcast(ctx, client.BroadcastKms{TxData: rawTX})
+	case kms.TRON:
 		hashID, errTron := s.providers.Trongrid.BroadcastTransaction(ctx, []byte(rawTX), isTest)
 		if errTron != nil {
 			err = errTron
@@ -53,7 +56,7 @@ func (s *Service) BroadcastTransaction(ctx context.Context, blockchain money.Blo
 			txHash.TxId = hashID
 		}
 	default:
-		return "", ErrCurrencyNotFound
+		return "", fmt.Errorf("broadcast for %q is not implemented yet", blockchain)
 	}
 
 	if err != nil {
