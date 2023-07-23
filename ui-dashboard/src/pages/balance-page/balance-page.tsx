@@ -39,15 +39,10 @@ const BalancePage: React.FC = () => {
     const {merchantId} = useSharedMerchantId();
 
     const renderIconName = (name: string) => {
-        if (name.length < 4) {
-            return name;
-        }
+        // ETH or ETH_USDT => "eth" or "usdt"
+        const lowered = name.toLowerCase();
 
-        if (name.slice(-4) == "usdt") {
-            return "usdt";
-        }
-
-        return name;
+        return lowered.includes("_") ? lowered.split("_")[1] : lowered;
     };
 
     const balancesColumns: ColumnsType<MerchantBalance> = [
