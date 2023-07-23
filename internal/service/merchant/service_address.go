@@ -8,7 +8,6 @@ import (
 	"github.com/jackc/pgx/v4"
 	"github.com/oxygenpay/oxygen/internal/db/repository"
 	"github.com/oxygenpay/oxygen/internal/kms/wallet"
-	"github.com/oxygenpay/oxygen/internal/money"
 	"github.com/pkg/errors"
 )
 
@@ -138,10 +137,8 @@ func (s *Service) DeleteMerchantAddress(ctx context.Context, merchantID int64, i
 }
 
 func (s *Service) entryToAddress(entry repository.MerchantAddress) (*Address, error) {
-	var blockchainName string
-	if c, err := s.blockchain.GetNativeCoin(money.Blockchain(entry.Blockchain)); err == nil {
-		blockchainName = c.BlockchainName
-	}
+	blockchain := wallet.Blockchain(entry.Blockchain)
+	coin, _ := s.blockchain.GetNativeCoin(blockchain.ToMoneyBlockchain())
 
 	return &Address{
 		ID:             entry.ID,
@@ -150,8 +147,8 @@ func (s *Service) entryToAddress(entry repository.MerchantAddress) (*Address, er
 		UpdatedAt:      entry.UpdatedAt,
 		Name:           entry.Name,
 		MerchantID:     entry.MerchantID,
-		Blockchain:     wallet.Blockchain(entry.Blockchain),
-		BlockchainName: blockchainName,
+		Blockchain:     blockchain,
+		BlockchainName: coin.BlockchainName,
 		Address:        entry.Address,
 	}, nil
 }
