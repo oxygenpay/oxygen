@@ -54,14 +54,17 @@ func (s *Service) CalculateWithdrawalFeeUSD(
 
 	var usdFee money.Money
 
-	switch fee.Currency.Blockchain {
-	case kmswallet.ETH.ToMoneyBlockchain():
+	switch kmswallet.Blockchain(fee.Currency.Blockchain) {
+	case kmswallet.ETH:
 		f, _ := fee.ToEthFee()
 		usdFee = f.totalCostUSD
-	case kmswallet.MATIC.ToMoneyBlockchain():
+	case kmswallet.MATIC:
 		f, _ := fee.ToMaticFee()
 		usdFee = f.totalCostUSD
-	case kmswallet.TRON.ToMoneyBlockchain():
+	case kmswallet.BSC:
+		f, _ := fee.ToBSCFee()
+		usdFee = f.totalCostUSD
+	case kmswallet.TRON:
 		f, _ := fee.ToTronFee()
 		usdFee = f.feeLimitUSD
 	default:

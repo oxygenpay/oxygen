@@ -406,6 +406,11 @@ func TestWithdrawalRoutes(t *testing.T) {
 					expectedFeeCrypto: "0.005",
 				},
 				{
+					balance:           makeBalance(asset("BNB"), false, usd(0.02)),
+					expectedFeeUSD:    "0.02",
+					expectedFeeCrypto: "0.01",
+				},
+				{
 					// in testnets money "cost" $0
 					balance:           makeBalance(asset("TRON"), true, usd(1.5)),
 					expectedFeeUSD:    "0",
