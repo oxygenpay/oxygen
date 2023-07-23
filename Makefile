@@ -73,7 +73,7 @@ require-deps: ## Require cli tools for development
 	go install github.com/rubenv/sql-migrate/...@latest
 	go install github.com/kyleconroy/sqlc/cmd/sqlc@latest
 	go install github.com/cespare/reflex@latest
-	go install github.com/vektra/mockery/v2@v2.32.0
+	go install github.com/vektra/mockery/v2@latest
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.53.3
     # todo go-swagger as swagger
 

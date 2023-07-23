@@ -33,7 +33,6 @@ func setupKMS(t *testing.T, trongridProvider *trongrid.Provider, logger *zerolog
 		wallet.NewGenerator().
 			AddProvider(&wallet.EthProvider{Blockchain: wallet.ETH, CryptoReader: cryptorand.Reader}).
 			AddProvider(&wallet.EthProvider{Blockchain: wallet.MATIC, CryptoReader: cryptorand.Reader}).
-			AddProvider(&wallet.EthProvider{Blockchain: wallet.BSC, CryptoReader: cryptorand.Reader}).
 			AddProvider(&wallet.BitcoinProvider{Blockchain: wallet.BTC, CryptoReader: cryptorand.Reader}).
 			AddProvider(&wallet.TronProvider{
 				Blockchain:   wallet.TRON,

@@ -30,8 +30,6 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	CreateBSCTransaction(params *CreateBSCTransactionParams, opts ...ClientOption) (*CreateBSCTransactionCreated, error)
-
 	CreateEthereumTransaction(params *CreateEthereumTransactionParams, opts ...ClientOption) (*CreateEthereumTransactionCreated, error)
 
 	CreateMaticTransaction(params *CreateMaticTransactionParams, opts ...ClientOption) (*CreateMaticTransactionCreated, error)
@@ -48,45 +46,7 @@ type ClientService interface {
 }
 
 /*
-CreateBSCTransaction creates b s c transaction
-*/
-func (a *Client) CreateBSCTransaction(params *CreateBSCTransactionParams, opts ...ClientOption) (*CreateBSCTransactionCreated, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewCreateBSCTransactionParams()
-	}
-	op := &runtime.ClientOperation{
-		ID:                 "createBSCTransaction",
-		Method:             "POST",
-		PathPattern:        "/wallet/{walletId}/transaction/bsc",
-		ProducesMediaTypes: []string{"application/json"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http"},
-		Params:             params,
-		Reader:             &CreateBSCTransactionReader{formats: a.formats},
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	}
-	for _, opt := range opts {
-		opt(op)
-	}
-
-	result, err := a.transport.Submit(op)
-	if err != nil {
-		return nil, err
-	}
-	success, ok := result.(*CreateBSCTransactionCreated)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for createBSCTransaction: API contract not enforced by server. Client expected to get an error, but got: %T", result)
-	panic(msg)
-}
-
-/*
-CreateEthereumTransaction creates ethereum transaction
+  CreateEthereumTransaction creates ethereum transaction
 */
 func (a *Client) CreateEthereumTransaction(params *CreateEthereumTransactionParams, opts ...ClientOption) (*CreateEthereumTransactionCreated, error) {
 	// TODO: Validate the params before sending
@@ -124,7 +84,7 @@ func (a *Client) CreateEthereumTransaction(params *CreateEthereumTransactionPara
 }
 
 /*
-CreateMaticTransaction creates polygon transaction
+  CreateMaticTransaction creates polygon transaction
 */
 func (a *Client) CreateMaticTransaction(params *CreateMaticTransactionParams, opts ...ClientOption) (*CreateMaticTransactionCreated, error) {
 	// TODO: Validate the params before sending
@@ -162,7 +122,7 @@ func (a *Client) CreateMaticTransaction(params *CreateMaticTransactionParams, op
 }
 
 /*
-CreateTronTransaction creates tron transaction
+  CreateTronTransaction creates tron transaction
 */
 func (a *Client) CreateTronTransaction(params *CreateTronTransactionParams, opts ...ClientOption) (*CreateTronTransactionCreated, error) {
 	// TODO: Validate the params before sending
@@ -200,7 +160,7 @@ func (a *Client) CreateTronTransaction(params *CreateTronTransactionParams, opts
 }
 
 /*
-CreateWallet creates wallet
+  CreateWallet creates wallet
 */
 func (a *Client) CreateWallet(params *CreateWalletParams, opts ...ClientOption) (*CreateWalletCreated, error) {
 	// TODO: Validate the params before sending
@@ -238,7 +198,7 @@ func (a *Client) CreateWallet(params *CreateWalletParams, opts ...ClientOption) 
 }
 
 /*
-DeleteWallet deletes wallet
+  DeleteWallet deletes wallet
 */
 func (a *Client) DeleteWallet(params *DeleteWalletParams, opts ...ClientOption) (*DeleteWalletNoContent, error) {
 	// TODO: Validate the params before sending
@@ -276,7 +236,7 @@ func (a *Client) DeleteWallet(params *DeleteWalletParams, opts ...ClientOption) 
 }
 
 /*
-GetWallet gets wallet
+  GetWallet gets wallet
 */
 func (a *Client) GetWallet(params *GetWalletParams, opts ...ClientOption) (*GetWalletOK, error) {
 	// TODO: Validate the params before sending

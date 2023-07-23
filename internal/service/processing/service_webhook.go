@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// TatumWebhook see https://apidoc.tatum.io/tag/Notification-subscriptions#operation/createSubscription
+// see https://apidoc.tatum.io/tag/Notification-subscriptions#operation/createSubscription
 type TatumWebhook struct {
 	SubscriptionType string `json:"subscriptionType"`
 	TransactionID    string `json:"txId"`
@@ -210,7 +210,7 @@ func (s *Service) resolveCurrencyFromWebhook(bc money.Blockchain, networkID stri
 	)
 
 	if isCoin {
-		currency, err = s.blockchain.GetNativeCoin(bc)
+		currency, err = s.blockchain.GetCurrencyByTicker(wh.Asset)
 	} else {
 		currency, err = s.blockchain.GetCurrencyByBlockchainAndContract(bc, networkID, wh.Asset)
 	}

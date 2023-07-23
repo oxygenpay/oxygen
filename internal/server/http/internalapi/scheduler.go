@@ -23,30 +23,39 @@ func (h *Handler) RunSchedulerJob(c echo.Context) error {
 		return nil
 	}
 
+	allJobs := []string{
+		"performInternalWalletTransfer",
+		"checkInternalTransferProgress",
+		"performWithdrawalsCreation",
+		"checkWithdrawalsProgress",
+		"cancelExpiredPayments",
+	}
+
 	jobID := fmt.Sprintf("%s-web-%d", req.Job, time.Now().UTC().Unix())
 	ctx = context.WithValue(ctx, scheduler.ContextJobID{}, jobID)
 	ctx = h.logger.WithContext(ctx)
 
-	jobs := map[string]func(context.Context) error{
-		"checkIncomingTransactionsProgress": h.scheduler.CheckIncomingTransactionsProgress,
-		"performInternalWalletTransfer":     h.scheduler.PerformInternalWalletTransfer,
-		"checkInternalTransferProgress":     h.scheduler.CheckInternalTransferProgress,
-		"performWithdrawalsCreation":        h.scheduler.PerformWithdrawalsCreation,
-		"checkWithdrawalsProgress":          h.scheduler.CheckWithdrawalsProgress,
-		"cancelExpiredPayments":             h.scheduler.CancelExpiredPayments,
-		"ensureOutboundWallets":             h.scheduler.EnsureOutboundWallets,
-	}
-
-	job, exists := jobs[req.Job]
-	if !exists {
+	var errJob error
+	switch req.Job {
+	case "checkIncomingTransactionsProgress":
+		errJob = h.scheduler.CheckIncomingTransactionsProgress(ctx)
+	case "performInternalWalletTransfer":
+		errJob = h.scheduler.PerformInternalWalletTransfer(ctx)
+	case "checkInternalTransferProgress":
+		errJob = h.scheduler.CheckInternalTransferProgress(ctx)
+	case "performWithdrawalsCreation":
+		errJob = h.scheduler.PerformWithdrawalsCreation(ctx)
+	case "checkWithdrawalsProgress":
+		errJob = h.scheduler.CheckWithdrawalsProgress(ctx)
+	case "cancelExpiredPayments":
+		errJob = h.scheduler.CancelExpiredPayments(ctx)
+	default:
 		return common.ValidationErrorResponse(c, fmt.Sprintf(
 			"job %s not found. Available jobs: %s",
 			req.Job,
-			strings.Join(util.Keys(jobs), ", "),
+			strings.Join(allJobs, ", "),
 		))
 	}
-
-	errJob := job(ctx)
 
 	logs, err := h.scheduler.JobLogger().ListByJobID(ctx, jobID, 1000)
 	if err != nil {

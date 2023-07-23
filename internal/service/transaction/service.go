@@ -193,7 +193,7 @@ func (s *Service) Create(
 		recipientWalletID = repository.Int64ToNullable(params.RecipientWallet.ID)
 	}
 
-	networkCurrency, err := s.blockchain.GetNativeCoin(params.Currency.Blockchain)
+	networkCurrency, err := s.blockchain.GetCurrencyByTicker(params.Currency.Blockchain.String())
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get network currency")
 	}
@@ -433,12 +433,7 @@ func (s *Service) entryToTransaction(tx repository.Transaction) (*Transaction, e
 
 	var networkFee *money.Money
 	if tx.NetworkFee.Status == pgtype.Present {
-		coin, errCoin := s.blockchain.GetNativeCoin(money.Blockchain(tx.Blockchain))
-		if errCoin != nil {
-			return nil, errors.Wrapf(errCoin, "unable to get native coin for %q", tx.Blockchain)
-		}
-
-		netFee, errM := repository.NumericToCrypto(tx.NetworkFee, coin)
+		netFee, errM := repository.NumericToMoney(tx.NetworkFee, money.Crypto, tx.Blockchain, int64(tx.NetworkDecimals))
 		if errM != nil {
 			return nil, errors.Wrap(errM, "unable to construct networkFee")
 		}
