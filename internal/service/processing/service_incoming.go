@@ -245,15 +245,6 @@ func (s *Service) checkIncomingTransaction(ctx context.Context, txID int64) erro
 		return errors.Wrap(err, "unable to get transaction receipt")
 	}
 
-	nativeCoin, err := s.blockchain.GetNativeCoin(receipt.Blockchain)
-	if err != nil {
-		return errors.Wrapf(err, "unable to get native coin for %q", receipt.Blockchain)
-	}
-
-	if nativeCoin.Ticker != receipt.NetworkFee.Ticker() {
-		return errors.New("invalid receipt network fee")
-	}
-
 	if !receipt.IsConfirmed {
 		// check later
 		return nil

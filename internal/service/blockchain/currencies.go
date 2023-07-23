@@ -346,6 +346,8 @@ var explorers = map[string]string{
 	"ETH/5":        "https://goerli.etherscan.io/tx/%s",
 	"MATIC/137":    "https://polygonscan.com/tx/%s",
 	"MATIC/80001":  "https://mumbai.polygonscan.com/tx/%s",
+	"BSC/56":       "https://bscscan.com/tx/%s",
+	"BSC/97":       "https://testnet.bscscan.com/tx/%s",
 	"TRON/mainnet": "https://tronscan.org/#/transaction/%s",
 	"TRON/testnet": "https://shasta.tronscan.org/#/transaction/%s",
 }

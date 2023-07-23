@@ -396,15 +396,6 @@ func (s *Service) checkInternalTransaction(ctx context.Context, txID int64) erro
 		return errors.Wrap(err, "unable to get transaction receipt")
 	}
 
-	nativeCoin, err := s.blockchain.GetNativeCoin(tx.Currency.Blockchain)
-	if err != nil {
-		return errors.Wrapf(err, "unable to find native currency %q", tx.Currency.Blockchain)
-	}
-
-	if nativeCoin.Ticker != receipt.NetworkFee.Ticker() {
-		return errors.New("invalid receipt network fee")
-	}
-
 	if !receipt.IsConfirmed {
 		s.logger.Info().
 			Int64("transaction_id", tx.ID).
