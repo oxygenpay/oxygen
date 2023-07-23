@@ -63,7 +63,6 @@ type Pagination struct {
 	FilterByType       Type
 }
 
-// TatumSubscription
 type TatumSubscription struct {
 	MainnetSubscriptionID string
 	TestnetSubscriptionID string

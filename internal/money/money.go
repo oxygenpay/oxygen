@@ -110,6 +110,10 @@ func (c CryptoCurrency) MakeAmount(raw string) (Money, error) {
 	return CryptoFromRaw(c.Ticker, raw, c.Decimals)
 }
 
+func (c CryptoCurrency) MakeAmountFromBigInt(amount *big.Int) (Money, error) {
+	return NewFromBigInt(Crypto, c.Ticker, amount, c.Decimals)
+}
+
 // MONEY  ------------------
 type Type string
 

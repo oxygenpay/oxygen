@@ -24,6 +24,7 @@ func TestHandlerRoutes(t *testing.T) {
 		walletRoute              = "/api/kms/v1/wallet/:walletId"
 		ethereumTransactionRoute = "/api/kms/v1/wallet/:walletId/transaction/eth"
 		polygonTransactionRoute  = "/api/kms/v1/wallet/:walletId/transaction/matic"
+		bscTransactionRoute      = "/api/kms/v1/wallet/:walletId/transaction/bsc"
 		tronTransactionRoute     = "/api/kms/v1/wallet/:walletId/transaction/tron"
 	)
 
@@ -230,6 +231,88 @@ func TestHandlerRoutes(t *testing.T) {
 				res := tc.Client.
 					POST().
 					Path(polygonTransactionRoute).
+					Param(paramWalletID, testCase.wallet.UUID.String()).
+					JSON(&testCase.req).
+					Do()
+
+				// ASSERT
+				testCase.assert(t, res)
+			})
+		}
+	})
+
+	t.Run("CreateBSCTransaction", func(t *testing.T) {
+		const usdtContract = "0xdac17f958d2ee523a2206206994597c13d831ec7"
+
+		for testCaseIndex, testCase := range []struct {
+			wallet *wallet.Wallet
+			req    model.CreateBSCTransactionRequest
+			assert func(t *testing.T, res *test.Response)
+		}{
+			{
+				wallet: createWallet(wallet.BSC),
+				req: model.CreateBSCTransactionRequest{
+					AssetType:         "coin",
+					Amount:            "123",
+					Gas:               1,
+					MaxFeePerGas:      "123",
+					MaxPriorityPerGas: "456",
+					NetworkID:         1,
+					Nonce:             util.Ptr(int64(0)),
+					Recipient:         "0x690b9a9e9aa1c9db991c7721a92d351db4fac990",
+				},
+				assert: func(t *testing.T, res *test.Response) {
+					var body model.BSCTransaction
+
+					assert.Equal(t, http.StatusCreated, res.StatusCode(), res.String())
+					assert.NoError(t, res.JSON(&body))
+					assert.NotEmpty(t, body.RawTransaction)
+				},
+			},
+			{
+				wallet: createWallet(wallet.BSC),
+				req: model.CreateBSCTransactionRequest{
+					AssetType:         "token",
+					Amount:            "123",
+					ContractAddress:   usdtContract,
+					Gas:               1,
+					MaxFeePerGas:      "123",
+					MaxPriorityPerGas: "456",
+					NetworkID:         5,
+					Nonce:             util.Ptr(int64(0)),
+					Recipient:         "0x690b9a9e9aa1c9db991c7721a92d351db4fac990",
+				},
+				assert: func(t *testing.T, res *test.Response) {
+					var body model.BSCTransaction
+
+					assert.Equal(t, http.StatusCreated, res.StatusCode(), res.String())
+					assert.NoError(t, res.JSON(&body))
+					assert.NotEmpty(t, body.RawTransaction)
+				},
+			},
+			{
+				// blockchain mismatch
+				wallet: createWallet(wallet.ETH),
+				req: model.CreateBSCTransactionRequest{
+					AssetType:         "coin",
+					Amount:            "123",
+					Gas:               1,
+					MaxFeePerGas:      "123",
+					MaxPriorityPerGas: "456",
+					NetworkID:         1,
+					Nonce:             util.Ptr(int64(0)),
+					Recipient:         "0x690b9a9e9aa1c9db991c7721a92d351db4fac990",
+				},
+				assert: func(t *testing.T, res *test.Response) {
+					assert.Equal(t, http.StatusBadRequest, res.StatusCode(), res.String())
+				},
+			},
+		} {
+			t.Run(strconv.Itoa(testCaseIndex+1), func(t *testing.T) {
+				// ACT
+				res := tc.Client.
+					POST().
+					Path(bscTransactionRoute).
 					Param(paramWalletID, testCase.wallet.UUID.String()).
 					JSON(&testCase.req).
 					Do()

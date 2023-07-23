@@ -75,6 +75,8 @@ definitions:
 
   CreateMaticTransactionRequest: *createEthTransaction
 
+  CreateBSCTransactionRequest: *createEthTransaction
+
   CreateTronTransactionRequest:
     type: object
     required: [ assetType, recipient, amount ]
@@ -114,7 +116,7 @@ definitions:
   Blockchain:
     type: string
     description: Supported blockchain
-    enum: [ BTC, ETH, TRON, MATIC ]
+    enum: [ BTC, ETH, TRON, MATIC, BSC ]
     x-nullable: false
     x-omitempty: false
 
@@ -147,7 +149,7 @@ definitions:
         description: Created At
         example: 1656696522
 
-  EthereumTransaction:
+  EthereumTransaction: &ethTransaction
     type: object
     properties:
       rawTransaction:
@@ -157,15 +159,9 @@ definitions:
         x-nullable: false
         x-omitempty: false
 
-  MaticTransaction:
-    type: object
-    properties:
-      rawTransaction:
-        type: string
-        description: RLP-encoded transaction
-        example: '0xf86e83014b2985048ccb44b1827530944675c7e5baafbffbca748158becba61ef3b0a26387c2a454bcf91b3f8026a0db0be3dcc25213b286e08d018fe8143eb85a3b7bb5cf3749245e907158e9c8daa033c7ec9362ee890d63b89e9dbfcfcb6edd9432321102c1d2ea7921c6cc07009e'
-        x-nullable: false
-        x-omitempty: false
+  MaticTransaction: *ethTransaction
+
+  BSCTransaction: *ethTransaction
 
   TronTransaction:
     type: object
@@ -291,6 +287,29 @@ paths:
           description: Validation error / Not found
           schema:
             $ref: '../kms-v1.yml#/definitions/ErrorResponse'
+
+  /wallet/{walletId}/transaction/bsc:
+    post:
+      summary: Create BSC Transaction
+      operationId: createBSCTransaction
+      tags: [ Wallet ]
+      parameters:
+        - $ref: '#/parameters/WalletId'
+        - in: body
+          name: data
+          required: true
+          schema:
+            $ref: '#/definitions/CreateBSCTransactionRequest'
+      responses:
+        201:
+          description: Transaction Created
+          schema:
+            $ref: '#/definitions/BSCTransaction'
+        400:
+          description: Validation error / Not found
+          schema:
+            $ref: '../kms-v1.yml#/definitions/ErrorResponse'
+
 
   /wallet/{walletId}/transaction/tron:
     post:

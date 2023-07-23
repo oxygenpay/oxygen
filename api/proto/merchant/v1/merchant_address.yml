@@ -18,7 +18,7 @@ definitions:
     properties:
       blockchain:
         type: string
-        enum: [ BTC, ETH, TRON, MATIC ]
+        enum: [ BTC, ETH, TRON, MATIC, BSC ]
         example: ETH
         x-nullable: false
       address:
@@ -68,7 +68,7 @@ definitions:
         x-omitempty: false
       blockchain:
         type: string
-        enum: [ ETH, TRON, MATIC ]
+        enum: [ ETH, TRON, MATIC, BSC ]
         example: ETH
         x-nullable: false
         x-omitempty: false

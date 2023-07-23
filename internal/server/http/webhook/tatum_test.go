@@ -26,6 +26,7 @@ const (
 	paramNetworkID = "networkId"
 
 	EthUsdAddress         = "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+	BSCUSDTAddress        = "0x55d398326f99059fF775485246999027B3197955"
 	TronUsdAddressMainnet = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
 	TronUsdAddressTestnet = "TG3XXyExBkPp9nzdajDZsozEu4BkaSJozs"
 
@@ -200,6 +201,26 @@ func TestHandler_ReceiveTatum(t *testing.T) {
 				assert.Equal(t, "0x123sender456", *tx.SenderAddress)
 
 				assertUpdateStatusEventSent(t, false)
+			},
+		},
+		{
+			name:             "success BSC_USDT",
+			selectedCurrency: "BSC_USDT",
+			payment:          func() *payment.Payment { return setupPayment(money.USD, 50) },
+			req: func(tx *transaction.Transaction, wt *wallet.Wallet) *processing.TatumWebhook {
+				return webhook(wt.Address, "0xTX_BSC", BSCUSDTAddress, typeToken, "50")
+			},
+			assert: func(t *testing.T, pt *payment.Payment, tx *transaction.Transaction) {
+				assert.Equal(t, payment.StatusInProgress, pt.Status)
+
+				assert.Equal(t, transaction.StatusInProgress, tx.Status)
+				assert.Equal(t, "50", tx.FactAmount.String())
+				assert.Equal(t, "0xTX_BSC", *tx.HashID)
+				assert.Equal(t, "0x123sender456", *tx.SenderAddress)
+
+				assertUpdateStatusEventSent(t, true)
+
+				tc.AssertTableRows(t, "wallet_locks", 0)
 			},
 		},
 		{
