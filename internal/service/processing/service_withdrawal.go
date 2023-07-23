@@ -202,7 +202,7 @@ func (s *Service) createWithdrawal(ctx context.Context, params withdrawalInput) 
 	out := withdrawalOutput{}
 
 	// 0. Get currency & baseCurrency (e.g. ETH and ETH_USDT)
-	baseCurrency, err := s.blockchain.GetCurrencyByTicker(params.MerchantBalance.Network)
+	baseCurrency, err := s.blockchain.GetNativeCoin(params.MerchantBalance.Blockchain())
 	if err != nil {
 		return out, errors.Wrap(err, "unable to get base currency")
 	}

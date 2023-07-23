@@ -103,6 +103,35 @@ func (i *IntegrationTest) SetupCreateMaticTransactionWildcard(rawTx string) {
 	i.Providers.KMS.On("CreateMaticTransaction", mock.Anything).Return(res, nil)
 }
 
+func (i *IntegrationTest) SetupCreateBSCTransaction(
+	walletID uuid.UUID,
+	input kmsmodel.CreateBSCTransactionRequest,
+	rawTx string,
+) {
+	req := &kmswallet.CreateBSCTransactionParams{
+		Data:     &input,
+		WalletID: walletID.String(),
+	}
+
+	res := &kmswallet.CreateBSCTransactionCreated{
+		Payload: &kmsmodel.BSCTransaction{
+			RawTransaction: rawTx,
+		},
+	}
+
+	i.Providers.KMS.On("CreateBSCTransaction", req).Return(res, nil)
+}
+
+func (i *IntegrationTest) SetupCreateBSCTransactionWildcard(rawTx string) {
+	res := &kmswallet.CreateBSCTransactionCreated{
+		Payload: &kmsmodel.BSCTransaction{
+			RawTransaction: rawTx,
+		},
+	}
+
+	i.Providers.KMS.On("CreateBSCTransaction", mock.Anything).Return(res, nil)
+}
+
 func (i *IntegrationTest) SetupCreateTronTransaction(
 	walletID uuid.UUID,
 	input kmsmodel.CreateTronTransactionRequest,

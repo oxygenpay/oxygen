@@ -230,7 +230,7 @@ func (s *Service) createInternalTransfer(
 	out := internalTransferOutput{}
 
 	// 0. Get currency & baseCurrency (e.g. ETH and ETH_USDT)
-	baseCurrency, err := s.blockchain.GetCurrencyByTicker(sender.Blockchain.String())
+	baseCurrency, err := s.blockchain.GetNativeCoin(sender.Blockchain.ToMoneyBlockchain())
 	if err != nil {
 		return out, errors.Wrap(err, "unable to get base currency")
 	}
@@ -392,12 +392,8 @@ func (s *Service) checkInternalTransaction(ctx context.Context, txID int64) erro
 	}
 
 	receipt, err := s.blockchain.GetTransactionReceipt(ctx, tx.Currency.Blockchain, *tx.HashID, tx.IsTest)
-
-	switch {
-	case err != nil:
+	if err != nil {
 		return errors.Wrap(err, "unable to get transaction receipt")
-	case tx.Currency.Blockchain.String() != receipt.NetworkFee.Ticker():
-		return errors.Wrap(err, "invalid receipt network fee")
 	}
 
 	if !receipt.IsConfirmed {

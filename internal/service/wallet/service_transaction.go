@@ -48,6 +48,7 @@ func (s *Service) CreateSignedTransaction(
 	return txRaw, errCreate
 }
 
+//nolint:gocyclo
 func (s *Service) createSignedTransaction(
 	ctx context.Context,
 	sender *Wallet,
@@ -121,6 +122,40 @@ func (s *Service) createSignedTransaction(
 
 		if err != nil {
 			return "", errors.Wrap(err, "unable to create MATIC transaction")
+		}
+
+		return res.Payload.RawTransaction, nil
+	}
+
+	if currency.Blockchain == kms.BSC.ToMoneyBlockchain() {
+		networkID, err := strconv.Atoi(currency.ChooseNetwork(isTest))
+		if err != nil {
+			return "", errors.Wrap(err, "unable to parse network id")
+		}
+
+		bscFee, err := fee.ToBSCFee()
+		if err != nil {
+			return "", errors.Wrap(err, "fee is not BSC")
+		}
+
+		res, err := s.kms.CreateBSCTransaction(&kmsclient.CreateBSCTransactionParams{
+			Context:  ctx,
+			WalletID: sender.UUID.String(),
+			Data: &kmsmodel.CreateBSCTransactionRequest{
+				Amount:            amount.StringRaw(),
+				AssetType:         kmsmodel.AssetType(currency.Type),
+				ContractAddress:   currency.ChooseContractAddress(isTest),
+				Gas:               int64(bscFee.GasUnits),
+				MaxFeePerGas:      bscFee.GasPrice,
+				MaxPriorityPerGas: bscFee.PriorityFee,
+				NetworkID:         int64(networkID),
+				Nonce:             util.Ptr(nonce),
+				Recipient:         recipient,
+			},
+		})
+
+		if err != nil {
+			return "", errors.Wrap(err, "unable to create BSC transaction")
 		}
 
 		return res.Payload.RawTransaction, nil

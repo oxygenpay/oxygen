@@ -27,7 +27,7 @@ type MerchantAddress struct {
 
 	// blockchain
 	// Example: ETH
-	// Enum: [ETH TRON MATIC]
+	// Enum: [ETH TRON MATIC BSC]
 	Blockchain string `json:"blockchain"`
 
 	// Blockchain name
@@ -83,7 +83,7 @@ var merchantAddressTypeBlockchainPropEnum []interface{}
 
 func init() {
 	var res []string
-	if err := json.Unmarshal([]byte(`["ETH","TRON","MATIC"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["ETH","TRON","MATIC","BSC"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
@@ -101,6 +101,9 @@ const (
 
 	// MerchantAddressBlockchainMATIC captures enum value "MATIC"
 	MerchantAddressBlockchainMATIC string = "MATIC"
+
+	// MerchantAddressBlockchainBSC captures enum value "BSC"
+	MerchantAddressBlockchainBSC string = "BSC"
 )
 
 // prop value enum

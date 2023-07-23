@@ -15,10 +15,23 @@ interface WebhookSettings {
     url: string;
 }
 
-const BLOCKCHAIN = ["ETH", "TRON", "MATIC"] as const;
+const BLOCKCHAIN = ["ETH", "TRON", "MATIC", "BSC"] as const;
 type Blockchain = typeof BLOCKCHAIN[number];
 
-const BLOCKCHAIN_TICKER = ["ETH", "ETH_USDT", "MATIC", "MATIC_USDT", "TRON", "TRON_USDT"] as const;
+const BLOCKCHAIN_TICKER = [
+    "ETH",
+    "ETH_USDT",
+    "ETH_USDC",
+    "MATIC",
+    "MATIC_USDT",
+    "MATIC_USDC",
+    "TRON",
+    "TRON_USDT",
+    "BNB",
+    "BSC_USDT",
+    "BSC_BUSD"
+] as const;
+
 type BlockchainTicker = typeof BLOCKCHAIN_TICKER[number];
 
 interface PaymentMethod {
@@ -81,10 +94,15 @@ const CURRENCY_SYMBOL: Record<CurrencyWithFiat, string> = {
     EUR: "€",
     ETH: "",
     ETH_USDT: "",
+    ETH_USDC: "",
     MATIC: "",
     MATIC_USDT: "",
+    MATIC_USDC: "",
     TRON: "",
-    TRON_USDT: ""
+    TRON_USDT: "",
+    BNB: "",
+    BSC_USDT: "",
+    BSC_BUSD: ""
 };
 
 type PaymentType = "payment" | "withdrawal";
