@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 
+	kms "github.com/oxygenpay/oxygen/internal/kms/wallet"
 	"github.com/oxygenpay/oxygen/internal/money"
 	"github.com/oxygenpay/oxygen/internal/util"
 	"github.com/pkg/errors"
@@ -19,6 +20,7 @@ type Resolver interface {
 	ListSupportedCurrencies() []money.CryptoCurrency
 	ListBlockchainCurrencies(blockchain money.Blockchain) []money.CryptoCurrency
 	GetCurrencyByTicker(ticker string) (money.CryptoCurrency, error)
+	GetNativeCoin(blockchain money.Blockchain) (money.CryptoCurrency, error)
 	GetCurrencyByBlockchainAndContract(bc money.Blockchain, networkID, addr string) (money.CryptoCurrency, error)
 	GetMinimalWithdrawalByTicker(ticker string) (money.Money, error)
 	GetUSDMinimalInternalTransferByTicker(ticker string) (money.Money, error)
@@ -56,6 +58,19 @@ func (r *CurrencyResolver) GetCurrencyByTicker(ticker string) (money.CryptoCurre
 	}
 
 	return c, nil
+}
+
+// GetNativeCoin returns native coin by blockchain. Example: ETH -> ETH; BSC -> BNB.
+func (r *CurrencyResolver) GetNativeCoin(chain money.Blockchain) (money.CryptoCurrency, error) {
+	list := r.ListBlockchainCurrencies(chain)
+
+	for i := range list {
+		if list[i].Type == money.Coin {
+			return list[i], nil
+		}
+	}
+
+	return money.CryptoCurrency{}, ErrCurrencyNotFound
 }
 
 // GetMinimalWithdrawalByTicker returns minimal withdrawal amount in USD for selected ticker.
@@ -290,10 +305,10 @@ func DefaultSetup(s *CurrencyResolver) error {
 }
 
 func CreatePaymentLink(addr string, currency money.CryptoCurrency, amount money.Money, isTest bool) (string, error) {
-	switch currency.Blockchain {
-	case "ETH", "MATIC":
+	switch kms.Blockchain(currency.Blockchain) {
+	case kms.ETH, kms.MATIC, kms.BSC:
 		return ethPaymentLink(addr, currency, amount, isTest), nil
-	case "TRON":
+	case kms.TRON:
 		return tronPaymentLink(addr, currency, amount, isTest), nil
 	}
 
@@ -331,6 +346,8 @@ var explorers = map[string]string{
 	"ETH/5":        "https://goerli.etherscan.io/tx/%s",
 	"MATIC/137":    "https://polygonscan.com/tx/%s",
 	"MATIC/80001":  "https://mumbai.polygonscan.com/tx/%s",
+	"BSC/56":       "https://bscscan.com/tx/%s",
+	"BSC/97":       "https://testnet.bscscan.com/tx/%s",
 	"TRON/mainnet": "https://tronscan.org/#/transaction/%s",
 	"TRON/testnet": "https://shasta.tronscan.org/#/transaction/%s",
 }

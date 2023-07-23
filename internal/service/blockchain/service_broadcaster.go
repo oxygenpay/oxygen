@@ -3,6 +3,7 @@ package blockchain
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 	"sync"
@@ -35,17 +36,19 @@ func (s *Service) BroadcastTransaction(ctx context.Context, blockchain money.Blo
 		err    error
 	)
 
-	switch blockchain {
-	case kms.ETH.ToMoneyBlockchain():
+	switch kms.Blockchain(blockchain) {
+	case kms.ETH:
 		opts := &client.EthereumApiEthBroadcastOpts{}
 		if isTest {
 			opts.XTestnetType = optional.NewString(tatum.EthTestnet)
 		}
 
 		txHash, _, err = api.EthereumApi.EthBroadcast(ctx, client.BroadcastKms{TxData: rawTX}, opts)
-	case kms.MATIC.ToMoneyBlockchain():
+	case kms.MATIC:
 		txHash, _, err = api.PolygonApi.PolygonBroadcast(ctx, client.BroadcastKms{TxData: rawTX})
-	case kms.TRON.ToMoneyBlockchain():
+	case kms.BSC:
+		txHash, _, err = api.BNBSmartChainApi.BscBroadcast(ctx, client.BroadcastKms{TxData: rawTX})
+	case kms.TRON:
 		hashID, errTron := s.providers.Trongrid.BroadcastTransaction(ctx, []byte(rawTX), isTest)
 		if errTron != nil {
 			err = errTron
@@ -53,7 +56,7 @@ func (s *Service) BroadcastTransaction(ctx context.Context, blockchain money.Blo
 			txHash.TxId = hashID
 		}
 	default:
-		return "", ErrCurrencyNotFound
+		return "", fmt.Errorf("broadcast for %q is not implemented yet", blockchain)
 	}
 
 	if err != nil {
@@ -114,36 +117,45 @@ func (s *Service) getTransactionReceipt(
 	isTest bool,
 ) (*TransactionReceipt, error) {
 	const (
-		ethDecimals   = 18
-		maticDecimals = 18
-		tronDecimals  = 6
-
 		ethConfirmations   = 12
 		maticConfirmations = 30
+		bscConfirmations   = 15
 	)
 
-	switch blockchain {
-	case kms.ETH.ToMoneyBlockchain():
+	nativeCoin, err := s.GetNativeCoin(blockchain)
+	if err != nil {
+		return nil, errors.Wrapf(err, "native coin for %q is not found", blockchain)
+	}
+
+	switch kms.Blockchain(blockchain) {
+	case kms.ETH:
 		rpc, err := s.providers.Tatum.EthereumRPC(ctx, isTest)
 		if err != nil {
 			return nil, err
 		}
 
-		return s.getEthReceipt(ctx, rpc, kms.ETH.ToMoneyBlockchain(), transactionID, ethDecimals, ethConfirmations, isTest)
-	case kms.MATIC.ToMoneyBlockchain():
+		return s.getEthReceipt(ctx, rpc, nativeCoin, transactionID, ethConfirmations, isTest)
+	case kms.MATIC:
 		rpc, err := s.providers.Tatum.MaticRPC(ctx, isTest)
 		if err != nil {
 			return nil, err
 		}
 
-		return s.getEthReceipt(ctx, rpc, kms.MATIC.ToMoneyBlockchain(), transactionID, maticDecimals, maticConfirmations, isTest)
-	case kms.TRON.ToMoneyBlockchain():
+		return s.getEthReceipt(ctx, rpc, nativeCoin, transactionID, maticConfirmations, isTest)
+	case kms.BSC:
+		rpc, err := s.providers.Tatum.BinanceSmartChainRPC(ctx, isTest)
+		if err != nil {
+			return nil, err
+		}
+
+		return s.getEthReceipt(ctx, rpc, nativeCoin, transactionID, bscConfirmations, isTest)
+	case kms.TRON:
 		receipt, err := s.providers.Trongrid.GetTransactionReceipt(ctx, transactionID, isTest)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to get tron transaction receipt")
 		}
 
-		networkFee, err := money.CryptoFromRaw(blockchain.String(), strconv.Itoa(int(receipt.Fee)), tronDecimals)
+		networkFee, err := nativeCoin.MakeAmount(strconv.Itoa(int(receipt.Fee)))
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to calculate network fee")
 		}
@@ -167,9 +179,8 @@ func (s *Service) getTransactionReceipt(
 func (s *Service) getEthReceipt(
 	ctx context.Context,
 	rpc *ethclient.Client,
-	blockchain money.Blockchain,
+	nativeCoin money.CryptoCurrency,
 	txID string,
-	decimals int64,
 	requiredConfirmations int64,
 	isTest bool,
 ) (*TransactionReceipt, error) {
@@ -226,7 +237,7 @@ func (s *Service) getEthReceipt(
 		return nil, err
 	}
 
-	gasPrice, err := money.NewFromBigInt(money.Crypto, blockchain.String(), receipt.EffectiveGasPrice, decimals)
+	gasPrice, err := nativeCoin.MakeAmountFromBigInt(receipt.EffectiveGasPrice)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to construct network fee")
 	}
@@ -244,7 +255,7 @@ func (s *Service) getEthReceipt(
 	confirmations := latestBlock - receipt.BlockNumber.Int64()
 
 	return &TransactionReceipt{
-		Blockchain:    blockchain,
+		Blockchain:    nativeCoin.Blockchain,
 		IsTest:        isTest,
 		Sender:        sender.String(),
 		Recipient:     tx.To().String(),

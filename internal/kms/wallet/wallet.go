@@ -16,9 +16,10 @@ const (
 	ETH   Blockchain = "ETH"
 	TRON  Blockchain = "TRON"
 	MATIC Blockchain = "MATIC"
+	BSC   Blockchain = "BSC"
 )
 
-var blockchains = []Blockchain{BTC, ETH, TRON, MATIC}
+var blockchains = []Blockchain{BTC, ETH, TRON, MATIC, BSC}
 
 func ListBlockchains() []Blockchain {
 	result := make([]Blockchain, len(blockchains))
@@ -68,9 +69,7 @@ func ValidateAddress(blockchain Blockchain, address string) error {
 	switch blockchain {
 	case BTC:
 		isValid = validateBitcoinAddress(address)
-	case ETH:
-		isValid = validateEthereumAddress(address)
-	case MATIC:
+	case ETH, MATIC, BSC:
 		isValid = validateEthereumAddress(address)
 	case TRON:
 		isValid = validateTronAddress(address)

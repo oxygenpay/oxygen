@@ -34,11 +34,7 @@ var (
 	ErrUnknownBlockchain      = errors.New("unknown blockchain")
 )
 
-func New(
-	repo *Repository,
-	generator *Generator,
-	logger *zerolog.Logger,
-) *Service {
+func New(repo *Repository, generator *Generator, logger *zerolog.Logger) *Service {
 	log := logger.With().Str("channel", "kms_service").Logger()
 
 	return &Service{
@@ -78,9 +74,7 @@ func (s *Service) DeleteWallet(ctx context.Context, id uuid.UUID) error {
 }
 
 // CreateEthereumTransaction creates and sings new raw Ethereum transaction based on provided input.
-func (s *Service) CreateEthereumTransaction(
-	_ context.Context, wallet *Wallet, params EthTransactionParams,
-) (string, error) {
+func (s *Service) CreateEthereumTransaction(_ context.Context, wt *Wallet, params EthTransactionParams) (string, error) {
 	if _, ok := s.generator.providers[ETH]; !ok {
 		return "", errors.New("ETH provider not found")
 	}
@@ -90,12 +84,10 @@ func (s *Service) CreateEthereumTransaction(
 		return "", errors.New("ETH provider is invalid")
 	}
 
-	return eth.NewTransaction(wallet, params)
+	return eth.NewTransaction(wt, params)
 }
 
-func (s *Service) CreateMaticTransaction(
-	_ context.Context, wallet *Wallet, params EthTransactionParams,
-) (string, error) {
+func (s *Service) CreateMaticTransaction(_ context.Context, wt *Wallet, params EthTransactionParams) (string, error) {
 	if _, ok := s.generator.providers[MATIC]; !ok {
 		return "", errors.New("MATIC provider not found")
 	}
@@ -105,7 +97,20 @@ func (s *Service) CreateMaticTransaction(
 		return "", errors.New("MATIC provider is invalid")
 	}
 
-	return matic.NewTransaction(wallet, params)
+	return matic.NewTransaction(wt, params)
+}
+
+func (s *Service) CreateBSCTransaction(_ context.Context, wt *Wallet, params EthTransactionParams) (string, error) {
+	if _, ok := s.generator.providers[BSC]; !ok {
+		return "", errors.New("BSC provider not found")
+	}
+
+	bsc, ok := s.generator.providers[BSC].(*EthProvider)
+	if !ok {
+		return "", errors.New("BSC provider is invalid")
+	}
+
+	return bsc.NewTransaction(wt, params)
 }
 
 func (s *Service) CreateTronTransaction(

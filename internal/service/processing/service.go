@@ -218,11 +218,7 @@ func (s *Service) LockPaymentOptions(ctx context.Context, merchantID, paymentID 
 }
 
 // SetPaymentMethod created/changes payment's underlying transaction.
-func (s *Service) SetPaymentMethod(
-	ctx context.Context,
-	p *payment.Payment,
-	ticker string,
-) (*payment.Method, error) {
+func (s *Service) SetPaymentMethod(ctx context.Context, p *payment.Payment, ticker string) (*payment.Method, error) {
 	if p == nil {
 		return nil, errors.New("payment is nil")
 	}

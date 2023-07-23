@@ -33,6 +33,7 @@ func TestService_BatchCreateWithdrawals(t *testing.T) {
 	ethUSDT := tc.Must.GetCurrency(t, "ETH_USDT")
 	tron := tc.Must.GetCurrency(t, "TRON")
 	tronUSDT := tc.Must.GetCurrency(t, "TRON_USDT")
+	bnb := tc.Must.GetCurrency(t, "BNB")
 
 	// Mock tx fees
 	tc.Fakes.SetupAllFees(t, tc.Services.Blockchain)
@@ -41,6 +42,7 @@ func TestService_BatchCreateWithdrawals(t *testing.T) {
 	tc.Providers.TatumMock.SetupRates("ETH", money.USD, 1600)
 	tc.Providers.TatumMock.SetupRates("ETH_USDT", money.USD, 1)
 	tc.Providers.TatumMock.SetupRates("TRON", money.USD, 0.08)
+	tc.Providers.TatumMock.SetupRates("BNB", money.USD, 240)
 
 	t.Run("Creates transactions", func(t *testing.T) {
 		t.Run("Creates ETH transaction", func(t *testing.T) {
@@ -367,6 +369,97 @@ func TestService_BatchCreateWithdrawals(t *testing.T) {
 			// Given mocked TRON transaction creation & broadcast
 			tc.SetupCreateTronTransactionWildcard(rawTxData)
 			tc.Fakes.SetupBroadcastTransaction(tron.Blockchain, rawTxData, isTest, txHashID, nil)
+
+			// ACT
+			result, err := tc.Services.Processing.BatchCreateWithdrawals(ctx, []int64{withdrawal.ID})
+
+			// ASSERT
+			assert.NoError(t, err)
+			assert.Empty(t, result.TotalErrors)
+			assert.Empty(t, result.UnhandledErrors)
+			assert.Len(t, result.CreatedTransactions, 1)
+
+			// Get fresh transaction from DB
+			tx, err := tc.Services.Transaction.GetByID(tc.Context, mt.ID, result.CreatedTransactions[0].ID)
+			require.NoError(t, err)
+
+			// Check that tx was created and properties are correct
+			assert.NotNil(t, tx)
+			assert.Equal(t, transaction.TypeWithdrawal, tx.Type)
+			assert.Equal(t, transaction.StatusPending, tx.Status)
+			assert.Equal(t, outboundWallet.ID, *tx.SenderWalletID)
+			assert.Equal(t, outboundWallet.Address, *tx.SenderAddress)
+			assert.Equal(t, addr.Address, tx.RecipientAddress)
+			assert.Equal(t, outboundBalance.Currency, tx.Amount.Ticker())
+			assert.Equal(t, txHashID, *tx.HashID)
+			assert.Equal(t, serviceFeeCrypto, tx.ServiceFee)
+			assert.Equal(t, withdrawal.Price, tx.Amount)
+			assert.Nil(t, tx.NetworkFee)
+
+			// Get fresh merchant balance and check balance
+			merchantBalance, err = tc.Services.Wallet.GetMerchantBalanceByUUID(ctx, mt.ID, merchantBalance.UUID)
+			require.NoError(t, err)
+			assert.Equal(t, expectedMerchantBalance, merchantBalance.Amount.StringRaw())
+
+			// Check outbound wallet's balance
+			outboundBalance, err = tc.Services.Wallet.GetBalanceByID(ctx, wallet.EntityTypeWallet, outboundWallet.ID, outboundBalance.ID)
+			require.NoError(t, err)
+			assert.Equal(t, expectedWalletBalance, outboundBalance.Amount.StringRaw())
+
+			// Check withdrawal
+			withdrawal, err = tc.Services.Payment.GetByID(ctx, mt.ID, withdrawal.ID)
+			require.NoError(t, err)
+			assert.Equal(t, payment.StatusInProgress, withdrawal.Status)
+		})
+
+		t.Run("Creates BNB transaction", func(t *testing.T) {
+			isTest := false
+
+			// ARRANGE
+			// Given merchant
+			mt, _ := tc.Must.CreateMerchant(t, 1)
+
+			// With BSC address
+			addr, err := tc.Services.Merchants.CreateMerchantAddress(ctx, mt.ID, merchant.CreateMerchantAddressParams{
+				Name:       "Bob's Address",
+				Blockchain: kmswallet.Blockchain(bnb.Blockchain),
+				Address:    "0x95222290dd7278003ddd389cc1e1d165cc4bafe0",
+			})
+			require.NoError(t, err)
+
+			// And BNB 0.5 balance
+			withBalance := test.WithBalanceFromCurrency(bnb, "500_000_000_000_000_000", isTest)
+			merchantBalance := tc.Must.CreateBalance(t, wallet.EntityTypeMerchant, mt.ID, withBalance)
+
+			// Given withdrawal
+			amount := lo.Must(bnb.MakeAmount("400_000_000_000_000_000"))
+			withdrawal, err := tc.Services.Payment.CreateWithdrawal(ctx, mt.ID, payment.CreateWithdrawalProps{
+				BalanceID: merchantBalance.UUID,
+				AddressID: addr.UUID,
+				AmountRaw: amount.String(),
+			})
+			require.NoError(t, err)
+
+			// Given OUTBOUND wallet with balance of 1 BNB
+			withETH := test.WithBalanceFromCurrency(bnb, "1_000_000_000_000_000_000", isTest)
+			outboundWallet, outboundBalance := tc.Must.CreateWalletWithBalance(t, "ETH", wallet.TypeOutbound, withETH)
+
+			// Given service fee mock for withdrawal
+			serviceFeeUSD := lo.Must(money.FiatFromFloat64(money.USD, 3))
+			serviceFeeCrypto := lo.Must(tc.Services.Blockchain.FiatToCrypto(ctx, serviceFeeUSD, bnb)).To
+
+			const (
+				rawTxData               = "0x123456"
+				txHashID                = "0xffffff"
+				expectedMerchantBalance = "875" + "00000000000001"  // 0.5 BNB - 0.4 BNB - $3 = 0.1 BNB - $3: = 0.1 BNB - 0.0125 BNB
+				expectedWalletBalance   = "6" + "00000000000000000" // 0.6 BNB: 1 BNB - 0.4 BNB
+			)
+
+			tc.Fakes.SetupCalculateWithdrawalFeeUSD(bnb, bnb, isTest, serviceFeeUSD)
+
+			// Given mocked ETH transaction creation & broadcast
+			tc.SetupCreateBSCTransactionWildcard(rawTxData)
+			tc.Fakes.SetupBroadcastTransaction(bnb.Blockchain, rawTxData, isTest, txHashID, nil)
 
 			// ACT
 			result, err := tc.Services.Processing.BatchCreateWithdrawals(ctx, []int64{withdrawal.ID})
@@ -783,6 +876,7 @@ func TestService_BatchCheckWithdrawals(t *testing.T) {
 
 	eth := tc.Must.GetCurrency(t, "ETH")
 	ethUSDT := tc.Must.GetCurrency(t, "ETH_USDT")
+	bnb := tc.Must.GetCurrency(t, "BNB")
 
 	// Mock tx fees
 	tc.Fakes.SetupAllFees(t, tc.Services.Blockchain)
@@ -791,6 +885,7 @@ func TestService_BatchCheckWithdrawals(t *testing.T) {
 	tc.Providers.TatumMock.SetupRates("ETH", money.USD, 1600)
 	tc.Providers.TatumMock.SetupRates("ETH_USDT", money.USD, 1)
 	tc.Providers.TatumMock.SetupRates("TRON", money.USD, 0.08)
+	tc.Providers.TatumMock.SetupRates("BNB", money.USD, 240)
 
 	t.Run("Confirms ETH transaction", func(t *testing.T) {
 		isTest := false
@@ -1011,6 +1106,118 @@ func TestService_BatchCheckWithdrawals(t *testing.T) {
 		withdrawal, err = tc.Services.Payment.GetByPublicID(ctx, withdrawal.PublicID)
 		assert.NoError(t, err)
 		assert.Equal(t, payment.StatusSuccess, withdrawal.Status)
+	})
+
+	t.Run("Confirms BNB transaction", func(t *testing.T) {
+		isTest := false
+
+		// ARRANGE
+		// Given merchant
+		mt, _ := tc.Must.CreateMerchant(t, 1)
+
+		// With BNB address
+		addr, err := tc.Services.Merchants.CreateMerchantAddress(ctx, mt.ID, merchant.CreateMerchantAddressParams{
+			Name:       "Bob's Address",
+			Blockchain: kmswallet.Blockchain(bnb.Blockchain),
+			Address:    "0x85222290dd7278ff3ddd389cc1e1d165cc4bafe5",
+		})
+		require.NoError(t, err)
+
+		// And BNB balance
+		withBalance := test.WithBalanceFromCurrency(bnb, "600_000_000_000_000_000", isTest)
+		merchantBalance := tc.Must.CreateBalance(t, wallet.EntityTypeMerchant, mt.ID, withBalance)
+
+		// Given withdrawal
+		amount := lo.Must(bnb.MakeAmount("500_000_000_000_000_000"))
+		withdrawal, err := tc.Services.Payment.CreateWithdrawal(ctx, mt.ID, payment.CreateWithdrawalProps{
+			BalanceID: merchantBalance.UUID,
+			AddressID: addr.UUID,
+			AmountRaw: amount.String(),
+		})
+		require.NoError(t, err)
+
+		// Given OUTBOUND wallet with balance of 1 BNB
+		withBNB := test.WithBalanceFromCurrency(bnb, "1_000_000_000_000_000_000", isTest)
+		outboundWallet, outboundBalance := tc.Must.CreateWalletWithBalance(t, "BSC", wallet.TypeOutbound, withBNB)
+
+		// Given service fee mock for withdrawal
+		serviceFeeUSD := lo.Must(money.FiatFromFloat64(money.USD, 3))
+		tc.Fakes.SetupCalculateWithdrawalFeeUSD(bnb, bnb, isTest, serviceFeeUSD)
+
+		const (
+			rawTxData = "0x123456"
+			txHashID  = "0xffffff"
+		)
+
+		// Given mocked BNB transaction creation & broadcast
+		tc.SetupCreateBSCTransactionWildcard(rawTxData)
+		tc.Fakes.SetupBroadcastTransaction(bnb.Blockchain, rawTxData, isTest, txHashID, nil)
+
+		// Given successful tx creation & broadcasting
+		result, err := tc.Services.Processing.BatchCreateWithdrawals(ctx, []int64{withdrawal.ID})
+		require.NoError(t, err)
+		require.Len(t, result.CreatedTransactions, 1)
+
+		txID := result.CreatedTransactions[0].ID
+
+		// ... time goes by ...
+
+		// Given transaction receipt
+		networkFee := lo.Must(bnb.MakeAmount("1000"))
+		receipt := &blockchain.TransactionReceipt{
+			Blockchain:    bnb.Blockchain,
+			IsTest:        isTest,
+			Sender:        outboundWallet.Address,
+			Recipient:     addr.Address,
+			Hash:          txHashID,
+			Nonce:         0,
+			NetworkFee:    networkFee,
+			Success:       true,
+			Confirmations: 10,
+			IsConfirmed:   true,
+		}
+
+		tc.Fakes.SetupGetTransactionReceipt(bnb.Blockchain, txHashID, isTest, receipt, nil)
+
+		// ACT
+		// Check for withdrawal progress
+		err = tc.Services.Processing.BatchCheckWithdrawals(ctx, []int64{txID})
+
+		// ASSERT
+		assert.NoError(t, err)
+
+		// Check transaction
+		tx, err := tc.Services.Transaction.GetByID(ctx, mt.ID, txID)
+		assert.NoError(t, err)
+		assert.Equal(t, transaction.StatusCompleted, tx.Status)
+		assert.Equal(t, networkFee, *tx.NetworkFee)
+
+		// Check outbound wallet & balance
+		outboundWallet, err = tc.Services.Wallet.GetByID(ctx, outboundWallet.ID)
+		assert.NoError(t, err)
+		assert.Equal(t, int64(0), outboundWallet.PendingMainnetTransactions)
+
+		// Check that outbound balance was decremented by tx amount and network fee
+		outboundAmountBefore := outboundBalance.Amount
+		outboundBalance, err = tc.Services.Wallet.GetBalanceByID(ctx, wallet.EntityTypeWallet, outboundWallet.ID, outboundBalance.ID)
+		assert.NoError(t, err)
+		assert.Equal(
+			t,
+			outboundAmountBefore,
+			lo.Must(lo.Must(outboundBalance.Amount.Add(tx.Amount)).Add(receipt.NetworkFee)),
+		)
+
+		// Check withdrawal
+		withdrawal, err = tc.Services.Payment.GetByPublicID(ctx, withdrawal.PublicID)
+		assert.NoError(t, err)
+		assert.Equal(t, payment.StatusSuccess, withdrawal.Status)
+
+		// Extra assertion from merchant's perspective
+		related, err := tc.Services.Payment.GetByMerchantOrderIDWithRelations(ctx, mt.ID, withdrawal.MerchantOrderUUID)
+		assert.NoError(t, err)
+		assert.Equal(t, tx.ID, related.Transaction.ID)
+		assert.Equal(t, merchantBalance.ID, related.Balance.ID)
+		assert.Equal(t, addr.ID, related.Address.ID)
 	})
 
 	t.Run("Transaction is not confirmed yet", func(t *testing.T) {

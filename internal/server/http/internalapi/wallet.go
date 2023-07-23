@@ -79,7 +79,7 @@ func (h *Handler) CalculateTransactionFee(c echo.Context) error {
 		return common.ErrorResponse(c, err.Error())
 	}
 
-	baseCurrency, err := h.blockchain.GetCurrencyByTicker(currency.Blockchain.String())
+	baseCurrency, err := h.blockchain.GetNativeCoin(currency.Blockchain)
 	if err != nil {
 		return common.ErrorResponse(c, err.Error())
 	}
@@ -98,12 +98,14 @@ func (h *Handler) CalculateTransactionFee(c echo.Context) error {
 		return c.JSON(http.StatusOK, v)
 	}
 
-	switch currency.Blockchain {
-	case kms.ETH.ToMoneyBlockchain():
+	switch kms.Blockchain(currency.Blockchain) {
+	case kms.ETH:
 		return response(fee.ToEthFee())
-	case kms.MATIC.ToMoneyBlockchain():
+	case kms.MATIC:
 		return response(fee.ToMaticFee())
-	case kms.TRON.ToMoneyBlockchain():
+	case kms.BSC:
+		return response(fee.ToBSCFee())
+	case kms.TRON:
 		return response(fee.ToTronFee())
 	}
 
