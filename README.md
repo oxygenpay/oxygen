@@ -5,7 +5,7 @@
 </p>
 
 [OxygenPay](https://o2pay.co) is a cloud or self-hosted crypto payment gateway.
-Accept ETH, MATIC, TRON, USDT, and USDC with ease. Open new opportunities for your product by accepting cryptocurrency.
+Receive crypto including stablecoins with ease. Open new opportunities for your product by accepting cryptocurrency.
 
 <img src="./.github/static/demo.jpg" alt="demo">
 
@@ -37,6 +37,10 @@ Accept ETH, MATIC, TRON, USDT, and USDC with ease. Open new opportunities for yo
             <img src="./ui-dashboard/src/assets/icons/crypto/usdc.svg" height="64" alt="usdc">
             <div>USDC</div>
         </td>
+        <td align="center">
+            <img src="./ui-dashboard/src/assets/icons/crypto/busd.svg" height="64" alt="busd">
+            <div>BUSD</div>
+        </td>
     </tr>
 </table>
 
@@ -56,12 +60,13 @@ Accept ETH, MATIC, TRON, USDT, and USDC with ease. Open new opportunities for yo
 
 ## Documentation 📚
 
-Visit [docs.o2pay.co](https://docs.o2pay.co) for setup guides. If you have any questions, feel free to ask them in our [telegram community](https://t.me/oxygenpay_en)
+Visit [docs.o2pay.co](https://docs.o2pay.co) for setup guides. If you have any questions,
+feel free to ask them in our [telegram community](https://t.me/oxygenpay_en)
 
 ## Roadmap 🛣️
 
 - [x] Support for USDC
-- [ ] Support for Binance Smart Chain (BNB, BUSD)
+- [x] Support for Binance Smart Chain (BNB, BUSD)
 - [ ] Donations feature
 - [ ] Support for [WalletConnect](https://walletconnect.com/)
 - [ ] SDKs for (Python, JavaScript, PHP, etc...)
