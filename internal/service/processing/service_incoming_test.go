@@ -34,6 +34,7 @@ func TestService_BatchCheckIncomingTransactions(t *testing.T) {
 	ethUSDT := tc.Must.GetCurrency(t, "ETH_USDT")
 	tron := tc.Must.GetCurrency(t, "TRON")
 	bnb := tc.Must.GetCurrency(t, "BNB")
+	bscUSDT := tc.Must.GetCurrency(t, "BSC_USDT")
 
 	// Given shortcut for imitating incoming tx
 	incomingTX := func(fiat money.FiatCurrency, price float64, crypto money.CryptoCurrency, isTest bool) *transaction.Transaction {
@@ -248,6 +249,35 @@ func TestService_BatchCheckIncomingTransactions(t *testing.T) {
 
 				assert.Equal(t, "50", wtBalance.Amount.String())
 				assert.Equal(t, "49.250000000000000028", mtBalance.Amount.String())
+
+				tc.AssertTableRows(t, "wallet_locks", 0)
+
+				assertUpdateStatusEventSent(t, true)
+			},
+		},
+		{
+			name: "success BSC USDT",
+			transaction: func(isTest bool) *transaction.Transaction {
+				tx := incomingTX(money.USD, 100, bscUSDT, isTest)
+				factAmount := lo.Must(tx.Currency.MakeAmount("100_000_000_000_000_000_000"))
+
+				return whReceived(tx, "0x123-hash-abc", factAmount, transaction.StatusInProgress)
+			},
+			receipt: makeReceipt(10, true, true),
+			assert: func(t *testing.T, tx *transaction.Transaction, pt *payment.Payment) {
+				assert.Equal(t, payment.StatusSuccess, pt.Status)
+
+				assert.Equal(t, transaction.StatusCompleted, tx.Status)
+				assert.Equal(t, tx.Amount, *tx.FactAmount)
+				assert.False(t, tx.ServiceFee.IsZero())
+				assert.Equal(t, "BNB", tx.NetworkFee.Ticker())
+
+				wtBalance, mtBalance := loadBalances(t, tx)
+
+				assert.Equal(t, "100", wtBalance.Amount.String())
+				assert.Equal(t, "98.500000000000000056", mtBalance.Amount.String())
+				assert.Equal(t, "BSC_USDT", mtBalance.Currency)
+				assert.Equal(t, "BSC", wtBalance.Network)
 
 				tc.AssertTableRows(t, "wallet_locks", 0)
 
