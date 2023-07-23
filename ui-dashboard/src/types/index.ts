@@ -27,7 +27,9 @@ const BLOCKCHAIN_TICKER = [
     "MATIC_USDC",
     "TRON",
     "TRON_USDT",
-    "BNB"
+    "BNB",
+    "BSC_USDT",
+    "BSC_BUSD"
 ] as const;
 
 type BlockchainTicker = typeof BLOCKCHAIN_TICKER[number];
@@ -98,7 +100,9 @@ const CURRENCY_SYMBOL: Record<CurrencyWithFiat, string> = {
     MATIC_USDC: "",
     TRON: "",
     TRON_USDT: "",
-    BNB: ""
+    BNB: "",
+    BSC_USDT: "",
+    BSC_BUSD: ""
 };
 
 type PaymentType = "payment" | "withdrawal";
