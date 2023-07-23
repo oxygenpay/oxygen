@@ -297,7 +297,7 @@ func (s *Service) updateBalancesAfterTxConfirmation(
 	networkCurrency := func() (money.CryptoCurrency, error) {
 		currency := tx.Currency
 		if tx.Currency.Type == money.Token {
-			cur, err := s.blockchain.GetNativeCoin(tx.Currency.Blockchain)
+			cur, err := s.blockchain.GetCurrencyByTicker(tx.Currency.Blockchain.String())
 			if err != nil {
 				return money.CryptoCurrency{}, errors.Wrap(err, "unable to get currency for fees")
 			}

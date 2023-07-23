@@ -33,8 +33,6 @@ func TestService_BatchCreateInternalTransfers(t *testing.T) {
 	tron := tc.Must.GetCurrency(t, "TRON")
 	tronUSDT := tc.Must.GetCurrency(t, "TRON_USDT")
 
-	bnb := tc.Must.GetCurrency(t, "BNB")
-
 	// Mock tx fees
 	tc.Fakes.SetupAllFees(t, tc.Services.Blockchain)
 
@@ -42,7 +40,6 @@ func TestService_BatchCreateInternalTransfers(t *testing.T) {
 	tc.Providers.TatumMock.SetupRates("ETH", money.USD, 1600)
 	tc.Providers.TatumMock.SetupRates("ETH_USDT", money.USD, 1)
 	tc.Providers.TatumMock.SetupRates("TRON", money.USD, 0.066)
-	tc.Providers.TatumMock.SetupRates("BNB", money.USD, 240)
 
 	t.Run("Creates transactions", func(t *testing.T) {
 		isTest := false
@@ -265,62 +262,6 @@ func TestService_BatchCreateInternalTransfers(t *testing.T) {
 
 			// For tokens, we should transfer 100% of crypto
 			assert.Equal(t, tx.Amount, b1.Amount)
-
-			// Get fresh wallet from DB
-			wt, err := tc.Services.Wallet.GetByID(tc.Context, *tx.SenderWalletID)
-			require.NoError(t, err)
-
-			// check pending tx counter
-			assert.Equal(t, int64(1), wt.PendingMainnetTransactions)
-
-			// Get fresh balance from DB
-			b1Fresh, err := tc.Services.Wallet.GetBalanceByUUID(tc.Context, wallet.EntityTypeWallet, wt.ID, b1.UUID)
-			require.NoError(t, err)
-
-			// check that balance has decremented
-			assert.True(t, b1Fresh.Amount.LessThan(b1.Amount), b1Fresh.Amount.String())
-		})
-
-		t.Run("Creates BNB transaction", func(t *testing.T) {
-			// ARRANGE
-			// Given outbound BNB balance
-			tc.Must.CreateWalletWithBalance(t, "BSC", wallet.TypeOutbound, withBalance(bnb, "0", isTest))
-
-			// Given an inbound balance with 0.5 BNB
-			w1, b1 := tc.Must.CreateWalletWithBalance(t, "BSC", wallet.TypeInbound, withBalance(bnb, "500_000_000_000_000_000", isTest))
-
-			const (
-				rawTxData = "0x123456"
-				txHashID  = "0xffffff"
-			)
-
-			// And mocked ethereum transaction creation & broadcast
-			tc.SetupCreateBSCTransactionWildcard(rawTxData)
-			tc.Fakes.SetupBroadcastTransaction(bnb.Blockchain, rawTxData, false, txHashID, nil)
-
-			// ACT
-			// Create internal transfer
-			result, err := tc.Services.Processing.BatchCreateInternalTransfers(tc.Context, []*wallet.Balance{b1})
-
-			// ASSERT
-			assert.NoError(t, err)
-			assert.Len(t, result.CreatedTransactions, 1)
-			assert.Empty(t, result.RollbackedTransactionIDs)
-			assert.Empty(t, result.TotalErrors)
-
-			// Get fresh transaction from DB
-			tx, err := tc.Services.Transaction.GetByID(tc.Context, 0, result.CreatedTransactions[0].ID)
-			require.NoError(t, err)
-
-			// Check that tx was created
-			assert.NotNil(t, tx)
-			assert.Equal(t, w1.ID, *tx.SenderWalletID)
-			assert.Equal(t, w1.Address, *tx.SenderAddress)
-			assert.Equal(t, b1.Currency, tx.Amount.Ticker())
-			assert.Equal(t, txHashID, *tx.HashID)
-			assert.True(t, tx.ServiceFee.IsZero())
-			assert.Nil(t, tx.NetworkFee)
-			assert.NotEqual(t, tx.Amount, b1.Amount)
 
 			// Get fresh wallet from DB
 			wt, err := tc.Services.Wallet.GetByID(tc.Context, *tx.SenderWalletID)
@@ -653,9 +594,6 @@ func TestService_BatchCheckInternalTransfers(t *testing.T) {
 	tronUSDT := tc.Must.GetCurrency(t, "TRON_USDT")
 	tronNetworkFee := lo.Must(tron.MakeAmount("1000"))
 
-	bnb := tc.Must.GetCurrency(t, "BNB")
-	bnbNetworkFee := lo.Must(bnb.MakeAmount("2000"))
-
 	createTransfer := func(
 		sender, recipient *wallet.Wallet,
 		senderBalance *wallet.Balance,
@@ -982,73 +920,6 @@ func TestService_BatchCheckInternalTransfers(t *testing.T) {
 		balanceInCoin, err = tc.Services.Wallet.GetBalanceByUUID(ctx, wallet.EntityTypeWallet, wtIn.ID, balanceInCoin.UUID)
 		require.NoError(t, err)
 		assert.Equal(t, "1000", balanceInCoin.Amount.StringRaw())
-	})
-
-	t.Run("Confirms BNB transfer", func(t *testing.T) {
-		// ARRANGE
-		tc.Clear.Wallets(t)
-		isTest := false
-
-		// Given INBOUND wallet with BNB balance
-		withBNB1 := test.WithBalanceFromCurrency(bnb, "500_000_000", isTest)
-		wtIn, balanceIn := tc.Must.CreateWalletWithBalance(t, bnb.Blockchain.String(), wallet.TypeInbound, withBNB1)
-
-		// And OUTBOUND wallet with zero balance
-		withBNB2 := test.WithBalanceFromCurrency(bnb, "0", isTest)
-		wtOut, balanceOut := tc.Must.CreateWalletWithBalance(t, bnb.Blockchain.String(), wallet.TypeOutbound, withBNB2)
-
-		// And created internal transfer
-		amount := money.MustCryptoFromRaw(bnb.Ticker, "300_000_000", bnb.Decimals)
-
-		tx, _ := createTransfer(wtIn, wtOut, balanceIn, bnb, amount, isTest)
-
-		// And decremented sender balance
-		balanceIn, err := tc.Services.Wallet.GetBalanceByUUID(ctx, wallet.EntityTypeWallet, wtIn.ID, balanceIn.UUID)
-		require.NoError(t, err)
-		require.Equal(t, "200000000", balanceIn.Amount.StringRaw())
-
-		// And mocked network fee
-		receipt := &blockchain.TransactionReceipt{
-			Blockchain:    bnb.Blockchain,
-			IsTest:        tx.IsTest,
-			Sender:        wtIn.Address,
-			Recipient:     wtOut.Address,
-			Hash:          *tx.HashID,
-			NetworkFee:    bnbNetworkFee,
-			Success:       true,
-			Confirmations: 5,
-			IsConfirmed:   true,
-		}
-
-		tc.Fakes.SetupGetTransactionReceipt(bnb.Blockchain, *tx.HashID, tx.IsTest, receipt, nil)
-
-		// ACT
-		err = tc.Services.Processing.BatchCheckInternalTransfers(ctx, []int64{tx.ID})
-
-		// ASSERT
-		assert.NoError(t, err)
-
-		// Check that tx is successful
-		tx, err = tc.Services.Transaction.GetByID(ctx, 0, tx.ID)
-		require.NoError(t, err)
-
-		assert.Equal(t, transaction.TypeInternal, tx.Type)
-		assert.Equal(t, transaction.StatusCompleted, tx.Status)
-		assert.Equal(t, amount, tx.Amount)
-		assert.Equal(t, amount, *tx.FactAmount)
-		assert.Equal(t, bnbNetworkFee, *tx.NetworkFee)
-		assert.Equal(t, wtIn.ID, *tx.SenderWalletID)
-		assert.Equal(t, wtOut.ID, *tx.RecipientWalletID)
-
-		// Check that sender balance equals to 500_000_000 - 300_000_000 - network fee (2000)
-		balanceIn, err = tc.Services.Wallet.GetBalanceByUUID(ctx, wallet.EntityTypeWallet, wtIn.ID, balanceIn.UUID)
-		require.NoError(t, err)
-		assert.Equal(t, "199998000", balanceIn.Amount.StringRaw())
-
-		// Check that recipient balance equals to $amount
-		balanceOut, err = tc.Services.Wallet.GetBalanceByUUID(ctx, wallet.EntityTypeWallet, wtOut.ID, balanceOut.UUID)
-		require.NoError(t, err)
-		assert.Equal(t, amount.StringRaw(), balanceOut.Amount.StringRaw())
 	})
 
 	t.Run("Transaction is not confirmed yet", func(t *testing.T) {

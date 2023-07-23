@@ -180,7 +180,7 @@ func TestScheduler(t *testing.T) {
 			// Check job logs
 			// "fetched inbound wallets" + "matched inbound balances" + "created internal transactions"
 			tc.AssertTableRows(t, "job_logs", 3)
-			tc.AssertTableRows(t, "wallets", 4)
+			tc.AssertTableRows(t, "wallets", 3)
 
 			// Check that duplicate outbound wallet duplicate creation is not possible
 			tc.SetupCreateWalletWithSubscription("ETH", "0x2222", "0x123-pub-key")

@@ -202,10 +202,3 @@ func (m *Must) GetCurrency(t *testing.T, ticker string) money.CryptoCurrency {
 
 	return c
 }
-
-func (m *Must) GetBlockchainCoin(t *testing.T, chain money.Blockchain) money.CryptoCurrency {
-	c, err := m.tc.Services.Blockchain.GetNativeCoin(chain)
-	require.NoError(t, err)
-
-	return c
-}

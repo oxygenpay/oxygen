@@ -137,8 +137,10 @@ func (s *Service) DeleteMerchantAddress(ctx context.Context, merchantID int64, i
 }
 
 func (s *Service) entryToAddress(entry repository.MerchantAddress) (*Address, error) {
-	blockchain := wallet.Blockchain(entry.Blockchain)
-	coin, _ := s.blockchain.GetNativeCoin(blockchain.ToMoneyBlockchain())
+	var blockchainName string
+	if c, err := s.blockchain.GetCurrencyByTicker(entry.Blockchain); err == nil {
+		blockchainName = c.BlockchainName
+	}
 
 	return &Address{
 		ID:             entry.ID,
@@ -147,8 +149,8 @@ func (s *Service) entryToAddress(entry repository.MerchantAddress) (*Address, er
 		UpdatedAt:      entry.UpdatedAt,
 		Name:           entry.Name,
 		MerchantID:     entry.MerchantID,
-		Blockchain:     blockchain,
-		BlockchainName: coin.BlockchainName,
+		Blockchain:     wallet.Blockchain(entry.Blockchain),
+		BlockchainName: blockchainName,
 		Address:        entry.Address,
 	}, nil
 }

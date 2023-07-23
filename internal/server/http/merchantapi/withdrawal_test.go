@@ -359,7 +359,7 @@ func TestWithdrawalRoutes(t *testing.T) {
 				)
 				require.NoError(t, err)
 
-				baseCurrency, err := tc.Services.Blockchain.GetNativeCoin(currency.Blockchain)
+				baseCurrency, err := tc.Services.Blockchain.GetCurrencyByTicker(currency.Blockchain.String())
 				require.NoError(t, err)
 
 				tc.Providers.TatumMock.SetupRates(currency.Ticker, money.USD, 2)
@@ -404,11 +404,6 @@ func TestWithdrawalRoutes(t *testing.T) {
 					balance:           makeBalance(asset("ETH"), false, usd(0.01)),
 					expectedFeeUSD:    "0.01",
 					expectedFeeCrypto: "0.005",
-				},
-				{
-					balance:           makeBalance(asset("BNB"), false, usd(0.02)),
-					expectedFeeUSD:    "0.02",
-					expectedFeeCrypto: "0.01",
 				},
 				{
 					// in testnets money "cost" $0

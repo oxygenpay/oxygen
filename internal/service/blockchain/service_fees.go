@@ -26,14 +26,12 @@ func (s *Service) CalculateFee(ctx context.Context, baseCurrency, currency money
 		return Fee{}, errors.New("invalid arguments")
 	}
 
-	switch kmswallet.Blockchain(currency.Blockchain) {
-	case kmswallet.ETH:
+	switch currency.Blockchain {
+	case kmswallet.ETH.ToMoneyBlockchain():
 		return s.ethFee(ctx, baseCurrency, currency, isTest)
-	case kmswallet.MATIC:
+	case kmswallet.MATIC.ToMoneyBlockchain():
 		return s.maticFee(ctx, baseCurrency, currency, isTest)
-	case kmswallet.BSC:
-		return s.bscFee(ctx, baseCurrency, currency, isTest)
-	case kmswallet.TRON:
+	case kmswallet.TRON.ToMoneyBlockchain():
 		return s.tronFee(ctx, baseCurrency, currency, isTest)
 	}
 
@@ -54,17 +52,14 @@ func (s *Service) CalculateWithdrawalFeeUSD(
 
 	var usdFee money.Money
 
-	switch kmswallet.Blockchain(fee.Currency.Blockchain) {
-	case kmswallet.ETH:
+	switch fee.Currency.Blockchain {
+	case kmswallet.ETH.ToMoneyBlockchain():
 		f, _ := fee.ToEthFee()
 		usdFee = f.totalCostUSD
-	case kmswallet.MATIC:
+	case kmswallet.MATIC.ToMoneyBlockchain():
 		f, _ := fee.ToMaticFee()
 		usdFee = f.totalCostUSD
-	case kmswallet.BSC:
-		f, _ := fee.ToBSCFee()
-		usdFee = f.totalCostUSD
-	case kmswallet.TRON:
+	case kmswallet.TRON.ToMoneyBlockchain():
 		f, _ := fee.ToTronFee()
 		usdFee = f.feeLimitUSD
 	default:
@@ -287,100 +282,6 @@ func (s *Service) maticFee(ctx context.Context, baseCurrency, currency money.Cry
 		TotalCostWEI:   totalCost.StringRaw(),
 		TotalCostMATIC: totalCost.String(),
 		TotalCostUSD:   conv.To.String(),
-
-		totalCostUSD: conv.To,
-	}), nil
-}
-
-type BSCFee struct {
-	GasUnits     uint   `json:"gasUnits"`
-	GasPrice     string `json:"gasPrice"`
-	PriorityFee  string `json:"priorityFee"`
-	TotalCostWEI string `json:"totalCostWei"`
-	TotalCostBNB string `json:"totalCostBNB"`
-	TotalCostUSD string `json:"totalCostUsd"`
-
-	totalCostUSD money.Money
-}
-
-func (f *Fee) ToBSCFee() (BSCFee, error) {
-	if fee, ok := f.raw.(BSCFee); ok {
-		return fee, nil
-	}
-
-	return BSCFee{}, errors.New("invalid fee type assertion for BSC")
-}
-
-func (s *Service) bscFee(ctx context.Context, baseCurrency, currency money.CryptoCurrency, isTest bool) (Fee, error) {
-	const (
-		gasUnitsForCoin  = 21_000
-		gasUnitsForToken = 65_000
-
-		gasConfidentRate = 1.10
-	)
-
-	// 1. Connect to BSC node
-	client, err := s.providers.Tatum.BinanceSmartChainRPC(ctx, isTest)
-	if err != nil {
-		return Fee{}, errors.Wrap(err, "unable to setup RPC")
-	}
-
-	// 2. Calculate gasPrice
-	gasPrice, err := client.SuggestGasPrice(ctx)
-	if err != nil {
-		return Fee{}, errors.Wrap(err, "unable to suggest gas price")
-	}
-
-	gasPriceMATIC, err := baseCurrency.MakeAmountFromBigInt(gasPrice)
-	if err != nil {
-		return Fee{}, errors.Wrap(err, "unable to make BSC from gas price")
-	}
-
-	// In order to be confident that tx will be processed, let's multiply price by gasConfidentRate
-	gasPriceMATICConfident, err := gasPriceMATIC.MultiplyFloat64(gasConfidentRate)
-	if err != nil {
-		return Fee{}, errors.Wrap(err, "unable to multiply BSC gas price")
-	}
-
-	// 3. Calculate priorityFee
-	priorityFee, err := client.SuggestGasTipCap(ctx)
-	if err != nil {
-		return Fee{}, errors.Wrap(err, "unable to suggest BSC gas tip cap")
-	}
-
-	priorityFeeBSC, err := baseCurrency.MakeAmountFromBigInt(priorityFee)
-	if err != nil {
-		return Fee{}, errors.Wrap(err, "unable to suggest make BSC from priorityFee")
-	}
-
-	// 4. Calculate gasUnits and total cost in WEI
-	totalFeePerGas, err := gasPriceMATICConfident.Add(priorityFeeBSC)
-	if err != nil {
-		return Fee{}, errors.Wrap(err, "unable to calculate total fee per gas")
-	}
-
-	gasUnits := gasUnitsForCoin
-	if currency.Type == money.Token {
-		gasUnits = gasUnitsForToken
-	}
-
-	totalCost, err := totalFeePerGas.MultiplyFloat64(float64(gasUnits))
-	if err != nil {
-		return Fee{}, errors.Wrap(err, "unable to calculate total tx cost")
-	}
-
-	conv, err := s.CryptoToFiat(ctx, totalCost, money.USD)
-	if err != nil {
-		return Fee{}, errors.Wrap(err, "unable to calculate total cost in USD")
-	}
-
-	return NewFee(currency, time.Now().UTC(), isTest, BSCFee{
-		GasUnits:     uint(gasUnits),
-		GasPrice:     gasPriceMATICConfident.StringRaw(),
-		PriorityFee:  priorityFeeBSC.StringRaw(),
-		TotalCostWEI: totalCost.StringRaw(),
-		TotalCostBNB: totalCost.String(),
-		TotalCostUSD: conv.To.String(),
 
 		totalCostUSD: conv.To,
 	}), nil

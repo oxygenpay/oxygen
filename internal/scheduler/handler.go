@@ -93,7 +93,7 @@ func (h *Handler) PerformInternalWalletTransfer(ctx context.Context) error {
 	logger := zerolog.Ctx(ctx)
 
 	// 1. Ensure outbound wallets exist in DB
-	if err := h.EnsureOutboundWallets(ctx); err != nil {
+	if err := h.ensureOutboundWallets(ctx, logger); err != nil {
 		return errors.Wrap(err, "unable to ensure outbound wallets")
 	}
 
@@ -224,7 +224,7 @@ func (h *Handler) PerformWithdrawalsCreation(ctx context.Context) error {
 	logger := zerolog.Ctx(ctx)
 
 	// 1. Ensure outbound wallets exist in DB
-	if err := h.EnsureOutboundWallets(ctx); err != nil {
+	if err := h.ensureOutboundWallets(ctx, logger); err != nil {
 		return errors.Wrap(err, "unable to ensure outbound wallets")
 	}
 
@@ -264,9 +264,7 @@ func (h *Handler) PerformWithdrawalsCreation(ctx context.Context) error {
 	return nil
 }
 
-func (h *Handler) EnsureOutboundWallets(ctx context.Context) error {
-	logger := zerolog.Ctx(ctx)
-
+func (h *Handler) ensureOutboundWallets(ctx context.Context, logger *zerolog.Logger) error {
 	group, ctx := errgroup.WithContext(ctx)
 	group.SetLimit(4)
 

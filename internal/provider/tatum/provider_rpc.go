@@ -3,34 +3,28 @@ package tatum
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 func (p *Provider) EthereumRPC(ctx context.Context, isTest bool) (*ethclient.Client, error) {
-	return ethclient.DialContext(ctx, p.rpcPath("v3/blockchain/node/ETH", isTest))
+	const path = "v3/blockchain/node/ETH"
+
+	url := fmt.Sprintf("%s/%s/%s", p.config.BasePath, path, p.config.APIKey)
+	if isTest {
+		url = fmt.Sprintf("%s/%s/%s?testnetType=%s", p.config.BasePath, path, p.config.TestAPIKey, EthTestnet)
+	}
+
+	return ethclient.DialContext(ctx, url)
 }
 
 func (p *Provider) MaticRPC(ctx context.Context, isTest bool) (*ethclient.Client, error) {
-	return ethclient.DialContext(ctx, p.rpcPath("v3/blockchain/node/MATIC", isTest))
-}
+	const path = "v3/blockchain/node/MATIC"
 
-func (p *Provider) BinanceSmartChainRPC(ctx context.Context, isTest bool) (*ethclient.Client, error) {
-	return ethclient.DialContext(ctx, p.rpcPath("v3/blockchain/node/BSC", isTest))
-}
-
-func (p *Provider) rpcPath(path string, isTest bool) string {
 	url := fmt.Sprintf("%s/%s/%s", p.config.BasePath, path, p.config.APIKey)
-	if !isTest {
-		return url
+	if isTest {
+		url = fmt.Sprintf("%s/%s/%s", p.config.BasePath, path, p.config.TestAPIKey)
 	}
 
-	url = fmt.Sprintf("%s/%s/%s", p.config.BasePath, path, p.config.TestAPIKey)
-
-	if strings.HasSuffix(path, "ETH") {
-		url += "?testnetType=" + EthTestnet
-	}
-
-	return url
+	return ethclient.DialContext(ctx, url)
 }

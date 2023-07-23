@@ -22,9 +22,6 @@ paths:
   /wallet/{walletId}/transaction/matic:
     $ref: './v1/wallet.yml#/paths/~1wallet~1{walletId}~1transaction~1matic'
 
-  /wallet/{walletId}/transaction/bsc:
-    $ref: './v1/wallet.yml#/paths/~1wallet~1{walletId}~1transaction~1bsc'
-
   /wallet/{walletId}/transaction/tron:
     $ref: './v1/wallet.yml#/paths/~1wallet~1{walletId}~1transaction~1tron'
 

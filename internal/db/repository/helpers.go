@@ -96,15 +96,6 @@ func NumericToMoney(num pgtype.Numeric, moneyType money.Type, ticker string, dec
 	return money.NewFromBigInt(moneyType, ticker, bigInt, decimals)
 }
 
-func NumericToCrypto(num pgtype.Numeric, currency money.CryptoCurrency) (money.Money, error) {
-	bigInt, err := NumericToBigInt(num)
-	if err != nil {
-		return money.Money{}, err
-	}
-
-	return currency.MakeAmountFromBigInt(bigInt)
-}
-
 func MoneyToNumeric(m money.Money) pgtype.Numeric {
 	bigInt, _ := m.BigInt()
 	return BigIntToNumeric(bigInt)

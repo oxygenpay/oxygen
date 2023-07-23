@@ -32,9 +32,6 @@ const (
 
 	// BlockchainMATIC captures enum value "MATIC"
 	BlockchainMATIC Blockchain = "MATIC"
-
-	// BlockchainBSC captures enum value "BSC"
-	BlockchainBSC Blockchain = "BSC"
 )
 
 // for schema
@@ -42,7 +39,7 @@ var blockchainEnum []interface{}
 
 func init() {
 	var res []Blockchain
-	if err := json.Unmarshal([]byte(`["BTC","ETH","TRON","MATIC","BSC"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["BTC","ETH","TRON","MATIC"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
