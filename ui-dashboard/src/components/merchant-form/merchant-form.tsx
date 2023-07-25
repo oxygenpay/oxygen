@@ -1,5 +1,4 @@
 import * as React from "react";
-import {useMount} from "react-use";
 import {Form, Input, Button, Space, FormInstance} from "antd";
 import {Merchant, MerchantBase} from "src/types";
 import {sleep} from "src/utils";
@@ -17,14 +16,9 @@ const linkPrefix = "https://";
 const MerchantForm: React.FC<Props> = (props: Props) => {
     const [form] = Form.useForm<MerchantBase>();
 
-    useMount(() => {
-        if (props.activeMerchant) {
-            form.setFieldsValue(props.activeMerchant);
-        }
-    });
-
     React.useEffect(() => {
         if (props.activeMerchant) {
+            props.activeMerchant.website = props.activeMerchant.website.slice(8);
             form.setFieldsValue(props.activeMerchant);
         }
     }, [props.activeMerchant]);
