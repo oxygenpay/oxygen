@@ -18,7 +18,7 @@ const WebhookSettingsForm: React.FC<Props> = (props: Props) => {
 
     React.useEffect(() => {
         if (props.webhookSettings) {
-            form.setFieldsValue(props.webhookSettings);
+            form.setFieldsValue({...props.webhookSettings, url: props.webhookSettings.url.slice(8)});
         }
     }, [props.webhookSettings]);
 
