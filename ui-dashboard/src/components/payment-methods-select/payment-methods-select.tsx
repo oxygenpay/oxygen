@@ -2,21 +2,18 @@ import "./payment-methods-select.scss";
 
 import * as React from "react";
 import {useAsyncFn, useMount} from "react-use";
-import bevis from "src/utils/bevis";
-import {Checkbox, Row, Typography} from "antd";
+import {Row, Typography} from "antd";
 import {BlockchainTicker} from "src/types/index";
 import merchantProvider from "src/providers/merchant-provider";
-import Icon from "src/components/icon/icon";
-import SpinWithMask from "src/components/spin-with-mask/spin-with-mask";
 import useSharedMerchantId from "src/hooks/use-merchant-id";
 import useSharedMerchant from "src/hooks/use-merchant";
-
-const b = bevis("payment-methods-select");
+import PaymentMethodsItem from "src/components/payment-method-item/payment-method-item";
 
 const PaymentMethodsSelect: React.FC = () => {
     const {merchant, getMerchant} = useSharedMerchant();
     const {merchantId} = useSharedMerchantId();
     const [supportedMethodsReqState, updateSupportedMethods] = useAsyncFn(merchantProvider.updateSupportedMethods);
+    const [availableBlockchains, setAvailableBlockchains] = React.useState<string[]>([]);
 
     const onChange = (ticker: BlockchainTicker) => {
         if (!merchantId || !merchant?.supportedPaymentMethods) {
@@ -30,6 +27,14 @@ const PaymentMethodsSelect: React.FC = () => {
         const supportedPaymentMethods = newPaymentMethods.filter((item) => item.enabled).map((item) => item.ticker);
 
         updateSupportedMethods(merchantId, {supportedPaymentMethods});
+    };
+
+    const getBlockchainsList = () => {
+        if (!merchant) {
+            return [];
+        }
+
+        return [...new Set(merchant.supportedPaymentMethods.map((item) => item.blockchainName))];
     };
 
     const updateMerchant = async () => {
@@ -48,29 +53,30 @@ const PaymentMethodsSelect: React.FC = () => {
         updateMerchant();
     }, [merchantId]);
 
+    React.useEffect(() => {
+        setAvailableBlockchains(getBlockchainsList());
+    }, [merchant?.supportedPaymentMethods]);
+
     return (
         <>
             <Row align="middle" justify="space-between">
                 <Typography.Title level={3}>Accepted Currencies</Typography.Title>
             </Row>
-            <div className={b()}>
-                {merchant?.supportedPaymentMethods.map((item) => (
-                    <div className={b("option")} key={item.ticker}>
-                        <Checkbox value={item.ticker} style={{lineHeight: "32px"}} checked={item.enabled}>
-                            {item.displayName}
-                        </Checkbox>
-                        <Icon name={item.name.toLowerCase()} dir="crypto" className={b("icon")} />
-                        {/* it's needed to prevent onClick on checkbox so as not to fire handler twice */}
-                        <div
-                            className={b("overlay")}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onChange(item.ticker);
-                            }}
+            <div>
+                {availableBlockchains.map((item) => (
+                    <div key={item}>
+                        <PaymentMethodsItem
+                            title={item}
+                            items={
+                                merchant?.supportedPaymentMethods.filter(
+                                    (paymentItem) => paymentItem.blockchainName === item
+                                ) ?? []
+                            }
+                            onChange={onChange}
+                            isLoading={supportedMethodsReqState.loading}
                         />
                     </div>
                 ))}
-                <SpinWithMask isLoading={supportedMethodsReqState.loading} />
             </div>
         </>
     );
