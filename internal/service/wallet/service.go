@@ -58,7 +58,7 @@ type Type string
 
 type Pagination struct {
 	Start              int64
-	Limit              int64
+	Limit              int32
 	FilterByBlockchain kmswallet.Blockchain
 	FilterByType       Type
 }
@@ -204,7 +204,7 @@ func (s *Service) GetByUUID(ctx context.Context, id uuid.UUID) (*Wallet, error) 
 func (s *Service) List(ctx context.Context, pagination Pagination) ([]*Wallet, *int64, error) {
 	results, err := s.store.PaginateWalletsByID(ctx, repository.PaginateWalletsByIDParams{
 		ID:                 pagination.Start,
-		Limit:              int32(pagination.Limit),
+		Limit:              pagination.Limit,
 		FilterByBlockchain: pagination.FilterByBlockchain != "",
 		Blockchain:         string(pagination.FilterByBlockchain),
 		FilterByType:       pagination.FilterByType != "",

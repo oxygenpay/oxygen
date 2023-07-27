@@ -15,7 +15,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const defaultPaginationLimit = 30
+const defaultPaginationLimit = int32(30)
 const maxPaginationLimit = 100
 
 const paramWalletID = "walletID"
@@ -221,14 +221,16 @@ func (h *Handler) ListWallets(c echo.Context) error {
 
 	paginationLimit := defaultPaginationLimit
 	if limit != "" {
-		paginationLimit, err = strconv.Atoi(limit)
-		if err != nil {
+		l, errParse := strconv.ParseInt(limit, 10, 32)
+		if errParse != nil {
 			return c.JSON(http.StatusBadRequest, &admin.ErrorResponse{
 				Errors:  nil,
 				Message: "Invalid query param: limit",
 				Status:  "validation_error",
 			})
 		}
+
+		paginationLimit = int32(l)
 	}
 
 	invalid := startID < 1 || paginationLimit > maxPaginationLimit ||
@@ -245,7 +247,7 @@ func (h *Handler) ListWallets(c echo.Context) error {
 	ctx := c.Request().Context()
 	wallets, nextPageID, err := h.wallet.List(ctx, wallet.Pagination{
 		Start:              int64(startID),
-		Limit:              int64(paginationLimit),
+		Limit:              paginationLimit,
 		FilterByBlockchain: blockchain,
 	})
 

@@ -15,18 +15,34 @@ func (h *Handler) GetRedirect(c echo.Context) error {
 		return c.Redirect(http.StatusTemporaryRedirect, h.googleAuth.GetAuthenticatedRedirectURL())
 	}
 
-	return c.Redirect(http.StatusTemporaryRedirect, h.googleAuth.RedirectURL())
+	redirect, state := h.googleAuth.RedirectURLWithState()
+
+	setSession := map[string]any{middleware.SessionStateKey: state}
+	if err := h.persistSession(c, "google", setSession); err != nil {
+		return common.ErrorResponse(c, "internal error")
+	}
+
+	return c.Redirect(http.StatusTemporaryRedirect, redirect)
 }
 
 func (h *Handler) GetCallback(c echo.Context) error {
+	ctx := c.Request().Context()
+
 	if person := middleware.ResolveUser(c); person != nil {
 		return c.Redirect(http.StatusTemporaryRedirect, h.googleAuth.GetAuthenticatedRedirectURL())
 	}
 
-	ctx := c.Request().Context()
+	query := c.Request().URL.Query()
 
-	code := c.Request().URL.Query().Get("code")
-	googleUser, err := h.googleAuth.ResolveUser(ctx, code)
+	expectedState, stateExists := middleware.ResolveSessionOAuthState(c)
+	switch {
+	case !stateExists:
+		return common.ValidationErrorResponse(c, "Missing OAuth state")
+	case expectedState != query.Get("state"):
+		return common.ValidationErrorResponse(c, "OAuth state mismatch")
+	}
+
+	googleUser, err := h.googleAuth.ResolveUser(ctx, query.Get("code"))
 	if err != nil {
 		msg := "unable to resolve googleUser"
 		h.logger.Error().Err(err).Msg(msg)
@@ -43,7 +59,8 @@ func (h *Handler) GetCallback(c echo.Context) error {
 		return errors.Wrap(err, "unable to resolve google user")
 	}
 
-	if err := h.persistSessionUserID(c, person.ID, "google"); err != nil {
+	setSession := map[string]any{middleware.UserIDContextKey: person.ID}
+	if err := h.persistSession(c, "google", setSession); err != nil {
 		return common.ErrorResponse(c, "internal error")
 	}
 
