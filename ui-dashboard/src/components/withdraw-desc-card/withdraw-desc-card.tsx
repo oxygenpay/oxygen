@@ -136,7 +136,11 @@ const WithdrawalDescCard: React.FC<Props> = ({data, openNotificationFunc, addres
                             </>
                         ) : null}
                         <Descriptions.Item>
-                            <a href={data.additionalInfo.withdrawal.explorerLink} target="_blank">
+                            <a
+                                href={data.additionalInfo.withdrawal.explorerLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
                                 View on blockchain explorer <LinkOutlined className={b("copy-btn")} />
                             </a>
                         </Descriptions.Item>

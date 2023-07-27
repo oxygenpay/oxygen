@@ -32,7 +32,8 @@ func (h *Handler) PostLogin(c echo.Context) error {
 		return errors.Wrap(err, "unable to resolve user")
 	}
 
-	if err := h.persistSessionUserID(c, person.ID, "email"); err != nil {
+	setSession := map[string]any{middleware.UserIDContextKey: person.ID}
+	if err := h.persistSession(c, "email", setSession); err != nil {
 		return common.ErrorResponse(c, "internal error")
 	}
 

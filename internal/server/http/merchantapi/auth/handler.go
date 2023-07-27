@@ -80,12 +80,15 @@ func (h *Handler) PostLogout(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (h *Handler) persistSessionUserID(c echo.Context, id int64, provider string) error {
+func (h *Handler) persistSession(c echo.Context, source string, values map[string]any) error {
 	s := middleware.ResolveSession(c)
-	s.Values[middleware.UserIDContextKey] = id
+
+	for k, v := range values {
+		s.Values[k] = v
+	}
 
 	if err := s.Save(c.Request(), c.Response()); err != nil {
-		h.logger.Error().Err(err).Str("provider", provider).Msg("unable to persist user session")
+		h.logger.Error().Err(err).Str("source", source).Msg("unable to persist user session")
 		return err
 	}
 
