@@ -23,6 +23,8 @@ const (
 	IsTokenAuthContextKey = "token_auth"
 	MerchantContextKey    = "merchant"
 
+	SessionStateKey = "session_state"
+
 	ParamMerchantID = "merchantId"
 )
 
@@ -214,6 +216,22 @@ func ResolveSession(c echo.Context) *sessions.Session {
 	userSession.Options = &sessionOptions
 
 	return userSession
+}
+
+func ResolveSessionOAuthState(c echo.Context) (string, bool) {
+	s := ResolveSession(c)
+
+	raw, ok := s.Values[SessionStateKey]
+	if !ok {
+		return "", false
+	}
+
+	state, ok := raw.(string)
+	if !ok {
+		return "", false
+	}
+
+	return state, true
 }
 
 func ResolveUser(c echo.Context) *user.User {

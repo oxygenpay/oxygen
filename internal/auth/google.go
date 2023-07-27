@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 
+	"github.com/oxygenpay/oxygen/internal/util"
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
 	"golang.org/x/oauth2"
@@ -46,9 +47,11 @@ func NewGoogleOAuth(cfg GoogleConfig, logger *zerolog.Logger) *GoogleOAuthManage
 	}
 }
 
-// RedirectURL return URL to Google auth screen.
-func (a *GoogleOAuthManager) RedirectURL() string {
-	return a.config.AuthCodeURL("")
+// RedirectURLWithState return URL to Google auth screen.
+func (a *GoogleOAuthManager) RedirectURLWithState() (string, string) {
+	state := util.Strings.Random(16)
+
+	return a.config.AuthCodeURL(state), state
 }
 
 func (a *GoogleOAuthManager) ResolveUser(ctx context.Context, code string) (*GoogleUser, error) {
