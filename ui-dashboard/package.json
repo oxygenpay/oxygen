@@ -35,6 +35,7 @@
     "bigfloat.js": "^3.0.1",
     "date-fns": "^2.29.3",
     "date-fns-tz": "^2.0.0",
+    "json5": "^2.2.3",
     "lodash-es": "4.17.21",
     "posthog-js": "1.57.2",
     "react": "18.2.0",
@@ -66,7 +67,7 @@
     "postcss": "8.4.19",
     "sass": "1.57.1",
     "typescript": "4.6.4",
-    "vite": "3.2.3",
+    "vite": "^4.4.7",
     "vite-plugin-dynamic-import": "1.2.4",
     "vite-plugin-svgr": "2.2.2"
   }
