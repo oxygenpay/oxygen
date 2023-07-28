@@ -1,6 +1,6 @@
 import * as React from "react";
 import bevis from "src/utils/bevis";
-import {Checkbox, Row, Typography} from "antd";
+import {Space, Tag} from "antd";
 import SpinWithMask from "src/components/spin-with-mask/spin-with-mask";
 import {BlockchainTicker, PaymentMethod} from "src/types/index";
 import Icon from "src/components/icon/icon";
@@ -16,30 +16,26 @@ interface Props {
 
 const PaymentMethodsItem: React.FC<Props> = (props: Props) => {
     return (
-        <>
-            <Row align="middle" justify="space-between">
-                <Typography.Title level={5}>{props.title}</Typography.Title>
-            </Row>
-            <div className={b()}>
-                {props.items.map((item) => (
-                    <div className={b("option")} key={item.displayName}>
-                        <Checkbox value={item.ticker} style={{lineHeight: "32px"}} checked={item.enabled}>
-                            {item.displayName}
-                        </Checkbox>
-                        <Icon name={item.name.toLowerCase()} dir="crypto" className={b("icon")} />
-                        {/* it's needed to prevent onClick on checkbox so as not to fire handler twice */}
-                        <div
-                            className={b("overlay")}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                props.onChange(item.ticker);
-                            }}
-                        />
-                        <SpinWithMask isLoading={props.isLoading} />
-                    </div>
-                ))}
-            </div>
-        </>
+        <Space size={[0, 8]} wrap className={b()}>
+            {props.items.map((item) => (
+                <Tag
+                    key={item.name}
+                    icon={<Icon name={item.name.toLowerCase()} dir="crypto" className={b("icon")} />}
+                    color={item.enabled ? "#55acee" : "#9897a9"}
+                    className={b("option")}
+                >
+                    <span className={b("option-text")}>{item.name}</span>
+                    <div
+                        className={b("overlay")}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            props.onChange(item.ticker);
+                        }}
+                    />
+                    <SpinWithMask isLoading={props.isLoading} />
+                </Tag>
+            ))}
+        </Space>
     );
 };
 
