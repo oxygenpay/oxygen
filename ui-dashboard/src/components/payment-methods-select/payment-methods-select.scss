@@ -8,23 +8,31 @@
     &__option {
         display: flex;
         align-items: center;
+        justify-content: center;
         position: relative;
-        height: 58px;
-        width: 250px;
-        padding: 8px 16px;
+        height: 30px;
+        width: 66px;
+        padding: 2px 4px;
         border: 1px solid #d9d9d9;
         border-radius: 6px;
         margin-right: 16px;
         margin-bottom: 16px;
+
+        &-text {
+            font-size: 10px;
+        }
     }
 
     &__icon {
-        margin-left: auto;
-        height: 24px;
+        width: 16px;
+        height: 16px;
+        margin-right: 5px;
     }
 
     &__overlay {
         position: absolute;
+        left: 0;
+        top: 0;;
         z-index: 2;
         cursor: pointer;
         width: 100%;
