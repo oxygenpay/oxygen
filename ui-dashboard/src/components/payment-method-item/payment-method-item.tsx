@@ -21,7 +21,7 @@ const PaymentMethodsItem: React.FC<Props> = (props: Props) => {
                 <Tag
                     key={item.name}
                     icon={<Icon name={item.name.toLowerCase()} dir="crypto" className={b("icon")} />}
-                    color={item.enabled ? "#55acee" : "#9897a9"}
+                    color={item.enabled ? "#1777ff" : "#bebebe"}
                     className={b("option")}
                 >
                     <span className={b("option-text")}>{item.name}</span>
