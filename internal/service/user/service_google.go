@@ -15,7 +15,7 @@ import (
 )
 
 func (s *Service) ResolveWithGoogle(ctx context.Context, user *auth.GoogleUser) (*User, error) {
-	entry, err := s.store.GetUserByGoogleID(ctx, repository.StringToNullable(user.Sub))
+	entry, err := s.store.GetUserByEmail(ctx, user.Email)
 	switch {
 	case errors.Is(err, pgx.ErrNoRows):
 		return s.registerGoogleUser(ctx, user)
@@ -57,6 +57,8 @@ func (s *Service) registerGoogleUser(ctx context.Context, user *auth.GoogleUser)
 func (s *Service) updateGoogleUser(ctx context.Context, userID int64, user *auth.GoogleUser) (*User, error) {
 	entry, err := s.store.UpdateUser(ctx, repository.UpdateUserParams{
 		ID:              userID,
+		SetGoogleID:     true,
+		GoogleID:        repository.StringToNullable(user.Sub),
 		Name:            user.Name,
 		ProfileImageUrl: repository.StringToNullable(user.Picture),
 		UpdatedAt:       time.Now(),

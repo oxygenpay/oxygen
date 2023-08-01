@@ -48,7 +48,7 @@ type ClientService interface {
 }
 
 /*
-CreateBSCTransaction creates b s c transaction
+  CreateBSCTransaction creates b s c transaction
 */
 func (a *Client) CreateBSCTransaction(params *CreateBSCTransactionParams, opts ...ClientOption) (*CreateBSCTransactionCreated, error) {
 	// TODO: Validate the params before sending
@@ -86,7 +86,7 @@ func (a *Client) CreateBSCTransaction(params *CreateBSCTransactionParams, opts .
 }
 
 /*
-CreateEthereumTransaction creates ethereum transaction
+  CreateEthereumTransaction creates ethereum transaction
 */
 func (a *Client) CreateEthereumTransaction(params *CreateEthereumTransactionParams, opts ...ClientOption) (*CreateEthereumTransactionCreated, error) {
 	// TODO: Validate the params before sending
@@ -124,7 +124,7 @@ func (a *Client) CreateEthereumTransaction(params *CreateEthereumTransactionPara
 }
 
 /*
-CreateMaticTransaction creates polygon transaction
+  CreateMaticTransaction creates polygon transaction
 */
 func (a *Client) CreateMaticTransaction(params *CreateMaticTransactionParams, opts ...ClientOption) (*CreateMaticTransactionCreated, error) {
 	// TODO: Validate the params before sending
@@ -162,7 +162,7 @@ func (a *Client) CreateMaticTransaction(params *CreateMaticTransactionParams, op
 }
 
 /*
-CreateTronTransaction creates tron transaction
+  CreateTronTransaction creates tron transaction
 */
 func (a *Client) CreateTronTransaction(params *CreateTronTransactionParams, opts ...ClientOption) (*CreateTronTransactionCreated, error) {
 	// TODO: Validate the params before sending
@@ -200,7 +200,7 @@ func (a *Client) CreateTronTransaction(params *CreateTronTransactionParams, opts
 }
 
 /*
-CreateWallet creates wallet
+  CreateWallet creates wallet
 */
 func (a *Client) CreateWallet(params *CreateWalletParams, opts ...ClientOption) (*CreateWalletCreated, error) {
 	// TODO: Validate the params before sending
@@ -238,7 +238,7 @@ func (a *Client) CreateWallet(params *CreateWalletParams, opts ...ClientOption) 
 }
 
 /*
-DeleteWallet deletes wallet
+  DeleteWallet deletes wallet
 */
 func (a *Client) DeleteWallet(params *DeleteWalletParams, opts ...ClientOption) (*DeleteWalletNoContent, error) {
 	// TODO: Validate the params before sending
@@ -276,7 +276,7 @@ func (a *Client) DeleteWallet(params *DeleteWalletParams, opts ...ClientOption) 
 }
 
 /*
-GetWallet gets wallet
+  GetWallet gets wallet
 */
 func (a *Client) GetWallet(params *GetWalletParams, opts ...ClientOption) (*GetWalletOK, error) {
 	// TODO: Validate the params before sending

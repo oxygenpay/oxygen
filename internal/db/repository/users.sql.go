@@ -194,26 +194,31 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
-SET name = $1,
-    profile_image_url= $2,
-    updated_at = $3
-WHERE id = $4
+SET name = $2,
+    profile_image_url= $3,
+    google_id = CASE WHEN $6::boolean THEN $4 ELSE users.google_id END,
+    updated_at = $5
+WHERE id = $1
 RETURNING id, name, email, uuid, google_id, profile_image_url, created_at, updated_at, deleted_at, settings, password
 `
 
 type UpdateUserParams struct {
+	ID              int64
 	Name            string
 	ProfileImageUrl sql.NullString
+	GoogleID        sql.NullString
 	UpdatedAt       time.Time
-	ID              int64
+	SetGoogleID     bool
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
 	row := q.db.QueryRow(ctx, updateUser,
+		arg.ID,
 		arg.Name,
 		arg.ProfileImageUrl,
+		arg.GoogleID,
 		arg.UpdatedAt,
-		arg.ID,
+		arg.SetGoogleID,
 	)
 	var i User
 	err := row.Scan(

@@ -31,10 +31,11 @@ RETURNING *;
 
 -- name: UpdateUser :one
 UPDATE users
-SET name = $1,
-    profile_image_url= $2,
-    updated_at = $3
-WHERE id = $4
+SET name = $2,
+    profile_image_url= $3,
+    google_id = CASE WHEN @set_google_id::boolean THEN $4 ELSE users.google_id END,
+    updated_at = $5
+WHERE id = $1
 RETURNING *;
 
 -- name: UpdateUserPassword :one
