@@ -112,7 +112,11 @@ const App: React.FC = () => {
                         posthog?.reset(true);
                     }
 
-                    navigate("/login");
+                    navigate("/login", {
+                        state: {
+                            isNeedLogout: true
+                        }
+                    });
                 }
             }
         };
@@ -127,7 +131,11 @@ const App: React.FC = () => {
                         posthog?.reset(true);
                     }
 
-                    navigate("/login");
+                    navigate("/login", {
+                        state: {
+                            isNeedLogout: true
+                        }
+                    });
                 }
             }
         };
@@ -210,7 +218,11 @@ const App: React.FC = () => {
         }
 
         await authProvider.logout();
-        navigate("/login");
+        navigate("/login", {
+            state: {
+                isNeedLogout: true
+            }
+        });
     };
 
     const userMenu: MenuProps["items"] = [
