@@ -54,12 +54,10 @@ func NewCreateBSCTransactionParamsWithHTTPClient(client *http.Client) *CreateBSC
 	}
 }
 
-/*
-CreateBSCTransactionParams contains all the parameters to send to the API endpoint
+/* CreateBSCTransactionParams contains all the parameters to send to the API endpoint
+   for the create b s c transaction operation.
 
-	for the create b s c transaction operation.
-
-	Typically these are written to a http.Request.
+   Typically these are written to a http.Request.
 */
 type CreateBSCTransactionParams struct {
 

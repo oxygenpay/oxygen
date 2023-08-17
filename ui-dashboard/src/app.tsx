@@ -98,6 +98,7 @@ const App: React.FC = () => {
     const [user, setUser] = React.useState<User>();
     const [isSupportFormOpen, setIsSupportFormOpen] = React.useState<boolean>(false);
     const [isFormSubmitting, setIsFormSubmitting] = React.useState<boolean>(false);
+    const [isLoading, setIsLoading] = React.useState<boolean>(true);
 
     const loadUserInfo = async () => {
         let newMerchantId = merchantId;
@@ -112,7 +113,11 @@ const App: React.FC = () => {
                         posthog?.reset(true);
                     }
 
-                    navigate("/login");
+                    navigate("/login", {
+                        state: {
+                            isNeedLogout: true
+                        }
+                    });
                 }
             }
         };
@@ -127,7 +132,11 @@ const App: React.FC = () => {
                         posthog?.reset(true);
                     }
 
-                    navigate("/login");
+                    navigate("/login", {
+                        state: {
+                            isNeedLogout: true
+                        }
+                    });
                 }
             }
         };
@@ -154,6 +163,7 @@ const App: React.FC = () => {
             if (!newMerchantId) return;
 
             await getMerchant(newMerchantId);
+            setIsLoading(false);
         };
 
         await getCookie();
@@ -210,7 +220,11 @@ const App: React.FC = () => {
         }
 
         await authProvider.logout();
-        navigate("/login");
+        navigate("/login", {
+            state: {
+                isNeedLogout: true
+            }
+        });
     };
 
     const userMenu: MenuProps["items"] = [
@@ -277,6 +291,7 @@ const App: React.FC = () => {
                                     )}
                                 </RouteContext.Consumer>
                             }
+                            loading={isLoading}
                             actionsRender={() => {
                                 return [
                                     !isManageMerchantsActive ? (
