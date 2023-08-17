@@ -1,7 +1,8 @@
 import "./login-page.scss";
 
 import * as React from "react";
-import {useNavigate} from "react-router-dom";
+import {AxiosError} from "axios";
+import {useNavigate, useLocation} from "react-router-dom";
 import {Modal, Button, Typography, Form, Input, notification} from "antd";
 import {GoogleOutlined, CheckOutlined} from "@ant-design/icons";
 import logoImg from "/fav/android-chrome-192x192.png";
@@ -15,12 +16,17 @@ import SpinWithMask from "src/components/spin-with-mask/spin-with-mask";
 
 const b = bevis("login-page");
 
+interface LoginState {
+    isNeedLogout: boolean;
+}
+
 const LoginPage: React.FC = () => {
     const [form] = Form.useForm<UserCreateForm>();
     const [api, contextHolder] = notification.useNotification();
     const [isFormSubmitting, setIsFormSubmitting] = React.useState<boolean>(false);
     const [providersList, setProvidersList] = React.useState<AuthProvider[]>([]);
     const navigate = useNavigate();
+    const state: LoginState = useLocation().state;
 
     const openNotification = (title: string, description: string) => {
         api.info({
@@ -60,7 +66,21 @@ const LoginPage: React.FC = () => {
 
     useMount(async () => {
         window.addEventListener("popstate", () => navigate("/login", {replace: true}));
-        localStorage.remove("merchantId");
+
+        if (state?.isNeedLogout) {
+            localStorage.remove("merchantId");
+        } else {
+            try {
+                await authProvider.getCookie();
+                await authProvider.getMe();
+                navigate("/");
+            } catch (e) {
+                if (e instanceof AxiosError && e.response?.status === 401) {
+                    localStorage.remove("merchantId");
+                }
+            }
+        }
+
         const availProviders = await authProvider.getProviders();
         setProvidersList(availProviders ?? []);
     });
