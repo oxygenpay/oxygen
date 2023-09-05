@@ -105,18 +105,23 @@ const WithdrawalDescCard: React.FC<Props> = ({data, openNotificationFunc, addres
                         </Descriptions.Item>
 
                         <Descriptions.Item span={3} label={<span className={b("item-title")}>Transaction ID</span>}>
-                            {renderStrippedStr(data.additionalInfo.withdrawal.transactionHash, 24, -12)}{" "}
-                            <CopyOutlined
-                                className={b("copy-btn")}
-                                onClick={() =>
-                                    copyToClipboard(
-                                        data?.additionalInfo?.withdrawal?.transactionHash
-                                            ? data.additionalInfo.withdrawal.transactionHash
-                                            : "",
-                                        openNotificationFunc
-                                    )
-                                }
-                            />
+                            {data.additionalInfo.withdrawal.transactionHash != null
+                                ? renderStrippedStr(data.additionalInfo.withdrawal.transactionHash, 24, -12)
+                                : "Transaction hash is not created yet"}
+                            {data.additionalInfo.withdrawal.transactionHash != null ? " " : null}
+                            {data.additionalInfo.withdrawal.transactionHash != null ? (
+                                <CopyOutlined
+                                    className={b("copy-btn")}
+                                    onClick={() =>
+                                        copyToClipboard(
+                                            data?.additionalInfo?.withdrawal?.transactionHash
+                                                ? data.additionalInfo.withdrawal.transactionHash
+                                                : "",
+                                            openNotificationFunc
+                                        )
+                                    }
+                                />
+                            ) : null}
                         </Descriptions.Item>
                         {data.additionalInfo?.payment?.customerEmail ? (
                             <>
@@ -135,15 +140,17 @@ const WithdrawalDescCard: React.FC<Props> = ({data, openNotificationFunc, addres
                                 </Descriptions.Item>
                             </>
                         ) : null}
-                        <Descriptions.Item>
-                            <a
-                                href={data.additionalInfo.withdrawal.explorerLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                View on blockchain explorer <LinkOutlined className={b("copy-btn")} />
-                            </a>
-                        </Descriptions.Item>
+                        {data.additionalInfo.withdrawal.explorerLink != null ? (
+                            <Descriptions.Item>
+                                <a
+                                    href={data.additionalInfo.withdrawal.explorerLink ?? ""}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    View on blockchain explorer <LinkOutlined className={b("copy-btn")} />
+                                </a>
+                            </Descriptions.Item>
+                        ) : null}
                     </Descriptions>
                 </>
             )}

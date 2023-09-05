@@ -137,9 +137,9 @@ interface AdditionalPaymentInfo {
 interface AdditionalWithdrawalInfo {
     addressId: string;
     balanceId: string;
-    explorerLink: string;
+    explorerLink: string | null;
     serviceFee: string;
-    transactionHash: string;
+    transactionHash: string | null;
 }
 
 interface AdditionalInfo {
@@ -150,15 +150,15 @@ interface AdditionalInfo {
 interface Payment {
     additionalInfo?: AdditionalInfo;
     id: string;
-    orderId: string;
+    orderId?: string;
     type: PaymentType;
     status: PaymentStatus;
     createdAt: string;
     currency: CurrencyWithFiat;
     price: string;
-    redirectUrl: string;
-    paymentUrl: string;
-    description: string;
+    redirectUrl?: string;
+    paymentUrl?: string;
+    description?: string;
     isTest: boolean;
 }
 
