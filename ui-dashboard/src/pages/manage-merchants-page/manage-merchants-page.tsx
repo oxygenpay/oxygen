@@ -85,10 +85,7 @@ const ManageMerchantsPage: React.FC = () => {
             await getMerchants();
 
             const nextMerchant = merchants?.find((merchantItem) => merchantItem.id !== merchant.id);
-
-            if (nextMerchant) {
-                setMerchantId(nextMerchant.id);
-            }
+            setMerchantId(nextMerchant ? nextMerchant.id : null);
 
             openNotification(`Merchant ${merchant.name} has been deleted`, "Thank you for being with us");
         } catch (error) {

@@ -156,20 +156,16 @@ const App: React.FC = () => {
         };
 
         const listMerchant = async () => {
-            if (!user) {
-                return;
+            if (user && newMerchantId) {
+                await getMerchant(newMerchantId);
             }
-
-            if (!newMerchantId) return;
-
-            await getMerchant(newMerchantId);
-            setIsLoading(false);
         };
 
         await getCookie();
         await getMe();
         await listMerchants();
         await listMerchant();
+        setIsLoading(false);
     };
 
     useMount(async () => {
