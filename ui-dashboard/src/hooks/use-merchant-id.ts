@@ -14,6 +14,8 @@ const useMerchantId = (): MerchantIdState => {
         setMerchantId(merchantId);
         if (merchantId) {
             localStorage.set("merchantId", merchantId);
+        } else {
+            localStorage.remove("merchantId");
         }
     };
 
