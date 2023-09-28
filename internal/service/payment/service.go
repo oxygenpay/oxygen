@@ -580,6 +580,11 @@ func (s *Service) Update(ctx context.Context, merchantID, id int64, props Update
 	return s.entryToPayment(pt)
 }
 
+func (s *Service) Fail(ctx context.Context, pt *Payment) error {
+	_, err := s.Update(ctx, pt.MerchantID, pt.ID, UpdateProps{Status: StatusFailed})
+	return err
+}
+
 func (s *Service) SetWebhookTimestamp(ctx context.Context, merchantID, id int64, sentAt time.Time) error {
 	err := s.repo.UpdatePaymentWebhookInfo(ctx, repository.UpdatePaymentWebhookInfoParams{
 		ID:            id,

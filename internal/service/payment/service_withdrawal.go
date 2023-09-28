@@ -2,6 +2,7 @@ package payment
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -33,7 +34,7 @@ func (s *Service) ListWithdrawals(ctx context.Context, status Status, filterByID
 	}
 
 	if len(filterByIDs) > 0 && len(results) != len(filterByIDs) {
-		return nil, errors.New("results len mismatch")
+		return nil, fmt.Errorf("withdrawals filter mismatch for status %q", status)
 	}
 
 	payments := make([]*Payment, len(results))

@@ -12,6 +12,7 @@ import (
 	"github.com/oxygenpay/oxygen/internal/service/blockchain"
 	"github.com/oxygenpay/oxygen/internal/service/merchant"
 	"github.com/oxygenpay/oxygen/internal/service/payment"
+	"github.com/oxygenpay/oxygen/internal/service/processing"
 	"github.com/oxygenpay/oxygen/internal/service/transaction"
 	"github.com/oxygenpay/oxygen/internal/service/wallet"
 	"github.com/oxygenpay/oxygen/internal/test"
@@ -504,7 +505,7 @@ func TestService_BatchCreateWithdrawals(t *testing.T) {
 		})
 	})
 
-	t.Run("Creates 2 ETH transactions, one failed", func(t *testing.T) {
+	t.Run("Creates 2 ETH transactions, one fails due to insufficient balance", func(t *testing.T) {
 		tc.Clear.Wallets(t)
 		isTest := false
 
@@ -607,112 +608,129 @@ func TestService_BatchCreateWithdrawals(t *testing.T) {
 		assert.Equal(t, expectedWalletBalance, outboundBalance.Amount.StringRaw())
 	})
 
-	t.Run("Fails", func(t *testing.T) {
+	t.Run("Validation error", func(t *testing.T) {
 		tc.Clear.Wallets(t)
-		t.Run("Validation error", func(t *testing.T) {
-			mt, _ := tc.Must.CreateMerchant(t, 1)
+		mt, _ := tc.Must.CreateMerchant(t, 1)
 
-			merchantBalance := tc.Must.CreateBalance(t, wallet.EntityTypeMerchant, mt.ID, withBalance(eth, "123_000_000_000_000_000", false))
-			merchantAddress, err := tc.Services.Merchants.CreateMerchantAddress(ctx, mt.ID, merchant.CreateMerchantAddressParams{
-				Name:       "A1",
-				Blockchain: kmswallet.Blockchain(eth.Blockchain),
-				Address:    "0x95222290dd7278aa3ddd389cc1e1d165cc4bafe5",
+		merchantBalance := tc.Must.CreateBalance(t, wallet.EntityTypeMerchant, mt.ID, withBalance(eth, "123_000_000_000_000_000", false))
+		merchantAddress, err := tc.Services.Merchants.CreateMerchantAddress(ctx, mt.ID, merchant.CreateMerchantAddressParams{
+			Name:       "A1",
+			Blockchain: kmswallet.Blockchain(eth.Blockchain),
+			Address:    "0x95222290dd7278aa3ddd389cc1e1d165cc4bafe5",
+		})
+		require.NoError(t, err)
+
+		makeWithdrawal := func(amount money.Money, meta payment.Metadata) *payment.Payment {
+			entry, err := tc.Repository.CreatePayment(ctx, repository.CreatePaymentParams{
+				PublicID:          uuid.New(),
+				CreatedAt:         time.Now(),
+				UpdatedAt:         time.Now(),
+				Type:              string(payment.TypeWithdrawal),
+				Status:            string(payment.StatusPending),
+				MerchantID:        mt.ID,
+				MerchantOrderUuid: uuid.New(),
+				Price:             repository.MoneyToNumeric(amount),
+				Decimals:          int32(amount.Decimals()),
+				Currency:          amount.Ticker(),
+				Metadata:          meta.ToJSONB(),
+				IsTest:            false,
 			})
 			require.NoError(t, err)
 
-			makeWithdrawal := func(amount money.Money, meta payment.Metadata) *payment.Payment {
-				entry, err := tc.Repository.CreatePayment(ctx, repository.CreatePaymentParams{
-					PublicID:          uuid.New(),
-					CreatedAt:         time.Now(),
-					UpdatedAt:         time.Now(),
-					Type:              string(payment.TypeWithdrawal),
-					Status:            string(payment.StatusPending),
-					MerchantID:        mt.ID,
-					MerchantOrderUuid: uuid.New(),
-					Price:             repository.MoneyToNumeric(amount),
-					Decimals:          int32(amount.Decimals()),
-					Currency:          amount.Ticker(),
-					Metadata:          meta.ToJSONB(),
-					IsTest:            false,
-				})
-				require.NoError(t, err)
+			pt, err := tc.Services.Payment.GetByID(ctx, mt.ID, entry.ID)
+			require.NoError(t, err)
 
-				pt, err := tc.Services.Payment.GetByID(ctx, mt.ID, entry.ID)
-				require.NoError(t, err)
+			return pt
+		}
 
-				return pt
-			}
-
-			for testCaseIndex, testCase := range []struct {
-				errContains string
-				withdrawals func() []*payment.Payment
-			}{
-				{
-					// actually "payment is not withdrawal"
-					errContains: "results len mismatch",
-					withdrawals: func() []*payment.Payment {
-						return []*payment.Payment{tc.CreateSamplePayment(t, mt.ID)}
-					},
+		for _, tt := range []struct {
+			name        string
+			assert      func(t *testing.T, in []*payment.Payment, result *processing.TransferResult, err error)
+			withdrawals func() []*payment.Payment
+		}{
+			{
+				name: "payment is not withdrawal",
+				withdrawals: func() []*payment.Payment {
+					return []*payment.Payment{tc.CreateSamplePayment(t, mt.ID)}
 				},
-				{
-					// actually "status is not pending"
-					errContains: "results len mismatch",
-					withdrawals: func() []*payment.Payment {
-						withdrawal, err := tc.Services.Payment.CreateWithdrawal(ctx, mt.ID, payment.CreateWithdrawalProps{
-							BalanceID: merchantBalance.UUID,
-							AddressID: merchantAddress.UUID,
-							AmountRaw: "0.1",
-						})
-						require.NoError(t, err)
-
-						_, err = tc.Services.Payment.Update(ctx, mt.ID, withdrawal.ID, payment.UpdateProps{Status: payment.StatusInProgress})
-						require.NoError(t, err)
-
-						return []*payment.Payment{withdrawal}
-					},
+				assert: func(t *testing.T, _ []*payment.Payment, _ *processing.TransferResult, err error) {
+					assert.ErrorContains(t, err, `withdrawals filter mismatch for status "pending"`)
 				},
-				{
-					errContains: "invalid address id",
-					withdrawals: func() []*payment.Payment {
-						return []*payment.Payment{
-							makeWithdrawal(
-								lo.Must(eth.MakeAmount("123_456")),
-								payment.Metadata{payment.MetaBalanceID: strconv.Itoa(int(merchantBalance.ID))},
-							),
-						}
-					},
-				},
-				{
-					errContains: "invalid balance id",
-					withdrawals: func() []*payment.Payment {
-						return []*payment.Payment{
-							makeWithdrawal(
-								lo.Must(eth.MakeAmount("123_456")),
-								payment.Metadata{payment.MetaAddressID: strconv.Itoa(int(merchantAddress.ID))},
-							),
-						}
-					},
-				},
-			} {
-				t.Run(strconv.Itoa(testCaseIndex+1), func(t *testing.T) {
-					// ARRANGE
-					// Given balances
-					input := testCase.withdrawals()
+			},
+			{
+				name: "status is not pending",
+				withdrawals: func() []*payment.Payment {
+					withdrawal, err := tc.Services.Payment.CreateWithdrawal(ctx, mt.ID, payment.CreateWithdrawalProps{
+						BalanceID: merchantBalance.UUID,
+						AddressID: merchantAddress.UUID,
+						AmountRaw: "0.1",
+					})
+					require.NoError(t, err)
 
-					// ACT
-					// Transfer money
-					ids := util.MapSlice(input, func(p *payment.Payment) int64 { return p.ID })
-					result, err := tc.Services.Processing.BatchCreateWithdrawals(ctx, ids)
-					assert.Nil(t, result)
+					_, err = tc.Services.Payment.Update(ctx, mt.ID, withdrawal.ID, payment.UpdateProps{Status: payment.StatusInProgress})
+					require.NoError(t, err)
 
-					// ASSERT
-					// Check that error contain string
-					if testCase.errContains != "" {
-						assert.ErrorContains(t, err, testCase.errContains)
+					return []*payment.Payment{withdrawal}
+				},
+				assert: func(t *testing.T, _ []*payment.Payment, _ *processing.TransferResult, err error) {
+					assert.ErrorContains(t, err, `withdrawals filter mismatch for status "pending"`)
+				},
+			},
+			{
+				name: "invalid address id",
+				withdrawals: func() []*payment.Payment {
+					return []*payment.Payment{
+						makeWithdrawal(
+							lo.Must(eth.MakeAmount("123_456")),
+							payment.Metadata{payment.MetaBalanceID: strconv.Itoa(int(merchantBalance.ID))},
+						),
 					}
-				})
-			}
-		})
+				},
+				assert: func(t *testing.T, in []*payment.Payment, result *processing.TransferResult, err error) {
+					assert.NoError(t, err)
+					assert.Equal(t, int64(1), result.TotalErrors)
+					assert.ErrorContains(t, result.UnhandledErrors[0], "withdrawal is invalid, marked as failed")
+
+					pt, _ := tc.Services.Payment.GetByID(ctx, in[0].MerchantID, in[0].ID)
+					require.NoError(t, err)
+					assert.Equal(t, payment.StatusFailed, pt.Status)
+				},
+			},
+			{
+				name: "invalid balance id",
+				withdrawals: func() []*payment.Payment {
+					return []*payment.Payment{
+						makeWithdrawal(
+							lo.Must(eth.MakeAmount("123_456")),
+							payment.Metadata{payment.MetaAddressID: strconv.Itoa(int(merchantAddress.ID))},
+						),
+					}
+				},
+				assert: func(t *testing.T, in []*payment.Payment, result *processing.TransferResult, err error) {
+					assert.NoError(t, err)
+					assert.Equal(t, int64(1), result.TotalErrors)
+					assert.ErrorContains(t, result.UnhandledErrors[0], "withdrawal is invalid, marked as failed")
+
+					pt, _ := tc.Services.Payment.GetByID(ctx, in[0].MerchantID, in[0].ID)
+					require.NoError(t, err)
+					assert.Equal(t, payment.StatusFailed, pt.Status)
+				},
+			},
+		} {
+			t.Run(tt.name, func(t *testing.T) {
+				// ARRANGE
+				// Given balances
+				input := tt.withdrawals()
+
+				// ACT
+				// Create withdrawals
+				ids := util.MapSlice(input, func(p *payment.Payment) int64 { return p.ID })
+				result, err := tc.Services.Processing.BatchCreateWithdrawals(ctx, ids)
+
+				// ASSERT
+				tt.assert(t, input, result, err)
+			})
+		}
 	})
 
 	t.Run("Logic error", func(t *testing.T) {
