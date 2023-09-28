@@ -91,6 +91,7 @@ func WithLogger(logger *zerolog.Logger) Opt {
 		s.echo.Use(lecho.Middleware(lecho.Config{
 			Logger:       lecho.From(l, lecho.WithLevel(log.INFO)),
 			RequestIDKey: middleware.RequestIDKey,
+			Enricher:     loggerEnricher,
 			Skipper: func(c echo.Context) bool {
 				path := c.Request().URL.Path
 
@@ -104,6 +105,20 @@ func WithLogger(logger *zerolog.Logger) Opt {
 			},
 		}))
 	}
+}
+
+func loggerEnricher(c echo.Context, logger zerolog.Context) zerolog.Context {
+	merchantID := c.Param("merchantId")
+	if merchantID != "" {
+		logger = logger.Str("merchant_id", merchantID)
+	}
+
+	paymentID := c.Param("paymentId")
+	if paymentID != "" {
+		logger = logger.Str("payment_id", paymentID)
+	}
+
+	return logger.Str("path", c.Path())
 }
 
 const healthcheckPath = "/health"

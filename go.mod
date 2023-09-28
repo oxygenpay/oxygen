@@ -26,14 +26,14 @@ require (
 	github.com/oxygenpay/tatum-sdk v0.0.0-20230529210116-d986b7743613
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron/v3 v3.0.1
-	github.com/rs/zerolog v1.26.1
+	github.com/rs/zerolog v1.29.0
 	github.com/rubenv/sql-migrate v1.2.0
 	github.com/samber/lo v1.37.0
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.1
 	github.com/tidwall/gjson v1.14.4
 	github.com/wemeetagain/go-hdwallet v0.1.0
-	github.com/ziflex/lecho/v3 v3.1.0
+	github.com/ziflex/lecho/v3 v3.5.0
 	go.etcd.io/bbolt v1.3.6
 	go.uber.org/atomic v1.10.0
 	golang.org/x/crypto v0.11.0
