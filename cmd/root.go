@@ -40,7 +40,7 @@ func Execute() {
 
 // resolveConfig or exit with error
 func resolveConfig() *config.Config {
-	cfg, err := config.New(Version, Commit, configPath, skipConfig, EmbedFrontend)
+	cfg, err := config.New(Commit, Version, configPath, skipConfig, EmbedFrontend)
 	if err != nil {
 		fmt.Printf("unable to initialize config: %s\n", err.Error())
 		os.Exit(1)

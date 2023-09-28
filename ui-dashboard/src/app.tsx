@@ -109,10 +109,6 @@ const App: React.FC = () => {
                 await authProvider.getCookie();
             } catch (e) {
                 if (e instanceof AxiosError && e.response?.status === 401) {
-                    if (isPosthogActive) {
-                        posthog?.reset(true);
-                    }
-
                     navigate("/login", {
                         state: {
                             isNeedLogout: true
@@ -128,10 +124,6 @@ const App: React.FC = () => {
                 setUser(user);
             } catch (e) {
                 if (e instanceof AxiosError && e.response?.status === 401) {
-                    if (isPosthogActive) {
-                        posthog?.reset(true);
-                    }
-
                     navigate("/login", {
                         state: {
                             isNeedLogout: true
@@ -180,7 +172,6 @@ const App: React.FC = () => {
 
     React.useEffect(() => {
         if (user && isPosthogActive) {
-            posthog?.reset(true);
             posthog?.identify(user.email, {
                 email: user.email,
                 uuid: user.uuid

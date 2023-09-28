@@ -23,12 +23,7 @@ func (s *Service) BatchCreateWithdrawals(ctx context.Context, withdrawalIDs []in
 		return nil, err
 	}
 
-	// 1.Validate payments
-	if errValidate := s.validateWithdrawals(withdrawals); errValidate != nil {
-		return nil, errValidate
-	}
-
-	// 2. Get OUTBOUND wallets and balances
+	// 1. Get OUTBOUND wallets and balances
 	outboundWallets, outboundBalances, err := s.getOutboundWalletsWithBalancesAsMap(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get outbound wallets with balances")
@@ -36,7 +31,8 @@ func (s *Service) BatchCreateWithdrawals(ctx context.Context, withdrawalIDs []in
 
 	result := &TransferResult{}
 
-	// 3. For each withdrawal:
+	// 2. For each withdrawal:
+	// - Validate
 	// - Resolve currency
 	// - Resolve outbound system wallet & balance
 	// - Resolve merchant balance & withdrawal address
@@ -47,6 +43,18 @@ func (s *Service) BatchCreateWithdrawals(ctx context.Context, withdrawalIDs []in
 	for i := range withdrawals {
 		withdrawal := withdrawals[i]
 		group.Go(func() error {
+			// Let's validate each withdrawal individually.
+			// By doing so, we can reject it without blocking other withdrawals.
+			if errValidate := validateWithdrawal(withdrawal); errValidate != nil {
+				if errUpdate := s.payments.Fail(ctx, withdrawal); errUpdate != nil {
+					result.registerErr(errors.Wrap(errUpdate, "unable to mark invalid withdrawal as failed"))
+				} else {
+					result.registerErr(errors.Wrap(errValidate, "withdrawal is invalid, marked as failed"))
+				}
+
+				return nil
+			}
+
 			currency, err := s.blockchain.GetCurrencyByTicker(withdrawal.Price.Ticker())
 			if err != nil {
 				result.registerErr(errors.Wrap(err, "unable to get withdrawal currency"))
@@ -540,27 +548,26 @@ func (s *Service) cancelWithdrawal(
 	return nil
 }
 
-func (s *Service) validateWithdrawals(withdrawals []*payment.Payment) error {
-	for _, pt := range withdrawals {
-		if pt.Type != payment.TypeWithdrawal {
-			return errors.Wrap(ErrInvalidInput, "payment is not withdrawal")
-		}
+func validateWithdrawal(pt *payment.Payment) error {
+	if pt.Type != payment.TypeWithdrawal {
+		return errors.Wrap(ErrInvalidInput, "payment is not withdrawal")
+	}
 
-		if pt.Status != payment.StatusPending {
-			return errors.Wrap(ErrInvalidInput, "withdrawal is not pending")
-		}
+	if pt.Status != payment.StatusPending {
+		return errors.Wrap(ErrInvalidInput, "withdrawal is not pending")
+	}
 
-		if pt.MerchantID == 0 {
-			return errors.Wrap(ErrInvalidInput, "invalid merchant id")
-		}
+	if pt.MerchantID == 0 {
+		return errors.Wrap(ErrInvalidInput, "invalid merchant id")
+	}
 
-		if pt.WithdrawalBalanceID() < 1 {
-			return errors.Wrap(ErrInvalidInput, "invalid balance id")
-		}
+	if pt.WithdrawalBalanceID() < 1 {
+		return errors.Wrap(ErrInvalidInput, "invalid balance id")
+	}
 
-		if pt.WithdrawalAddressID() < 1 {
-			return errors.Wrap(ErrInvalidInput, "invalid address id")
-		}
+	// edge-case: a customer can delete the address while withdrawal is pending
+	if pt.WithdrawalAddressID() < 1 {
+		return errors.Wrap(ErrInvalidInput, "invalid address id")
 	}
 
 	return nil
