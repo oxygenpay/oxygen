@@ -4,6 +4,8 @@
   </a>
 </p>
 
+Turn ★ into ⭐ (top-right corner) if you like the project!
+
 [OxygenPay](https://o2pay.co) is a cloud or self-hosted crypto payment gateway.
 Receive crypto including stablecoins with ease. Open new opportunities for your product by accepting cryptocurrency.
 
