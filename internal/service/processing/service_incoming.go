@@ -407,32 +407,24 @@ func (s *Service) expirePayment(ctx context.Context, paymentID int64) error {
 	}
 
 	// 1. Cancel if tx exists
-	var hasTransaction bool
-
 	tx, err := s.transactions.GetLatestByPaymentID(ctx, pt.ID)
 	switch {
 	case errors.Is(err, transaction.ErrNotFound):
 		// that's expected, do nothing
 	case err != nil:
 		return errors.Wrap(err, "unable to get transaction")
-	case tx != nil:
-		hasTransaction = true
 	}
 
-	if hasTransaction {
-		if tx.Status != transaction.StatusPending {
-			return errors.Errorf("invalid transaction status %q", tx.Status)
-		}
-
-		if errTX := s.transactions.Cancel(ctx, tx, transaction.StatusCancelled, "payment expired", nil); errTX != nil {
+	if tx != nil && tx.Status != transaction.StatusCancelled {
+		errCancel := s.transactions.Cancel(ctx, tx, transaction.StatusCancelled, "payment expired", nil)
+		if errCancel != nil {
 			return errors.Wrap(err, "unable to cancel transaction")
 		}
 	}
 
 	// 2. Cancel payment itself
-	_, err = s.payments.Update(ctx, pt.MerchantID, pt.ID, payment.UpdateProps{Status: payment.StatusFailed})
-	if err != nil {
-		return errors.Wrap(err, "unable to expire payment")
+	if errFail := s.payments.Fail(ctx, pt); errFail != nil {
+		return errors.Wrap(errFail, "unable to expire payment")
 	}
 
 	return nil
