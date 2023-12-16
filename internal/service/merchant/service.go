@@ -157,7 +157,7 @@ type SupportedCurrency struct {
 }
 
 func (s *Service) ListSupportedCurrencies(_ context.Context, merchant *Merchant) ([]SupportedCurrency, error) {
-	all := s.blockchain.ListSupportedCurrencies()
+	all := s.blockchain.ListSupportedCurrencies(false)
 	enabledTickers := util.Set(merchant.Settings().PaymentMethods())
 
 	// if merchant didn't set this parameter yet, let's treat that as "all currencies enabled"
@@ -197,7 +197,7 @@ func (s *Service) UpdateSupportedMethods(ctx context.Context, merchant *Merchant
 	tickersSet := util.Set(tickers)
 	availableTickersSet := util.Set(
 		util.MapSlice(
-			s.blockchain.ListSupportedCurrencies(),
+			s.blockchain.ListSupportedCurrencies(false),
 			func(c money.CryptoCurrency) string { return c.Ticker },
 		),
 	)
