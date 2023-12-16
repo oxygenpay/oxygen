@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_FiatCurrencies(t *testing.T) {
@@ -70,6 +71,20 @@ func Test_FiatCurrencies(t *testing.T) {
 			assert.Equal(t, newM.StringRaw(), m.StringRaw())
 		})
 	}
+}
+
+func TestMoney_SubNegative(t *testing.T) {
+	m, err := FiatFromFloat64(USD, 5)
+	require.NoError(t, err)
+
+	huge, err := FiatFromFloat64(USD, 1000)
+	require.NoError(t, err)
+
+	out, err := m.SubNegative(huge)
+	assert.NoError(t, err)
+	assert.True(t, out.IsNegative())
+	assert.Equal(t, "-995", out.String())
+	assert.Equal(t, "-99500", out.StringRaw())
 }
 
 func Test_CryptoCurrencies(t *testing.T) {
@@ -328,6 +343,12 @@ func TestCryptoToFiat(t *testing.T) {
 			expectedFiat: mustCreateUSD("100"),
 		},
 		{
+			// negative case
+			crypto:       mustCreateCrypto("-1000000", 6),
+			exchangeRate: 1,
+			expectedFiat: mustCreateUSD("-100"),
+		},
+		{
 			crypto:       mustCreateCrypto("1000000", 6),
 			exchangeRate: 0.5,
 			expectedFiat: mustCreateUSD("50"),
@@ -350,7 +371,7 @@ func TestCryptoToFiat(t *testing.T) {
 	} {
 		t.Run(strconv.Itoa(i+1), func(t *testing.T) {
 			actual, err := CryptoToFiat(tc.crypto, USD, tc.exchangeRate)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, actual, tc.expectedFiat)
 		})
 	}
