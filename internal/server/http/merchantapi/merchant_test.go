@@ -91,7 +91,7 @@ func TestMerchantRoutes(t *testing.T) {
 		mt, _ := tc.Must.CreateMerchant(t, user.ID)
 
 		// And blockchain currencies
-		allCurrencies := tc.Services.Blockchain.ListSupportedCurrencies()
+		allCurrencies := tc.Services.Blockchain.ListSupportedCurrencies(false)
 
 		// ACT 1
 		// Get merchant

@@ -30,7 +30,7 @@ const (
 func TestHandlers(t *testing.T) {
 	tc := test.NewIntegrationTest(t)
 
-	allCurrencies := tc.Services.Blockchain.ListSupportedCurrencies()
+	allCurrencies := tc.Services.Blockchain.ListSupportedCurrencies(false)
 
 	t.Run("GetSupportedMethods", func(t *testing.T) {
 		t.Run("Returns list of supported methods", func(t *testing.T) {
