@@ -39,10 +39,6 @@ Receive crypto including stablecoins with ease. Open new opportunities for your 
             <img src="./ui-dashboard/src/assets/icons/crypto/usdc.svg" height="64" alt="usdc">
             <div>USDC</div>
         </td>
-        <td align="center">
-            <img src="./ui-dashboard/src/assets/icons/crypto/busd.svg" height="64" alt="busd">
-            <div>BUSD</div>
-        </td>
     </tr>
 </table>
 

@@ -17,7 +17,7 @@ import (
 )
 
 type Resolver interface {
-	ListSupportedCurrencies() []money.CryptoCurrency
+	ListSupportedCurrencies(withDeprecated bool) []money.CryptoCurrency
 	ListBlockchainCurrencies(blockchain money.Blockchain) []money.CryptoCurrency
 	GetCurrencyByTicker(ticker string) (money.CryptoCurrency, error)
 	GetNativeCoin(blockchain money.Blockchain) (money.CryptoCurrency, error)
@@ -138,12 +138,16 @@ func (r *CurrencyResolver) GetCurrencyByBlockchainAndContract(bc money.Blockchai
 	return money.CryptoCurrency{}, ErrCurrencyNotFound
 }
 
-func (r *CurrencyResolver) ListSupportedCurrencies() []money.CryptoCurrency {
+func (r *CurrencyResolver) ListSupportedCurrencies(withDeprecated bool) []money.CryptoCurrency {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
 	results := make([]money.CryptoCurrency, 0)
 	for i := range r.currencies {
+		if r.currencies[i].Deprecated && !withDeprecated {
+			continue
+		}
+
 		results = append(results, r.currencies[i])
 	}
 
@@ -180,6 +184,10 @@ func (r *CurrencyResolver) addCurrency(currency money.CryptoCurrency) {
 	r.currencies[currency.Ticker] = currency
 
 	r.ensureIndices(currency.Blockchain, currency.Ticker)
+
+	if currency.Deprecated {
+		return
+	}
 
 	// add currency to "index"
 	r.blockchainCurrencies[currency.Blockchain][currency.Ticker] = struct{}{}
@@ -281,6 +289,11 @@ func DefaultSetup(s *CurrencyResolver) error {
 			return err
 		}
 
+		deprecated, err := parseBool(c["deprecated"])
+		if err != nil {
+			return err
+		}
+
 		ticker := c["ticker"]
 
 		s.addCurrency(money.CryptoCurrency{
@@ -295,6 +308,7 @@ func DefaultSetup(s *CurrencyResolver) error {
 			TestTokenContractAddress: testTokenAddr,
 			Aliases:                  aliases,
 			Decimals:                 int64(decimals),
+			Deprecated:               deprecated,
 		})
 
 		s.addMinimalWithdrawal(ticker, minimalWithdrawal)
@@ -370,6 +384,14 @@ func parseUSD(raw string) (money.Money, error) {
 	}
 
 	return money.FiatFromFloat64(money.USD, f)
+}
+
+func parseBool(raw string) (bool, error) {
+	if raw == "" {
+		return false, nil
+	}
+
+	return strconv.ParseBool(raw)
 }
 
 func parseAliases(raw string) []string {

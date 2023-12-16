@@ -83,6 +83,7 @@ type CryptoCurrency struct {
 	TokenContractAddress     string
 	TestTokenContractAddress string
 	Aliases                  []string
+	Deprecated               bool
 }
 
 func (c CryptoCurrency) DisplayName() string {
