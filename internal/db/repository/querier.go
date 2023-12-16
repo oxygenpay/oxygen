@@ -77,6 +77,7 @@ type Querier interface {
 	GetWalletLock(ctx context.Context, arg GetWalletLockParams) (WalletLock, error)
 	InsertBalanceAuditLog(ctx context.Context, arg InsertBalanceAuditLogParams) error
 	ListAPITokensByEntity(ctx context.Context, arg ListAPITokensByEntityParams) ([]ApiToken, error)
+	ListAllBalancesByType(ctx context.Context, arg ListAllBalancesByTypeParams) ([]Balance, error)
 	ListBalances(ctx context.Context, arg ListBalancesParams) ([]Balance, error)
 	ListJobLogsByID(ctx context.Context, arg ListJobLogsByIDParams) ([]JobLog, error)
 	ListMerchantAddresses(ctx context.Context, merchantID int64) ([]MerchantAddress, error)

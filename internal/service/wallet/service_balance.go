@@ -3,6 +3,7 @@ package wallet
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"strconv"
 	"time"
@@ -13,6 +14,8 @@ import (
 	"github.com/oxygenpay/oxygen/internal/db/repository"
 	"github.com/oxygenpay/oxygen/internal/money"
 	"github.com/pkg/errors"
+	"github.com/samber/lo"
+	"golang.org/x/exp/slices"
 )
 
 type Balance struct {
@@ -65,6 +68,7 @@ type (
 const (
 	EntityTypeMerchant EntityType = "merchant"
 	EntityTypeWallet   EntityType = "wallet"
+	EntityTypeSystem   EntityType = "system"
 
 	OperationIncrement BalanceOperation = "increment"
 	OperationDecrement BalanceOperation = "decrement"
@@ -102,6 +106,143 @@ func (s *Service) ListBalances(ctx context.Context, entityType EntityType, entit
 		if err := s.loadUSDBalances(ctx, balances); err != nil {
 			return nil, errors.Wrap(err, "unable to load USD balances")
 		}
+	}
+
+	return balances, nil
+}
+
+type Balances map[EntityType][]*Balance
+
+type ListAllBalancesOpts struct {
+	WithUSD            bool
+	WithSystemBalances bool
+	HideEmpty          bool
+}
+
+func (s *Service) ListAllBalances(ctx context.Context, opts ListAllBalancesOpts) (Balances, error) {
+	balances := make(Balances)
+
+	// merchant balances
+	res, err := s.store.ListAllBalancesByType(ctx, repository.ListAllBalancesByTypeParams{
+		EntityType: string(EntityTypeMerchant),
+		HideEmpty:  opts.HideEmpty,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to list merchant balances")
+	}
+
+	merchantBalances, err := entitiesToBalances(res)
+	if err != nil {
+		return nil, err
+	}
+
+	balances[EntityTypeMerchant] = merchantBalances
+
+	// wallet balances
+	res, err = s.store.ListAllBalancesByType(ctx, repository.ListAllBalancesByTypeParams{
+		EntityType: string(EntityTypeWallet),
+		HideEmpty:  opts.HideEmpty,
+	})
+
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to list wallet balances")
+	}
+
+	walletBalances, err := entitiesToBalances(res)
+	if err != nil {
+		return nil, err
+	}
+
+	balances[EntityTypeWallet] = walletBalances
+
+	if opts.WithSystemBalances {
+		systemBalances, err := composeSystemBalances(merchantBalances, walletBalances)
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to compose system balances")
+		}
+
+		balances[EntityTypeSystem] = systemBalances
+	}
+
+	if opts.WithUSD {
+		for _, items := range balances {
+			if err := s.loadUSDBalances(ctx, items); err != nil {
+				return nil, errors.Wrap(err, "unable to load USD balances")
+			}
+		}
+	}
+
+	return balances, nil
+}
+
+// composeSystemBalances currently we have no system balances as distinct DB records,
+// so we calculate them on the fly.
+func composeSystemBalances(merchants, wallets []*Balance) ([]*Balance, error) {
+	balancesMap := map[string]*Balance{}
+
+	keyFunc := func(b *Balance) string {
+		return fmt.Sprintf("%s/%s/%s", b.Currency, b.Network, b.NetworkID)
+	}
+
+	// add
+	for _, w := range wallets {
+		key := keyFunc(w)
+
+		systemBalance, ok := balancesMap[key]
+		if !ok {
+			balancesMap[key] = &Balance{
+				EntityType:   EntityTypeSystem,
+				Network:      w.Network,
+				NetworkID:    w.NetworkID,
+				CurrencyType: w.CurrencyType,
+				Currency:     w.Currency,
+				Amount:       w.Amount,
+			}
+			continue
+		}
+
+		total, err := systemBalance.Amount.Add(w.Amount)
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to add wallet's amount")
+		}
+
+		systemBalance.Amount = total
+	}
+
+	// subtract
+	// system balance might be negative!
+	for _, w := range merchants {
+		key := keyFunc(w)
+		systemBalance, ok := balancesMap[key]
+		if !ok {
+			fmt.Printf("%+v", balancesMap)
+			return nil, errors.New("unable to find balance " + key)
+		}
+
+		total, err := systemBalance.Amount.SubNegative(w.Amount)
+		if err != nil {
+			return nil, errors.Wrapf(err, "unable to subtract merchant's amount %s", key)
+		}
+
+		systemBalance.Amount = total
+	}
+
+	balances := lo.Values(balancesMap)
+	slices.SortFunc(balances, func(a, b *Balance) bool { return keyFunc(a) < keyFunc(b) })
+
+	return balances, nil
+}
+
+func entitiesToBalances(entries []repository.Balance) ([]*Balance, error) {
+	balances := make([]*Balance, len(entries))
+
+	for i := range entries {
+		balance, err := entryToBalance(entries[i])
+		if err != nil {
+			return nil, err
+		}
+
+		balances[i] = balance
 	}
 
 	return balances, nil

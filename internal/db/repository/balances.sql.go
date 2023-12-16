@@ -248,6 +248,51 @@ func (q *Queries) InsertBalanceAuditLog(ctx context.Context, arg InsertBalanceAu
 	return err
 }
 
+const listAllBalancesByType = `-- name: ListAllBalancesByType :many
+select id, created_at, updated_at, entity_id, entity_type, network, network_id, currency_type, currency, decimals, amount, uuid from balances
+where entity_type = $1
+and (CASE WHEN $2::boolean THEN amount > 0 ELSE true END)
+order by id desc
+`
+
+type ListAllBalancesByTypeParams struct {
+	EntityType string
+	HideEmpty  bool
+}
+
+func (q *Queries) ListAllBalancesByType(ctx context.Context, arg ListAllBalancesByTypeParams) ([]Balance, error) {
+	rows, err := q.db.Query(ctx, listAllBalancesByType, arg.EntityType, arg.HideEmpty)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Balance
+	for rows.Next() {
+		var i Balance
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.EntityID,
+			&i.EntityType,
+			&i.Network,
+			&i.NetworkID,
+			&i.CurrencyType,
+			&i.Currency,
+			&i.Decimals,
+			&i.Amount,
+			&i.Uuid,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listBalances = `-- name: ListBalances :many
 select id, created_at, updated_at, entity_id, entity_type, network, network_id, currency_type, currency, decimals, amount, uuid from balances
 where entity_type = $1 and entity_id = $2
