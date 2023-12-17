@@ -53,7 +53,7 @@ func (s *Service) TopupMerchantFromSystem(ctx context.Context, merchantID int64,
 	paymentProps := payment.CreateInternalPaymentProps{
 		MerchantOrderUUID: uuid.New(),
 		Money:             in.Amount,
-		Description:       fmt.Sprintf("Internal topup of %s %s (%s)", in.Amount.String(), in.Currency.Ticker, in.Comment),
+		Description:       fmt.Sprintf("*internal* topup of %s %s (%s)", in.Amount.String(), in.Currency.Ticker, in.Comment),
 		IsTest:            in.IsTest,
 	}
 

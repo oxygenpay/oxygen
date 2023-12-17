@@ -9,6 +9,7 @@ import (
 
 	"github.com/oxygenpay/oxygen/internal/app"
 	"github.com/oxygenpay/oxygen/internal/money"
+	"github.com/oxygenpay/oxygen/internal/service/processing"
 	"github.com/oxygenpay/oxygen/internal/service/wallet"
 	"github.com/oxygenpay/oxygen/internal/util"
 	"github.com/samber/lo"
@@ -43,6 +44,7 @@ func topupBalance(_ *cobra.Command, _ []string) {
 		blockchainService = service.Locator().BlockchainService()
 		merchantService   = service.Locator().MerchantService()
 		walletService     = service.Locator().WalletService()
+		processingService = service.Locator().ProcessingService()
 		logger            = service.Logger()
 		exit              = func(err error, message string) { logger.Fatal().Err(err).Msg(message) }
 	)
@@ -67,6 +69,9 @@ func topupBalance(_ *cobra.Command, _ []string) {
 		exit(nil, "comment should not be empty")
 	}
 
+	isTest := *topupBalanceArgs.IsTest
+	comment := *topupBalanceArgs.Comment
+
 	// 2. Locate system balance
 	balances, err := walletService.ListAllBalances(ctx, wallet.ListAllBalancesOpts{WithSystemBalances: true})
 	if err != nil {
@@ -75,7 +80,7 @@ func topupBalance(_ *cobra.Command, _ []string) {
 
 	systemBalance, found := lo.Find(balances[wallet.EntityTypeSystem], func(b *wallet.Balance) bool {
 		tickerMatches := b.Currency == currency.Ticker
-		networkMatches := b.NetworkID == currency.ChooseNetwork(*topupBalanceArgs.IsTest)
+		networkMatches := b.NetworkID == currency.ChooseNetwork(isTest)
 
 		return tickerMatches && networkMatches
 	})
@@ -102,7 +107,25 @@ func topupBalance(_ *cobra.Command, _ []string) {
 	// 4. Perform topup
 	logger.Info().Msg("Sending...")
 
-	// todo
+	input := processing.TopupInput{
+		Currency: currency,
+		Amount:   amount,
+		Comment:  comment,
+		IsTest:   isTest,
+	}
+
+	out, err := processingService.TopupMerchantFromSystem(ctx, merchant.ID, input)
+	if err != nil {
+		exit(err, "unable to topup the balance")
+	}
+
+	logger.
+		Info().
+		Int64("payment.id", out.Payment.ID).
+		Int64("tx.id", out.Transaction.ID).
+		Str("tx.usd_amount", out.Transaction.USDAmount.String()).
+		Str("merchant.balance", out.MerchantBalance.Amount.String()).
+		Msg("Done")
 }
 
 func topupBalanceSetup(cmd *cobra.Command) {

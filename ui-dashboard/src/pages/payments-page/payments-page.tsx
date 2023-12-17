@@ -19,6 +19,15 @@ import PaymentStatusLabel from "src/components/payment-status/payment-status";
 import TimeLabel from "src/components/time-label/time-label";
 import {sleep} from "src/utils";
 
+const displayPrice = (record: Payment) => {
+    let ticker = record.currency + " ";
+    if (record.currency in CURRENCY_SYMBOL && CURRENCY_SYMBOL[record.currency] !== "") {
+        ticker = CURRENCY_SYMBOL[record.currency];
+    }
+
+    return ticker + record.price;
+};
+
 const columns: ColumnsType<Payment> = [
     {
         title: "Created At",
@@ -37,11 +46,7 @@ const columns: ColumnsType<Payment> = [
         dataIndex: "price",
         key: "price",
         width: "min-content",
-        render: (_, record) => (
-            <span style={{whiteSpace: "nowrap"}}>
-                {`${record.currency in CURRENCY_SYMBOL ? CURRENCY_SYMBOL[record.currency] : ""}${record.price}`}
-            </span>
-        )
+        render: (_, record) => <span style={{whiteSpace: "nowrap"}}>{displayPrice(record)}</span>
     },
     {
         title: "Order ID",
