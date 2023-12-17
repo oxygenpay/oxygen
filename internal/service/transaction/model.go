@@ -132,11 +132,20 @@ var finalizedTransactionStatuses = map[Status]struct{}{
 type Type string
 
 const (
-	TypeIncoming   Type = "incoming"
-	TypeInternal   Type = "internal"
+	// TypeIncoming is for incoming payments
+	TypeIncoming Type = "incoming"
+
+	// TypeInternal is for moving assets from inbound to outbound wallets on blockchain
+	TypeInternal Type = "internal"
+
+	// TypeWithdrawal is for moving assets from outbound wallets to merchant's address
 	TypeWithdrawal Type = "withdrawal"
+
+	// TypeVirtual is for moving assets within OxygenPay w/o reflecting it on blockchain
+	// (e.g. merchant to merchant, system to merchant, ...)
+	TypeVirtual Type = "virtual"
 )
 
 func (t Type) valid() bool {
-	return t == TypeIncoming || t == TypeInternal || t == TypeWithdrawal
+	return t == TypeIncoming || t == TypeInternal || t == TypeWithdrawal || t == TypeVirtual
 }

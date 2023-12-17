@@ -106,11 +106,19 @@ func NumericToCrypto(num pgtype.Numeric, currency money.CryptoCurrency) (money.M
 }
 
 func MoneyToNumeric(m money.Money) pgtype.Numeric {
+	if m.Ticker() == "" {
+		return pgtype.Numeric{Status: pgtype.Null}
+	}
+
 	bigInt, _ := m.BigInt()
 	return BigIntToNumeric(bigInt)
 }
 
 func MoneyToNegNumeric(m money.Money) pgtype.Numeric {
+	if m.Ticker() == "" {
+		return pgtype.Numeric{Status: pgtype.Null}
+	}
+
 	bigInt, _ := m.BigInt()
 
 	return BigIntToNumeric(big.NewInt(0).Neg(bigInt))
