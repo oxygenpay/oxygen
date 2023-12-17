@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_FiatCurrencies(t *testing.T) {
@@ -72,6 +73,20 @@ func Test_FiatCurrencies(t *testing.T) {
 	}
 }
 
+func TestMoney_SubNegative(t *testing.T) {
+	m, err := FiatFromFloat64(USD, 5)
+	require.NoError(t, err)
+
+	huge, err := FiatFromFloat64(USD, 1000)
+	require.NoError(t, err)
+
+	out, err := m.SubNegative(huge)
+	assert.NoError(t, err)
+	assert.True(t, out.IsNegative())
+	assert.Equal(t, "-995", out.String())
+	assert.Equal(t, "-99500", out.StringRaw())
+}
+
 func Test_CryptoCurrencies(t *testing.T) {
 	testCases := []struct {
 		ticker    string
@@ -100,6 +115,7 @@ func Test_CryptoCurrencies(t *testing.T) {
 		{ticker: "ETH", decimals: 18, value: "123_456__000_000_000_031_631_000", expString: "123_456.000_000_000_031_631"},
 
 		{ticker: "MATIC", decimals: 18, value: "118__746_301_720_649_360_000", expString: "118.746_301_720_649_36"},
+		{ticker: "MATIC", decimals: 18, value: "-118__746_301_720_649_360_000", expString: "-118.746_301_720_649_36"},
 	}
 
 	for _, tc := range testCases {
@@ -328,6 +344,12 @@ func TestCryptoToFiat(t *testing.T) {
 			expectedFiat: mustCreateUSD("100"),
 		},
 		{
+			// negative case
+			crypto:       mustCreateCrypto("-1000000", 6),
+			exchangeRate: 1,
+			expectedFiat: mustCreateUSD("-100"),
+		},
+		{
 			crypto:       mustCreateCrypto("1000000", 6),
 			exchangeRate: 0.5,
 			expectedFiat: mustCreateUSD("50"),
@@ -350,7 +372,7 @@ func TestCryptoToFiat(t *testing.T) {
 	} {
 		t.Run(strconv.Itoa(i+1), func(t *testing.T) {
 			actual, err := CryptoToFiat(tc.crypto, USD, tc.exchangeRate)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(t, actual, tc.expectedFiat)
 		})
 	}

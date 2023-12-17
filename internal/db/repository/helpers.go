@@ -112,6 +112,5 @@ func MoneyToNumeric(m money.Money) pgtype.Numeric {
 
 func MoneyToNegNumeric(m money.Money) pgtype.Numeric {
 	bigInt, _ := m.BigInt()
-
 	return BigIntToNumeric(big.NewInt(0).Neg(bigInt))
 }

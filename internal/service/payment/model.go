@@ -46,6 +46,8 @@ const (
 	MetaBalanceID wallet.MetaDataKey = "balanceID"
 	MetaAddressID wallet.MetaDataKey = "addressID"
 
+	MetaInternalPayment wallet.MetaDataKey = "internalPayment"
+
 	MetaLinkID             wallet.MetaDataKey = "linkID"
 	MetaLinkSuccessAction  wallet.MetaDataKey = "linkSuccessAction"
 	MetaLinkSuccessMessage wallet.MetaDataKey = "linkSuccessMessage"

@@ -531,6 +531,64 @@ func (s *Service) CreatePayment(
 	return s.entryToPayment(p)
 }
 
+type CreateInternalPaymentProps struct {
+	MerchantOrderUUID uuid.UUID
+	Money             money.Money
+	Description       string
+	IsTest            bool
+}
+
+// CreateSystemTopup creates an internal payment that is reflected only within OxygenPay.
+// This payment is treated as successful.
+func (s *Service) CreateSystemTopup(ctx context.Context, merchantID int64, props CreateInternalPaymentProps) (*Payment, error) {
+	if props.Money.Type() != money.Crypto {
+		return nil, errors.Wrap(ErrValidation, "internal payments should be in crypto")
+	}
+
+	mt, err := s.merchants.GetByID(ctx, merchantID, false)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, errGet := s.GetByMerchantOrderID(ctx, merchantID, props.MerchantOrderUUID); errGet == nil {
+		return nil, ErrAlreadyExists
+	}
+
+	var (
+		price, decimals = props.Money.BigInt()
+		now             = time.Now()
+		meta            = Metadata{MetaInternalPayment: "system topup"}
+	)
+
+	pt, err := s.repo.CreatePayment(ctx, repository.CreatePaymentParams{
+		PublicID: uuid.New(),
+
+		CreatedAt: now,
+		UpdatedAt: now,
+		ExpiresAt: sql.NullTime{},
+
+		Type:   TypePayment.String(),
+		Status: StatusSuccess.String(),
+
+		MerchantID:        mt.ID,
+		MerchantOrderUuid: props.MerchantOrderUUID,
+
+		Price:    repository.BigIntToNumeric(price),
+		Decimals: int32(decimals),
+		Currency: props.Money.Ticker(),
+
+		Description: repository.StringToNullable(props.Description),
+		IsTest:      props.IsTest,
+		Metadata:    meta.ToJSONB(),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return s.entryToPayment(pt)
+}
+
 func fillPaymentMetaWithLink(meta Metadata, p CreatePaymentProps) Metadata {
 	meta[MetaLinkID] = strconv.Itoa(int(p.linkID))
 	meta[MetaLinkSuccessAction] = string(p.linkSuccessAction)
@@ -632,7 +690,14 @@ func MakeMethod(tx *transaction.Transaction, currency money.CryptoCurrency) *Met
 }
 
 func (s *Service) entryToPayment(p repository.Payment) (*Payment, error) {
-	price, err := paymentPrice(p)
+	metadata := make(Metadata)
+	if p.Metadata.Status == pgtype.Present {
+		if err := json.Unmarshal(p.Metadata.Bytes, &metadata); err != nil {
+			return nil, err
+		}
+	}
+
+	price, err := paymentPrice(p, metadata)
 	if err != nil {
 		return nil, err
 	}
@@ -640,13 +705,6 @@ func (s *Service) entryToPayment(p repository.Payment) (*Payment, error) {
 	paymentURL := ""
 	if p.Type == TypePayment.String() {
 		paymentURL = s.paymentURL(p.PublicID)
-	}
-
-	metadata := make(Metadata)
-	if p.Metadata.Status == pgtype.Present {
-		if err := json.Unmarshal(p.Metadata.Bytes, &metadata); err != nil {
-			return nil, err
-		}
 	}
 
 	entity := &Payment{
@@ -695,23 +753,26 @@ func (s *Service) entriesToPayments(results []repository.Payment) ([]*Payment, e
 	return payments, nil
 }
 
-func paymentPrice(p repository.Payment) (money.Money, error) {
+func paymentPrice(p repository.Payment, metadata Metadata) (money.Money, error) {
 	decimals := int64(p.Decimals)
 	bigInt, err := repository.NumericToBigInt(p.Price)
 	if err != nil {
 		return money.Money{}, err
 	}
 
-	switch p.Type {
-	case TypePayment.String():
+	t := Type(p.Type)
+	_, isInternal := metadata[MetaInternalPayment]
+
+	switch {
+	case t == TypeWithdrawal || (t == TypePayment && isInternal):
+		return money.NewFromBigInt(money.Crypto, p.Currency, bigInt, decimals)
+	case t == TypePayment:
 		currency, err := money.MakeFiatCurrency(p.Currency)
 		if err != nil {
 			return money.Money{}, err
 		}
 
 		return money.NewFromBigInt(money.Fiat, currency.String(), bigInt, decimals)
-	case TypeWithdrawal.String():
-		return money.NewFromBigInt(money.Crypto, p.Currency, bigInt, decimals)
 	}
 
 	return money.Money{}, errors.New("unable to get payment price")

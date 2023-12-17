@@ -257,8 +257,13 @@ func (s *Service) updateBalancesAfterTxConfirmation(
 	tx *Transaction,
 	params ConfirmTransaction,
 ) error {
-	if tx.FactAmount == nil {
+	switch {
+	case tx.FactAmount == nil:
 		return errors.New("factAmount is nil")
+	case tx.FactAmount.IsZero():
+		return errors.New("factAmount is zero")
+	case tx.FactAmount.IsNegative():
+		return errors.New("factAmount is negative")
 	}
 
 	incrementRecipientBalance := func(ctx context.Context) (string, MetaData, error) {
@@ -429,6 +434,40 @@ func (s *Service) updateBalancesAfterTxConfirmation(
 
 		if _, errDecrement := wallet.UpdateBalance(ctx, q, updateBalance); errDecrement != nil {
 			return errors.Wrap(errDecrement, "unable to decrement balance by network fee")
+		}
+
+		return nil
+	}
+
+	if tx.Type == TypeVirtual {
+		// In that case there was an "underpayment".
+		// So, skip merchant's balance increment
+		if tx.Status != StatusCompleted || tx.MerchantID == 0 {
+			return errors.New("invalid tx data for type=virtual")
+		}
+
+		comment := "virtual system topup"
+		meta := wallet.MetaData{
+			MetaMerchantID:    strconv.FormatInt(tx.MerchantID, 10),
+			MetaTransactionID: strconv.FormatInt(tx.ID, 10),
+		}
+
+		updateMerchantBalance := wallet.UpdateBalanceQuery{
+			EntityID:   tx.MerchantID,
+			EntityType: wallet.EntityTypeMerchant,
+
+			Currency: tx.Currency,
+			Amount:   *tx.FactAmount,
+
+			Operation: wallet.OperationIncrement,
+
+			Comment:  comment,
+			MetaData: meta,
+			IsTest:   tx.IsTest,
+		}
+
+		if _, errIncrement := wallet.UpdateBalance(ctx, q, updateMerchantBalance); errIncrement != nil {
+			return errors.Wrap(errIncrement, "unable to update merchant balance")
 		}
 
 		return nil
