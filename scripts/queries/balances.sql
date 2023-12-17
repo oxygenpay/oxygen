@@ -3,6 +3,12 @@ select * from balances
 where entity_type = $1 and entity_id = $2
 order by id desc;
 
+-- name: ListAllBalancesByType :many
+select * from balances
+where entity_type = $1
+and (CASE WHEN @hide_empty::boolean THEN amount > 0 ELSE true END)
+order by id desc;
+
 -- name: GetBalanceByUUID :one
 select * from balances where entity_id = $1 and entity_type = $2 and uuid = $3;
 

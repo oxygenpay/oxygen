@@ -32,6 +32,15 @@ const emptyState: Payment = {
 
 const b = bevis("payment-desc-card");
 
+const displayPrice = (record: Payment) => {
+    let ticker = record.currency + " ";
+    if (record.currency in CURRENCY_SYMBOL && CURRENCY_SYMBOL[record.currency] !== "") {
+        ticker = CURRENCY_SYMBOL[record.currency];
+    }
+
+    return ticker + record.price;
+};
+
 const PaymentDescCard: React.FC<Props> = ({data, openNotificationFunc}) => {
     React.useEffect(() => {
         if (!data) {
@@ -59,7 +68,7 @@ const PaymentDescCard: React.FC<Props> = ({data, openNotificationFunc}) => {
                             {data.orderId ?? "Not provided"}
                         </Descriptions.Item>
                         <Descriptions.Item span={3} label={<span className={b("item-title")}>Price</span>}>
-                            {`${CURRENCY_SYMBOL[data.currency]}${data.price}`}
+                            {displayPrice(data)}
                         </Descriptions.Item>
                         <Descriptions.Item span={3} label={<span className={b("item-title")}>Description</span>}>
                             {data.description ?? "Not provided"}

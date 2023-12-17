@@ -62,7 +62,7 @@ func (m *Must) CreateUserToken(t *testing.T, u *user.User) string {
 	return token.Token
 }
 
-// CreateUser creates user with api token.
+// CreateMerchant creates merchant with api token.
 func (m *Must) CreateMerchant(t *testing.T, userID int64) (*merchant.Merchant, string) {
 	mt, err := m.tc.Services.Merchants.Create(m.tc.Context, userID, "my-store", "https://site.com", nil)
 	require.NoError(t, err)

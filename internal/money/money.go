@@ -144,6 +144,12 @@ func (m Money) Decimals() int64 {
 
 func (m Money) String() string {
 	stringRaw := m.StringRaw()
+
+	isNegative := m.IsNegative()
+	if isNegative {
+		stringRaw = stringRaw[1:]
+	}
+
 	l, d := len(stringRaw), int(m.decimals)
 
 	var result string
@@ -159,10 +165,16 @@ func (m Money) String() string {
 	}
 
 	if m.moneyType == Fiat {
-		return strings.TrimSuffix(result, ".00")
+		result = strings.TrimSuffix(result, ".00")
+	} else {
+		result = strings.TrimRight(strings.TrimRight(result, "0"), ".")
 	}
 
-	return strings.TrimRight(strings.TrimRight(result, "0"), ".")
+	if isNegative {
+		result = "-" + result
+	}
+
+	return result
 }
 
 func (m Money) StringRaw() string {
@@ -202,8 +214,22 @@ func (m Money) Add(amount Money) (Money, error) {
 	return NewFromBigInt(m.moneyType, m.ticker, a.Add(a, b), m.decimals)
 }
 
-// Sub subtracts money of the same type.
+// Sub subtracts money of the same type. Restricts having negative values.
 func (m Money) Sub(amount Money) (Money, error) {
+	out, err := m.SubNegative(amount)
+	if err != nil {
+		return Money{}, err
+	}
+
+	if out.IsNegative() {
+		return Money{}, ErrNegative
+	}
+
+	return out, nil
+}
+
+// SubNegative subtracts money allowing negative outcome
+func (m Money) SubNegative(amount Money) (Money, error) {
 	if !m.CompatibleTo(amount) {
 		return Money{}, errors.Wrapf(
 			ErrIncompatibleMoney,
@@ -218,10 +244,6 @@ func (m Money) Sub(amount Money) (Money, error) {
 	m, err := NewFromBigInt(m.moneyType, m.ticker, a.Sub(a, b), m.decimals)
 	if err != nil {
 		return Money{}, nil
-	}
-
-	if m.IsNegative() {
-		return Money{}, ErrNegative
 	}
 
 	return m, nil
