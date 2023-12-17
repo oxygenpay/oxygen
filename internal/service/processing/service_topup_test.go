@@ -140,7 +140,7 @@ func TestService_TopupMerchantFromSystem(t *testing.T) {
 			assert.Equal(t, tt.in.Amount.String(), out.Transaction.Amount.String())
 			assert.Equal(t, tt.in.Amount.String(), out.Transaction.FactAmount.String())
 
-			assert.Nil(t, out.Transaction.NetworkFee)
+			assert.True(t, out.Transaction.NetworkFee.IsZero())
 			assert.True(t, out.Transaction.ServiceFee.IsZero())
 
 			assert.Equal(t, tt.in.IsTest, out.Transaction.IsTest)
