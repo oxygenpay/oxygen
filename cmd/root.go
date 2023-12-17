@@ -79,5 +79,8 @@ func init() {
 	rootCmd.AddCommand(listWalletsCommand)
 	rootCmd.AddCommand(listBalancesCommand)
 
+	topupBalanceSetup(topupBalanceCommand)
+	rootCmd.AddCommand(topupBalanceCommand)
+
 	rand.Seed(time.Now().Unix())
 }
