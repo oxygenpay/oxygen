@@ -115,6 +115,7 @@ func Test_CryptoCurrencies(t *testing.T) {
 		{ticker: "ETH", decimals: 18, value: "123_456__000_000_000_031_631_000", expString: "123_456.000_000_000_031_631"},
 
 		{ticker: "MATIC", decimals: 18, value: "118__746_301_720_649_360_000", expString: "118.746_301_720_649_36"},
+		{ticker: "MATIC", decimals: 18, value: "-118__746_301_720_649_360_000", expString: "-118.746_301_720_649_36"},
 	}
 
 	for _, tc := range testCases {

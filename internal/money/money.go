@@ -144,6 +144,12 @@ func (m Money) Decimals() int64 {
 
 func (m Money) String() string {
 	stringRaw := m.StringRaw()
+
+	isNegative := m.IsNegative()
+	if isNegative {
+		stringRaw = stringRaw[1:]
+	}
+
 	l, d := len(stringRaw), int(m.decimals)
 
 	var result string
@@ -159,10 +165,16 @@ func (m Money) String() string {
 	}
 
 	if m.moneyType == Fiat {
-		return strings.TrimSuffix(result, ".00")
+		result = strings.TrimSuffix(result, ".00")
+	} else {
+		result = strings.TrimRight(strings.TrimRight(result, "0"), ".")
 	}
 
-	return strings.TrimRight(strings.TrimRight(result, "0"), ".")
+	if isNegative {
+		result = "-" + result
+	}
+
+	return result
 }
 
 func (m Money) StringRaw() string {
