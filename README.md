@@ -4,12 +4,14 @@
   </a>
 </p>
 
-Turn ★ into ⭐ (top-right corner) if you like the project!
+_🏂 The author ([@swift1337](https://github.com/swift1337)) is exploring **new opportunities to bring expertise** to your team; dm hey@o2pay.co._
 
 [OxygenPay](https://o2pay.co) is a cloud or self-hosted crypto payment gateway.
 Receive crypto including stablecoins with ease. Open new opportunities for your product by accepting cryptocurrency.
 
 <img src="./.github/static/demo.jpg" alt="demo">
+
+Turn ★ into ⭐ (top-right corner) if you like the project!
 
 ## Supported Currencies 🔗
 
