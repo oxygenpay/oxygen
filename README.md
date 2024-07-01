@@ -1,15 +1,23 @@
+### 2024-07-01
+
+Hello, Internet 🌎 Despite the great journey filled with challenges and learnings, I haven’t found product market fit for this project. Given this, and my current lack of bandwidth and will to continue improving and maintaining it, I’ve arhivie it and move forward. However, I believe this project still holds potential, and I hope someone with the necessary passion and resources might take it forward. 
+
+If you’re interested, feel free to fork the repo and continue its development.
+
+Thank y'all for your support and understanding.
+
+--- 
+
 <p align="center">
   <a href="https://o2pay.co">
     <img src="./.github/static/cover.svg" height="200" alt="cover">
   </a>
 </p>
 
-[OxygenPay](https://o2pay.co) is a cloud or self-hosted crypto payment gateway.
+**OxygenPay** is a cloud or self-hosted crypto payment gateway.
 Receive crypto including stablecoins with ease. Open new opportunities for your product by accepting cryptocurrency.
 
 <img src="./.github/static/demo.jpg" alt="demo">
-
-Turn ★ into ⭐ (top-right corner) if you like the project!
 
 ## Supported Currencies 🔗
 
@@ -56,10 +64,6 @@ Turn ★ into ⭐ (top-right corner) if you like the project!
 - Support for testnets
 - It's only 1 binary!
 
-## Documentation 📚
-
-Visit [docs.o2pay.co](https://docs.o2pay.co) for setup guides. If you have any questions,
-feel free to ask them in our [telegram community](https://t.me/oxygenpay_en)
 
 ## Roadmap 🛣️
 
